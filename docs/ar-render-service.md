@@ -27,22 +27,39 @@ The `StudyGuideApp` component must be registered in the `render-service` project
 Example:
 
 ```php
-$html = $this->getRenderService()->render('some-unique-key (ex: route + component name)', 'DocumentRatingWidget', $props);
+$key = 'some-unique-key (ex: route + component name)';
+$component = 'DocumentRatingWidget';
+$html = $renderService->loadFromCache($key, $component);
 
 if ($html) {
     // succeeded
-    $this->render('my.html.twig', [
+    return $this->render('my.html.twig', [
         "widgetHtml" => $html
     ]);
 } else {
     // failed for number of reasons:
     // 1) could not reach microservice
     // 2) version of react component does not match version used on the microservice
-    // 3) there was a cache-miss. Default should be to not server-render.
-    //    Could expose a way to optionally wait for the rendered response.
-    
-    // just don't server-side render. The client will see the widget once JS is ready.
-    $this->render('my.html.twig');
+    // 3) there was a cache-miss
+
+    // Can handle this case in a couple ways
+
+    -------
+    // Render and cache for next time
+    $html = $renderService->renderAndCache($key, $component, $props);
+    if ($html) {
+        return $this->render('my.html.twig', [
+            "widgetHtml" => $html
+        ]);
+    } else {
+        // failed because of reason #2 (hash mismatch)
+        // no way to recover from this. Must ditch server-side rendering entirely.
+        return $this->render('my.html.twig');
+    }
+    -------
+    // Faster response time: Do not server-side render, but warm up cache for next time.
+    $renderService->renderAndCacheAsync($key, $component, $props);
+    return $this->render('my.html.twig');
 }
 ```
 
