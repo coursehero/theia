@@ -2,7 +2,7 @@
 
 ## Overview
 
-The purpose of this microservice is to enable server-side React rendering. It will be a node app.
+The purpose of this microservice is to enable server-side React rendering. It will be a node express app.
 
 [Diagram](./resources/diagram-2.jpg)
 (Note: this is somewhat combined with a specific use case for the new subject study guides)
@@ -34,8 +34,16 @@ The microservice will load each manifest, and add all components to a registry.
 When a request comes in, the registry will be consulted:
 
 ```js
-function render(componentName, props) {
-    const component = loadFromRegistry(componentName)
+const loadFromRegistry = (packageName, componentName) => {
+    const manifest = require(`${packageName}/component-manifest`);
+    if (!manifest || !manifest[componentName]) {
+        throw new Error(':(');
+    }
+    return manifest[componentName];
+}
+
+const render = (packageName, componentName, props) => {
+    const component = loadFromRegistry(packageName, componentName)
     return ReactDOMServer.renderToString(component, props)
 }
 ```
@@ -82,12 +90,7 @@ node-components.yml:
 ```yml
 coursehero/components/study-guides:
     hash: ABCD1234
-    components:
-        - StudyGuideLandingPageApp
-        - StudyGuideCourseApp
 ```
-
-This build step will inspect all packages under the namespace `coursehero/components/`, and include the components as defined in `component-manifest.js`.
 
 Additionally, the build step should be updated to fail if there is a mismatch between the hashes in `node-components.yml` and corresponding hashs in `render-service`.
 
@@ -97,9 +100,8 @@ RenderService.php:
 
 ```php
 // $key would typically just be the full route (ex: '/study-guides/intro-to-biology/cells')
-public function renderAndCache(string $key, string $componentName, array $props)
+public function renderAndCache(string $key, string $package, string $componentName, array $props)
 {
-    $package = findPackageContainingComponent($componentName);
     $hash = getHashForPackage($package);
     $hashKey = "$hash:$key";
 
@@ -119,7 +121,7 @@ React components must be added to a library under the namespace `coursehero/comp
 Consumers of this service will communicate over HTTP (note: this interface will be abstracted within a RenderService in a RenderBundle on the Monolith). For example, to render a component `StudyGuideCourseApp` with props `props`:
 
 ```
-GET /render?component=StudyGuideCourseApp&hash=<package hash>
+GET /render?package=study-guides&component=StudyGuideCourseApp&hash=<package hash>
 {
     ...props
 }
@@ -133,8 +135,9 @@ Example:
 
 ```php
 $key = 'some-unique-key (ex: route + component name)';
+$package = 'study-guides';
 $component = 'DocumentRatingWidget';
-$html = $renderService->loadFromCache($key, $component);
+$html = $renderService->loadFromCache($key, $package, $component);
 
 if ($html) {
     // succeeded
@@ -151,7 +154,7 @@ if ($html) {
 
     -------
     // Render and cache for next time
-    $html = $renderService->renderAndCache($key, $component, $props);
+    $html = $renderService->renderAndCache($key, $package, $component, $props);
     if ($html) {
         return $this->render('my.html.twig', [
             "widgetHtml" => $html
@@ -163,7 +166,7 @@ if ($html) {
     }
     -------
     // Faster response time: Do not server-side render, but warm up cache for next time.
-    $renderService->renderAndCacheAsync($key, $component, $props);
+    $renderService->renderAndCacheAsync($key, $package, $component, $props);
     return $this->render('my.html.twig');
 }
 ```
