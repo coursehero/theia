@@ -175,3 +175,7 @@ The resulting HTML from the `render-service` should be embedded in a twig file, 
 Question: Why a microservice? Why not do the rendering on the Monolith?
 
 Answer: This would require installing a v8 (JS) runtime php extension on all of our webservers. The performance implications of this are unclear. Keeping JavaScript off of the webservers is ideal.
+
+## Discussion
+
+https://course-hero.slack.com/archives/C7TH1H9QR/p1510627788000024
