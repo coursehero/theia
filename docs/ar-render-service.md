@@ -121,7 +121,7 @@ React components must be added to a library under the namespace `coursehero/comp
 Consumers of this service will communicate over HTTP (note: this interface will be abstracted within a RenderService in a RenderBundle on the Monolith). For example, to render a component `StudyGuideCourseApp` with props `props`:
 
 ```
-GET /render?package=study-guides&component=StudyGuideCourseApp&hash=<package hash>
+POST /render?package=coursehero%2Fcomponents%2Fstudy-guides&component=StudyGuideCourseApp
 {
     ...props
 }
