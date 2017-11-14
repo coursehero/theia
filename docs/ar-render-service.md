@@ -1,0 +1,155 @@
+# Render Service
+
+## Overview
+
+The purpose of this microservice is to enable server-side React rendering. It will be a node app.
+
+## Usage
+
+React components must be added to a library under the namespace `coursehero/components/`. Ex: `coursehero/components/study-guides` will contain the component `StudyGuideApp`.
+
+Consumers of this service will communicate over HTTP (note: this interface will be abstracted within a RenderService in a RenderBundle on the monolith). For example, to render a component `StudyGuideApp` with props `props`:
+
+```
+GET /render?component=StudyGuideApp&hash=<package hash>
+{
+    ...props
+}
+```
+
+This will return the React server-side generated HTML.
+
+The `StudyGuideApp` component must be registered in the `render-service` project, and thus must be included as a dependency in its `package.json`.
+
+Example:
+
+```php
+$html = $this->getRenderService()->render('some-unique-key (ex: route + component name)', 'DocumentRatingWidget', $props);
+
+if ($html) {
+    // succeeded
+    $this->render('my.html.twig', [
+        "widgetHtml" => $html
+    ]);
+} else {
+    // failed for number of reasons:
+    // 1) could not reach microservice
+    // 2) version of react component does not match version used on the microservice
+    // 3) there was a cache-miss. Default should be to not server-render.
+    //    Could expose a way to optionally wait for the rendered response.
+    
+    // just don't server-side render. The client will see the widget once JS is ready.
+    $this->render('my.html.twig');
+}
+```
+
+The resulting HTML from the `render-service` should be embedded in a twig file, and include the bundle react application.
+
+## Caching
+
+This microservice will not handle caching. This will be handled on the consuming side. The Monolith will first check a cache for the content it needs, and only then should it defer to the microservice. This process will be abstracted within `RenderBundle/RenderService`.
+
+## Implementation
+
+### Component Registry
+
+Components must be registered before being accessible through this microservice.
+
+```js
+import StudyGuideApp from 'coursehero/components/study-guides'
+...
+
+register(StudyGuideApp)
+register(...)
+register(...)
+register(...)
+```
+
+When a request comes in, the registry will be consulted:
+
+```js
+function render(componentName, props) {
+    const component = loadFromRegistry(componentName)
+    return ReactDOMServer.render(component, props)
+}
+```
+
+### Versioning
+
+The `render-service` will create the initial page view for clients, but eventually the client must take over the task of rendering. This means that both the `render-service` and the monolith should reference the same version of a dependency. Otherwise, the following occurs (taking `StudyGuideApp` as an example):
+
+* if the `render-service` has a newer version of `StudyGuideApp` than the monolith- assuming no cache, the client would see a new rendering of the app followed by a flicker and the old version taking over. Assuming a naiive cache, the old version would continue to be served, but the previous issue would occur once the cache is cleared
+* if the monolith has a newer version of `StudyGuideApp` than the `render-service`- the client would see an old rendering of the app followed by a flicker and the new version taking over
+
+Thus it is important that the two projects include the same version of `StudyGuideApp`. We can mitigate this issue by enforcing the following:
+
+* Always update packages on `render-service` first.
+* Include the hash of the library on the Monolith as part of the cache key. (something like `{hash}:{route}`)
+* On Jenkins, fail Monolith builds if the hash of the included React libray (anything under the namespace `coursehero/components`) does not match the hash used in `render-service/master/package.lock`
+
+When `render-service` goes live with the updated packages, consumers would still get the old version from the cache. When the Monolith goes live with the updated packages, the hash will have been updated, and so the cache key used would be new (and be a miss).
+
+The "release gap" between `render-service` updating w/ new packages and the Monolith updating will be unnoticed by consumers of the `render-service`, but ONLY if the old content is in cache. For use cases that warm up the cache (and thus only have a small number of cache items), no issue will occur, since the cache would still contain html rendered with the same version that the Monolith currently has. But, for example, if the UA team wishes to server-side render a widget on the Documents page, the cache can't be filled using every document in our system. There will be cache misses in that case. An example to illustrate:
+
+---
+
+The current version of `DocumentRatingWidget` on the `render-service` and the Monolith has a hash of `ABCD1234`.
+
+1) Push new version of `DocumentRatingWidget` with hash of `ZYXW5678`
+2) Update dependency in `render-service`, push to production
+3) Update dependency in Monolith, push to production
+
+Between the "release gap" of steps 2 and 3, requests for Document pages will use a key akin to `ABCD1234:@rating-widget/documents/9999/`. If this widget is in cache, no problem. If it is not, it will defer to the `render-service`. The `render-service` will check that the hash matches the hash it is using. It will not match, so it will error. The consuming code will handle this error, and simply not do server-side rendering for this widget. The user will have to wait for the widget to load in the browser.
+
+This will be resolved once the "release gap" closes. The rendering for key `ZYXW5678:@rating-widget/documents/9999/` will succeed (the hashes will match), and server-side rendering will commence.
+
+---
+
+It's the job of the team utilizing `render-service` to "warm up the cache", if that is important. Otherwise every first request will be a cache-miss. The suggested behavior for a cache-miss is to just display a "loading" icon where the react app would have been, and just let the client render it when it's ready. Otherwise, the initial request would take longer than ideal.
+
+#### Monolith Changes
+
+`RenderBundle/RenderService` will need a way to resolve a component name (`StudyGuideApp`) to the node project it came from (`coursehero/components/study-guides`) and its hash. The js `gulp` build process will create a `Symfony/config/node-components.yml` file, which will contain an entry for all the packages under the namespace `coursehero/components/` and their correspoding hash values.
+
+node-components.yml:
+
+```yml
+coursehero/components/study-guides:
+    hash: ABCD1234
+    components:
+        - StudyGuideApp
+        - CourseBlock
+        - ContentBlock
+        - ....
+```
+
+This build step will inspect all packages under the namespace `coursehero/components/`, and include each component it finds. It will assume that every file under a folder named `components` will contain files such as `study-guide-app`, `course-block`, etc. which map to components `StudyGuideApp`, `CourseBlock`, etc.
+
+##### Example implementation
+
+RenderService.php:
+
+```php
+// $key would typically just be the full route (ex: '/study-guides/intro-to-biology/cells')
+public function render(string $key, string $componentName, array $props)
+{
+    $package = findPackageContainingComponent($componentName);
+    $hash = getHashForPackage($package);
+    $hashKey = "$hash:$key";
+
+    $cached = loadFromCache($hashKey);
+    if ($cached) return $cached;
+
+    $result = getFromRenderService($componentName, $props);
+    addToCache($hashKey, $result);
+    return $result;
+}
+```
+
+Additionally, the build step should be updated to fail if there is a mismatch between the hashes in `node-components.yml` and corresponding hashs in `render-service`.
+
+## Q&A
+
+Question: Why a microservice? Why not do the rendering on the Monolith?
+
+Answer: This would require installing a v8 (JS) runtime php extension on all of our webservers. The performance implications of this are unclear. Keeping JavaScript off of the webservers is ideal.
