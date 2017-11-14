@@ -17,7 +17,7 @@ This microservice will not handle caching. This will be handled on the consuming
 
 The microservice will simply need to add a component library (in the namespace `coursehero/components/`) as a dependency. Each dependency in this namespace will be added to a component registry, via a `component-manifest.js` file located on the component library itself.
 
-coursehero/components/component-manifest.js:
+coursehero/components/study-guides/component-manifest.js:
 
 ```
 import StudyGuideCourseApp from './components/course-app/app'
@@ -75,7 +75,7 @@ It's the job of the team utilizing `render-service` to "warm up the cache", if t
 
 #### Monolith Changes
 
-`RenderBundle/RenderService` will need a way to resolve a component name (`StudyGuideApp`) to the node project it came from (`coursehero/components/study-guides`) and its hash. The js `gulp` build process will create a `Symfony/config/node-components.yml` file, which will contain an entry for all the packages under the namespace `coursehero/components/` and their correspoding hash values.
+`RenderBundle/RenderService` will need a way to resolve a component name (`StudyGuideCourseApp`) to the node project it came from (`coursehero/components/study-guides`) and its hash. The js `gulp` build process will create a `Symfony/config/node-components.yml` file, which will contain an entry for all the packages under the namespace `coursehero/components/` and their correspoding hash values.
 
 node-components.yml:
 
@@ -83,13 +83,11 @@ node-components.yml:
 coursehero/components/study-guides:
     hash: ABCD1234
     components:
-        - StudyGuideApp
-        - CourseBlock
-        - ContentBlock
-        - ....
+        - StudyGuideLandingPageApp
+        - StudyGuideCourseApp
 ```
 
-This build step will inspect all packages under the namespace `coursehero/components/`, and include each component it finds. It will assume that every file under a folder named `components` will contain files such as `study-guide-app`, `course-block`, etc. which map to components `StudyGuideApp`, `CourseBlock`, etc.
+This build step will inspect all packages under the namespace `coursehero/components/`, and include the components as defined in `component-manifest.js`.
 
 ##### Example implementation
 
