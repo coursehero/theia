@@ -4,8 +4,8 @@
 
 The purpose of this microservice is to enable server-side React rendering. It will be a node app.
 
-![](./resources/diagram-2.jpg)
-(Note: this is somehwate combined with a specific use case for the new subject study guides)
+[Diagram](./resources/diagram-2.jpg)
+(Note: this is somewhat combined with a specific use case for the new subject study guides)
 
 ## Usage
 
