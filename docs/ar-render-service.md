@@ -42,12 +42,12 @@ function render(componentName, props) {
 
 ### Versioning
 
-The `render-service` will create the initial page view for clients, but eventually the client must take over the task of rendering. This means that both the `render-service` and the Monolith should reference the same version of a dependency. Otherwise, the following occurs (taking `StudyGuideApp` as an example):
+The `render-service` will create the initial page view for clients, but eventually the client must take over the task of rendering. This means that both the `render-service` and the Monolith should reference the same version of a dependency. Otherwise, the following occurs (taking `StudyGuideCourseApp` as an example):
 
-* if the `render-service` has a newer version of `StudyGuideApp` than the Monolith- assuming no cache, the client would see a new rendering of the app followed by a flicker and the old version taking over. Assuming a naiive cache, the old version would continue to be served, but the previous issue would occur once the cache is cleared
-* if the Monolith has a newer version of `StudyGuideApp` than the `render-service`- the client would see an old rendering of the app followed by a flicker and the new version taking over
+* if the `render-service` has a newer version of `StudyGuideCourseApp` than the Monolith- assuming no cache, the client would see a new rendering of the app followed by a flicker and the old version taking over. Assuming a naiive cache, the old version would continue to be served, but the previous issue would occur once the cache is cleared
+* if the Monolith has a newer version of `StudyGuideCourseApp` than the `render-service`- the client would see an old rendering of the app followed by a flicker and the new version taking over
 
-Thus it is important that the two projects include the same version of `StudyGuideApp`. We can mitigate this issue by enforcing the following:
+Thus it is important that the two projects include the same version of `StudyGuideCourseApp`. We can mitigate this issue by enforcing the following:
 
 * Always update packages on `render-service` first.
 * Include the hash of the library on the Monolith as part of the cache key. (something like `{hash}:{route}`)
@@ -71,11 +71,11 @@ This will be resolved once the "release gap" closes. The rendering for key `ZYXW
 
 ---
 
-It's the job of the team utilizing `render-service` to "warm up the cache", if that is important. Otherwise every first request will be a cache-miss. The suggested behavior for a cache-miss is to just display a "loading" icon where the react app would have been, and just let the client render it when it's ready. Otherwise, the initial request would take longer than ideal.
+It's the job of the team utilizing `render-service` to "warm up the cache", if that is important. Otherwise every first request will be a cache-miss. The suggested behavior for a cache-miss is to just display a "loading" icon where the react app would have been, and just let the client render it when it's ready. Otherwise, the initial request would take longer than necessary.
 
 #### Monolith Changes
 
-`RenderBundle/RenderService` will need a way to resolve a component name (`StudyGuideCourseApp`) to the node project it came from (`coursehero/components/study-guides`) and its hash. The js `gulp` build process will create a `Symfony/config/node-components.yml` file, which will contain an entry for all the packages under the namespace `coursehero/components/` and their correspoding hash values.
+`RenderBundle/RenderService` will need a way to resolve a component name (`StudyGuideCourseApp`) to the package it came from (`coursehero/components/study-guides`) and its hash. The js `gulp` build process will create a `Symfony/config/node-components.yml` file, which will contain an entry for all the packages under the namespace `coursehero/components/` and their correspoding hash values.
 
 node-components.yml:
 
@@ -89,13 +89,15 @@ coursehero/components/study-guides:
 
 This build step will inspect all packages under the namespace `coursehero/components/`, and include the components as defined in `component-manifest.js`.
 
+Additionally, the build step should be updated to fail if there is a mismatch between the hashes in `node-components.yml` and corresponding hashs in `render-service`.
+
 ##### Example implementation
 
 RenderService.php:
 
 ```php
 // $key would typically just be the full route (ex: '/study-guides/intro-to-biology/cells')
-public function render(string $key, string $componentName, array $props)
+public function renderAndCache(string $key, string $componentName, array $props)
 {
     $package = findPackageContainingComponent($componentName);
     $hash = getHashForPackage($package);
@@ -110,16 +112,14 @@ public function render(string $key, string $componentName, array $props)
 }
 ```
 
-Additionally, the build step should be updated to fail if there is a mismatch between the hashes in `node-components.yml` and corresponding hashs in `render-service`.
-
 ## Usage
 
-React components must be added to a library under the namespace `coursehero/components/`. Ex: `coursehero/components/study-guides` will contain the component `StudyGuideApp`.
+React components must be added to a library under the namespace `coursehero/components/`. Ex: `coursehero/components/study-guides` will contain the component `StudyGuideCourseApp`.
 
-Consumers of this service will communicate over HTTP (note: this interface will be abstracted within a RenderService in a RenderBundle on the Monolith). For example, to render a component `StudyGuideApp` with props `props`:
+Consumers of this service will communicate over HTTP (note: this interface will be abstracted within a RenderService in a RenderBundle on the Monolith). For example, to render a component `StudyGuideCourseApp` with props `props`:
 
 ```
-GET /render?component=StudyGuideApp&hash=<package hash>
+GET /render?component=StudyGuideCourseApp&hash=<package hash>
 {
     ...props
 }
@@ -127,7 +127,7 @@ GET /render?component=StudyGuideApp&hash=<package hash>
 
 This will return the React server-side generated HTML.
 
-The `StudyGuideApp` component must be registered in the `render-service` project, and thus must be included as a dependency in its `package.json`.
+The `StudyGuideCourseApp` component must be registered in the `render-service` project, and thus must be included as a dependency in its `package.json`.
 
 Example:
 
