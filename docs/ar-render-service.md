@@ -115,9 +115,9 @@ The "release gap" between `render-service` updating w/ new packages and the Mono
 
 The current version of `DocumentRatingWidget` on the `render-service` and the Monolith has a hash of `ABCD1234`.
 
-1) Push new version of `DocumentRatingWidget` with hash of `ZYXW5678`
-2) Update dependency in `render-service`, push to production
-3) Update dependency in Monolith, push to production
+1. Push new version of `DocumentRatingWidget` with hash of `ZYXW5678`
+2. Update dependency in `render-service`, push to production
+3. Update dependency in Monolith, push to production
 
 Between the "release gap" of steps 2 and 3, requests for Document pages will use a key akin to `ABCD1234:@rating-widget/documents/9999/`. If this widget is in cache, no problem. If it is not, it will defer to the `render-service`. The `render-service` will check that the hash matches the hash it is using. It will not match, so it will error. The consuming code will handle this error, and simply not do server-side rendering for this widget. The user will have to wait for the widget to load in the browser.
 
