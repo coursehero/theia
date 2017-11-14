@@ -7,64 +7,6 @@ The purpose of this microservice is to enable server-side React rendering. It wi
 [Diagram](./resources/diagram-2.jpg)
 (Note: this is somewhat combined with a specific use case for the new subject study guides)
 
-## Usage
-
-React components must be added to a library under the namespace `coursehero/components/`. Ex: `coursehero/components/study-guides` will contain the component `StudyGuideApp`.
-
-Consumers of this service will communicate over HTTP (note: this interface will be abstracted within a RenderService in a RenderBundle on the monolith). For example, to render a component `StudyGuideApp` with props `props`:
-
-```
-GET /render?component=StudyGuideApp&hash=<package hash>
-{
-    ...props
-}
-```
-
-This will return the React server-side generated HTML.
-
-The `StudyGuideApp` component must be registered in the `render-service` project, and thus must be included as a dependency in its `package.json`.
-
-Example:
-
-```php
-$key = 'some-unique-key (ex: route + component name)';
-$component = 'DocumentRatingWidget';
-$html = $renderService->loadFromCache($key, $component);
-
-if ($html) {
-    // succeeded
-    return $this->render('my.html.twig', [
-        "widgetHtml" => $html
-    ]);
-} else {
-    // failed for number of reasons:
-    // 1) could not reach microservice
-    // 2) version of react component does not match version used on the microservice
-    // 3) there was a cache-miss
-
-    // Can handle this case in a couple ways
-
-    -------
-    // Render and cache for next time
-    $html = $renderService->renderAndCache($key, $component, $props);
-    if ($html) {
-        return $this->render('my.html.twig', [
-            "widgetHtml" => $html
-        ]);
-    } else {
-        // failed because of reason #2 (hash mismatch)
-        // no way to recover from this. Must ditch server-side rendering entirely.
-        return $this->render('my.html.twig');
-    }
-    -------
-    // Faster response time: Do not server-side render, but warm up cache for next time.
-    $renderService->renderAndCacheAsync($key, $component, $props);
-    return $this->render('my.html.twig');
-}
-```
-
-The resulting HTML from the `render-service` should be embedded in a twig file, and include the bundle react application.
-
 ## Caching
 
 This microservice will not handle caching. This will be handled on the consuming side. The Monolith will first check a cache for the content it needs, and only then should it defer to the microservice. This process will be abstracted within `RenderBundle/RenderService`.
@@ -73,33 +15,37 @@ This microservice will not handle caching. This will be handled on the consuming
 
 ### Component Registry
 
-Components must be registered before being accessible through this microservice.
+The microservice will simply need to add a component library (in the namespace `coursehero/components/`) as a dependency. Each dependency in this namespace will be added to a component registry, via a `component-manifest.js` file located on the component library itself.
 
-```js
-import StudyGuideApp from 'coursehero/components/study-guides'
-...
+coursehero/components/component-manifest.js:
 
-register(StudyGuideApp)
-register(...)
-register(...)
-register(...)
 ```
+import StudyGuideCourseApp from './components/course-app/app'
+import StudyGuideLandingPageApp from './components/landing-page-app/app'
+
+export default {
+    StudyGuideCourseApp,
+    StudyGuideLandingPageApp
+}
+```
+
+The microservice will load each manifest, and add all components to a registry.
 
 When a request comes in, the registry will be consulted:
 
 ```js
 function render(componentName, props) {
     const component = loadFromRegistry(componentName)
-    return ReactDOMServer.render(component, props)
+    return ReactDOMServer.renderToString(component, props)
 }
 ```
 
 ### Versioning
 
-The `render-service` will create the initial page view for clients, but eventually the client must take over the task of rendering. This means that both the `render-service` and the monolith should reference the same version of a dependency. Otherwise, the following occurs (taking `StudyGuideApp` as an example):
+The `render-service` will create the initial page view for clients, but eventually the client must take over the task of rendering. This means that both the `render-service` and the Monolith should reference the same version of a dependency. Otherwise, the following occurs (taking `StudyGuideApp` as an example):
 
-* if the `render-service` has a newer version of `StudyGuideApp` than the monolith- assuming no cache, the client would see a new rendering of the app followed by a flicker and the old version taking over. Assuming a naiive cache, the old version would continue to be served, but the previous issue would occur once the cache is cleared
-* if the monolith has a newer version of `StudyGuideApp` than the `render-service`- the client would see an old rendering of the app followed by a flicker and the new version taking over
+* if the `render-service` has a newer version of `StudyGuideApp` than the Monolith- assuming no cache, the client would see a new rendering of the app followed by a flicker and the old version taking over. Assuming a naiive cache, the old version would continue to be served, but the previous issue would occur once the cache is cleared
+* if the Monolith has a newer version of `StudyGuideApp` than the `render-service`- the client would see an old rendering of the app followed by a flicker and the new version taking over
 
 Thus it is important that the two projects include the same version of `StudyGuideApp`. We can mitigate this issue by enforcing the following:
 
@@ -167,6 +113,64 @@ public function render(string $key, string $componentName, array $props)
 ```
 
 Additionally, the build step should be updated to fail if there is a mismatch between the hashes in `node-components.yml` and corresponding hashs in `render-service`.
+
+## Usage
+
+React components must be added to a library under the namespace `coursehero/components/`. Ex: `coursehero/components/study-guides` will contain the component `StudyGuideApp`.
+
+Consumers of this service will communicate over HTTP (note: this interface will be abstracted within a RenderService in a RenderBundle on the Monolith). For example, to render a component `StudyGuideApp` with props `props`:
+
+```
+GET /render?component=StudyGuideApp&hash=<package hash>
+{
+    ...props
+}
+```
+
+This will return the React server-side generated HTML.
+
+The `StudyGuideApp` component must be registered in the `render-service` project, and thus must be included as a dependency in its `package.json`.
+
+Example:
+
+```php
+$key = 'some-unique-key (ex: route + component name)';
+$component = 'DocumentRatingWidget';
+$html = $renderService->loadFromCache($key, $component);
+
+if ($html) {
+    // succeeded
+    return $this->render('my.html.twig', [
+        "widgetHtml" => $html
+    ]);
+} else {
+    // failed for number of reasons:
+    // 1) could not reach microservice
+    // 2) version of react component does not match version used on the microservice
+    // 3) there was a cache-miss
+
+    // Can handle this case in a couple ways
+
+    -------
+    // Render and cache for next time
+    $html = $renderService->renderAndCache($key, $component, $props);
+    if ($html) {
+        return $this->render('my.html.twig', [
+            "widgetHtml" => $html
+        ]);
+    } else {
+        // failed because of reason #2 (hash mismatch)
+        // no way to recover from this. Must ditch server-side rendering entirely.
+        return $this->render('my.html.twig');
+    }
+    -------
+    // Faster response time: Do not server-side render, but warm up cache for next time.
+    $renderService->renderAndCacheAsync($key, $component, $props);
+    return $this->render('my.html.twig');
+}
+```
+
+The resulting HTML from the `render-service` should be embedded in a twig file, and include the bundle react application.
 
 ## Q&A
 
