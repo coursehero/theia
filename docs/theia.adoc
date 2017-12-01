@@ -6,8 +6,8 @@ v1.0, {localdate}
 :toc: left
 :sectnums:
 :icons: font
-
-image::resources/company-logo.png[Course Hero]
+:source-highlighter: rouge
+:title-logo-image: image:resources/company-logo.png[Course Hero]
 
 == Overview
 
@@ -180,7 +180,7 @@ NOTE: Shouldn't assume that Cloudfare's cache would suffice for this problem. Th
 Consumers will interact with `Theia` via HTTP.
 
 Payload schema:
-[source,json]
+[source,javascript]
 POST /render
 {
     "library": "@coursehero-components/study-guides",
