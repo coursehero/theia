@@ -250,7 +250,7 @@ When `Theia` builds an update to a CL, it will kick off a CL-specific caching ca
 
 == Miscellaneous
 
-* link:https://git.coursehero.com/coursehero/render-service/blob/e75c83dace101f471f986dcfe8a3b4907556e168/docs/ar-render-service.md[Original `Render Service` AR].
+* link:https://git.coursehero.com/coursehero/theia/blob/e75c83dace101f471f986dcfe8a3b4907556e168/docs/ar-render-service.md[Original `Render Service` AR].
 * `study-guides` does not use Redux, so hydrating a redux store is not part of v1.
 
 == Task Breakdown
