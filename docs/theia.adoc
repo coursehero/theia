@@ -65,7 +65,7 @@ Users of Theia.
 
 === SSR
 
-Given a components and props, `Theia` should render the result using link:https://reactjs.org/docs/react-dom-server.html#rendertostring[ReactDOMServer.renderToString].
+Given a component name and props, `Theia` should render the result using link:https://reactjs.org/docs/react-dom-server.html#rendertostring[ReactDOMServer.renderToString].
 
 === CS
 
