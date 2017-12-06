@@ -2,7 +2,7 @@
 
 = Theia
 Connor Clark <connor.clark@coursehero.com>
-v1.0, {localdate}
+v1.1, {localdate}
 :toc: left
 :sectnums:
 :icons: font
@@ -11,11 +11,13 @@ v1.0, {localdate}
 
 == Overview
 
-`Theia` (the link:http://www.theoi.com/Titan/TitanisTheia.html[Greek Titaness] of sight, beauty, and shiny things) is a Node microservice which will provide Server Side Rendering (SSR) and Code Splitting (CS) for React applications.
+`Theia` (the link:http://www.theoi.com/Titan/TitanisTheia.html[Greek Titaness] of sight, beauty, and shiny things) is a Node microservice which will provide Server Side Rendering (SSR) and Code Splitting (CS) for React applications. SSR is the primary benefit, and CS can be left out of a MVP.
 
 Think of it as a `Render Service`, or `React As A Service`.
 
 The first use case of `Theia` will be CHESS's link:https://git.coursehero.com/coursehero/components/study-guides[`study-guides`] component library.
+
+See <<Diagram>> for a visual representation of the architecture.
 
 == Background
 
@@ -28,6 +30,8 @@ One reason for building this as a separate microservice is to avoid installing a
 === Server Side Rendering (SSR)
 
 The initial HTML which a React component renders can be done by the server, and then sent to the client on the initial document request. When the client loads all the JavaScript needed, fetches data required, and finishes rendering the initial view locally, the browser will "take control." This process is called hydration.
+
+SSR reduces inital page load time, which is ideal for SEO. Assuming a cache hit, the initial page rendering has already been done, so the user does not have to wait for React to see the content. Even ignoring SEO concerns, SSR makes for a snappier user experience with fewer loading screens.
 
 A commonly cited disadvantage of SSR is the increase in time for serving requests. This can be remedied by using a cache. `Theia` should be limited to use cases which can be fully enumerated in a cache, or are not important for SEO (and thus a loading spinner is acceptable on cache-misses).
 
@@ -114,6 +118,8 @@ WARNING: Unresolved: How can rollbar automatically use these source maps?
 
 `Theia` should memcache the result of render requests: the SSR html and the minimal chunks required to do the rendering.
 
+Consumers read directly from memcache - there is no communication with `Theia` on a cache hit.
+
 When a CL is updated, `Theia` should call a CL-specific cache reheating function.
 
 === Hotloading
@@ -172,7 +178,7 @@ NOTE: Shouldn't assume that Cloudfare's cache would suffice for this problem. Th
 +-------------+           |
 | Browser     |-----------+
 |          {d}|  chunks requests (.js, .css)
-+-------------+
++-------------+  (CloudFare would cache this part)
 ....
 
 === Details
@@ -256,6 +262,8 @@ When `Theia` builds an update to a CL, it will kick off a CL-specific caching ca
 == Task Breakdown
 
 awaiting feedback ...
+
+CS can be left out of the MVP.
 
 == Discussion
 
