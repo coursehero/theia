@@ -1,0 +1,33 @@
+{
+  "name": "theia",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://git.coursehero.com/coursehero/theia.git",
+  "author": "Connor Clark <connor.clark@coursehero.com>",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "~1.18.2",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.9",
+    "express": "^4.16.2",
+    "fs-extra": "^5.0.0",
+    "http-status-codes": "^1.3.0",
+    "jade": "~1.11.0",
+    "morgan": "~1.9.0",
+    "react": "^15",
+    "react-dom": "^15",
+    "serve-favicon": "~2.4.5",
+    "tapable": "webpack/tapable",
+    "typescript": "^2.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^8.5.1",
+    "nodemon": "^1.13.3",
+    "ts-node": "^4.0.2"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node ./dist/entry.js",
+    "start-dev": "nodemon"
+  }
+}
