@@ -1,0 +1,21 @@
+= Theia
+Connor Clark <connor.clark@coursehero.com>
+{localdate}
+:toc: left
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+
+== How To Use
+
+Payload schema:
+[source,javascript]
+POST /render?componentLibrary=@coursehero-components/hello-world&component=Greeting
+{
+    "name": "World"
+}
+
+Response:
+var:helloWorldResult[]
+
+var:helloWorldResultRaw[]

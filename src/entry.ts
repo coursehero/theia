@@ -2,21 +2,21 @@
  * Module dependencies.
  */
 
-var app = require('./app')
-var http = require('http')
+import app from './app'
+import * as http from 'http'
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000')
+const port = normalizePort(process.env.PORT || '3000')
 app.set('port', port)
 
 /**
  * Create HTTP server.
  */
 
-var server = http.createServer(app)
+const server = http.createServer(app)
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -83,6 +83,6 @@ function onListening() {
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port
-  
+
   console.log('Listening on ' + bind)
 }

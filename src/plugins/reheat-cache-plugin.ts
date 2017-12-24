@@ -1,6 +1,18 @@
-import Theia from '../theia'
+import {
+  default as Theia,
+  TheiaPlugin,
+  TheiaBuildManifestLibVersion
+} from '../theia'
 
-export default (theia: Theia, componentLibrary: string, libVersion: TheiaBuildManifestLibVersion) => {
+class ReheatCachePlugin implements TheiaPlugin {
+  apply(theia: Theia) {
+    theia.hooks.componentLibraryUpdate.tap("ReheatCachePlugin", this.onComponentLibraryUpdate)
+  }
+
+  onComponentLibraryUpdate(theia: Theia, componentLibrary: string, libVersion: TheiaBuildManifestLibVersion) {
     console.log(`reheating cache for ${componentLibrary} ...`)
     console.log('TODO: implement')
+  }
 }
+
+export default ReheatCachePlugin

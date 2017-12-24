@@ -6,6 +6,6 @@
         "branch": "master"
     },
     "libs": {
-        "@coursehero-components/hello-world": "/websites/coursehero/components/hello-world/"
+        "@coursehero-components/mythos": "/websites/coursehero/components/mythos/"
     }
 }
