@@ -26,14 +26,6 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser())
 
-app.use(function(req, res, next) {
-  if (req.get('CH-Auth') === 'courseherobatman') {
-    return next()
-  }
-  
-  res.send(HttpStatus.FORBIDDEN)
-})
-
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 theia.hooks.express.call(theia, app)

@@ -6,7 +6,7 @@ import {
 
 class ReheatCachePlugin implements TheiaPlugin {
   apply(theia: Theia) {
-    theia.hooks.componentLibraryUpdate.tap("ReheatCachePlugin", this.onComponentLibraryUpdate)
+    theia.hooks.componentLibraryUpdate.tap("ReheatCachePlugin", this.onComponentLibraryUpdate.bind(this))
   }
 
   onComponentLibraryUpdate(theia: Theia, componentLibrary: string, libVersion: TheiaBuildManifestLibVersion) {

@@ -6,7 +6,7 @@ import * as express from 'express'
 
 class HeartbeatPlugin implements TheiaPlugin {
   apply(theia: Theia) {
-    theia.hooks.express.tap("HeartbeatPlugin", this.onExpress)
+    theia.hooks.express.tap("HeartbeatPlugin", this.onExpress.bind(this))
   }
 
   onExpress(theia: Theia, app: express.Application) {

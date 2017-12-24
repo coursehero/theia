@@ -1,6 +1,7 @@
 import Theia from './theia'
 import BuildPlugin from './plugins/build-plugin'
 import ReheatCachePlugin from './plugins/reheat-cache-plugin'
+import AuthPlugin from './plugins/auth-plugin'
 import HeartbeatPlugin from './plugins/heartbeat-plugin'
 import UsagePlugin from './plugins/usage-plugin'
 import * as path from 'path'
@@ -11,6 +12,7 @@ const theia = new Theia(
   [
     new BuildPlugin(),
     new ReheatCachePlugin(),
+    new AuthPlugin('courseherobatman'),
     new HeartbeatPlugin(),
     new UsagePlugin()
   ]

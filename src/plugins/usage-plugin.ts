@@ -6,7 +6,7 @@ import * as express from 'express'
 
 class UsagePlugin implements TheiaPlugin {
   apply(theia: Theia) {
-    theia.hooks.express.tap("UsagePlugin", this.onExpress)
+    theia.hooks.express.tap("UsagePlugin", this.onExpress.bind(this))
   }
 
   onExpress(theia: Theia, app: express.Application) {

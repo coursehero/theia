@@ -8,7 +8,7 @@ import { execSync } from 'child_process'
 
 class BuildPlugin implements TheiaPlugin {
   apply(theia: Theia) {
-    theia.hooks.start.tap("BuildPlugin", this.onStart)
+    theia.hooks.start.tap("BuildPlugin", this.onStart.bind(this))
   }
 
   onStart(theia: Theia) {
