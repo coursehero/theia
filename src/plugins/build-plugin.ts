@@ -12,6 +12,13 @@ class BuildPlugin implements TheiaPlugin {
   }
 
   onStart (theia: Theia) {
+    this.buildAll(theia)
+
+    const FIVE_MINUTES = 1000 * 60 * 5
+    setInterval(() => this.buildAll(theia), FIVE_MINUTES)
+  }
+
+  buildAll (theia: Theia) {
     const buildManifest = theia.buildManifest
     const projectRootDir = path.resolve(__dirname, '..', '..')
 
