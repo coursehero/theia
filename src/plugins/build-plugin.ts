@@ -58,21 +58,21 @@ class BuildPlugin implements TheiaPlugin {
       return libVerions && libVerions.some(libVersion => libVersion.commitHash === commitHash)
     }
 
-    const environment: ('development' | 'production') = (process.env.NODE_ENV as 'development' | 'production') || 'development'
-    const branch = theia.config[environment].branch
-    const libs = theia.config.libs
-    const localLibs = theia.localConfig.libs
-
     const isLocalBuildingEnabled = process.env.THEIA_LOCAL === '1'
     if (isLocalBuildingEnabled) {
       console.log('***********')
       console.log('BUILDING LOCALLY')
-      console.log(localLibs)
+      console.log(theia.localConfig.libs)
       console.log('***********')
     }
 
+    const environment: ('development' | 'production') = (process.env.NODE_ENV as 'development' | 'production') || 'development'
+    const branch = theia.config[environment].branch
+    const libs = theia.config.libs
+    const localLibs = isLocalBuildingEnabled ? theia.localConfig.libs : {}
+
     for (const componentLibrary in libs) {
-      const cl = isLocalBuildingEnabled && localLibs[componentLibrary] ? localLibs[componentLibrary] : libs[componentLibrary]
+      const cl = localLibs[componentLibrary] || libs[componentLibrary]
       build(componentLibrary, cl, branch)
     }
   }
