@@ -5,7 +5,8 @@
     "types": ["node"],
     "outDir": "dist",
     "sourceMap": true,
-    "jsx": "react"
+    "jsx": "react",
+    "strict": true
   },
   "include": [
     "src/**/*.ts",
@@ -13,5 +14,11 @@
   ],
   "exclude": [
     "node_modules"
-  ]
+  ],
+  "paths": {
+    "*": [
+      "node_modules/*",
+      "src/types/*"
+    ]
+  }
 }

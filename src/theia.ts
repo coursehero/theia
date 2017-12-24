@@ -1,15 +1,13 @@
+/* tslint:disable:no-eval */
+
 import * as React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
 import * as fs from 'fs-extra'
 import * as path from 'path'
 import { SyncHook } from 'tapable'
 
-global['React'] = React
-
-let libCache = {}
-
 interface TheiaPlugin {
-  apply(theia: Theia)
+  apply (theia: Theia): void
 }
 
 interface TheiaConfiguration {
@@ -35,6 +33,17 @@ interface TheiaBuildManifest {
   lastUpdatedAt?: string
 }
 
+interface ReactComponentClass extends React.ComponentClass<object> {
+}
+
+interface ComponentLibrary {
+  [key: string]: ReactComponentClass
+}
+
+global.React = React
+
+const libCache: { [key: string]: ComponentLibrary } = {}
+
 class Theia {
   hooks = {
     start: new SyncHook(['theia']),
@@ -48,7 +57,7 @@ class Theia {
   buildManifestPath: string
   buildManifest: TheiaBuildManifest
 
-  constructor(configPath: string, buildManifestPath: string, plugins: TheiaPlugin[]) {
+  constructor (configPath: string, buildManifestPath: string, plugins: TheiaPlugin[]) {
     this.configPath = configPath
     this.config = require(configPath)
 
@@ -66,16 +75,16 @@ class Theia {
     }
   }
 
-  start() {
+  start (): void {
     this.hooks.start.call(this)
   }
 
-  render(componentLibrary: string, componentName: string, props: object): string {
+  render (componentLibrary: string, componentName: string, props: object): string {
     const component = this.getComponent(componentLibrary, componentName)
     return ReactDOMServer.renderToString(React.createElement(component, props))
   }
 
-  registerComponentLibraryVersion(componentLibrary: string, libVersion: TheiaBuildManifestLibVersion) {
+  registerComponentLibraryVersion (componentLibrary: string, libVersion: TheiaBuildManifestLibVersion): void {
     const manifest = this.buildManifest
 
     manifest.libs[componentLibrary] = manifest.libs[componentLibrary] || []
@@ -89,7 +98,7 @@ class Theia {
     fs.writeFileSync(this.buildManifestPath, JSON.stringify(manifest, null, 2))
   }
 
-  getComponentLibrary(componentLibrary: string) {
+  getComponentLibrary (componentLibrary: string): ComponentLibrary {
     if (libCache[componentLibrary]) {
       return libCache[componentLibrary]
     }
@@ -106,7 +115,7 @@ class Theia {
     return libCache[componentLibrary] = eval(source).default
   }
 
-  getComponent(componentLibrary: string, component: string) {
+  getComponent (componentLibrary: string, component: string): ReactComponentClass {
     const lib = this.getComponentLibrary(componentLibrary)
 
     if (!(component in lib)) {

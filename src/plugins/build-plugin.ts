@@ -7,15 +7,15 @@ import * as path from 'path'
 import { execSync } from 'child_process'
 
 class BuildPlugin implements TheiaPlugin {
-  apply(theia: Theia) {
-    theia.hooks.start.tap("BuildPlugin", this.onStart.bind(this))
+  apply (theia: Theia) {
+    theia.hooks.start.tap('BuildPlugin', this.onStart.bind(this))
   }
 
-  onStart(theia: Theia) {
+  onStart (theia: Theia) {
     const buildManifest = theia.buildManifest
     const projectRootDir = path.resolve(__dirname, '..', '..')
 
-    function build(componentLibrary: string, projectPath: string, branch: string) {
+    function build (componentLibrary: string, projectPath: string, branch: string) {
       const workingDir = path.resolve(projectRootDir, 'var', componentLibrary)
 
       if (fs.existsSync(workingDir)) {
@@ -46,12 +46,12 @@ class BuildPlugin implements TheiaPlugin {
       }
     }
 
-    function hasBuilt(componentLibrary: string, commitHash: string) {
+    function hasBuilt (componentLibrary: string, commitHash: string) {
       const libVerions = buildManifest.libs[componentLibrary]
       return libVerions && libVerions.some(libVersion => libVersion.commitHash === commitHash)
     }
 
-    const environment = process.env.NODE_ENV || 'development'
+    const environment: ('development' | 'production') = (process.env.NODE_ENV as 'development' | 'production') || 'development'
     const branch = theia.config[environment].branch
     const libs = theia.config.libs
 

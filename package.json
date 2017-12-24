@@ -18,17 +18,26 @@
     "react-dom": "^15",
     "request-promise": "^4.2.2",
     "serve-favicon": "~2.4.5",
-    "tapable": "webpack/tapable",
+    "tapable": "^1.0.0-beta.5",
     "typescript": "^2.6.2"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.1",
     "@types/express": "^4.11.0",
+    "@types/fs-extra": "^5.0.0",
+    "@types/morgan": "^1.7.35",
     "@types/node": "^8.5.2",
+    "@types/react": "^16.0.31",
+    "@types/react-dom": "^16.0.3",
+    "@types/serve-favicon": "^2.2.30",
     "nodemon": "^1.13.3",
-    "ts-node": "^4.0.2"
+    "ts-node": "^4.0.2",
+    "tslint": "^5.8.0",
+    "tslint-config-standard": "^7.0.0"
   },
   "scripts": {
-    "build": "tsc",
+    "lint": "tslint --fix --project .",
+    "build": "yarn run lint && tsc",
     "start": "node ./dist/entry.js",
     "start-dev": "nodemon"
   }

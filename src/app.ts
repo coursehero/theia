@@ -11,10 +11,10 @@ import theia from './configure-theia'
 theia.start()
 
 interface ResponseError extends Error {
-  status?: number;
+  status?: number
 }
 
-var app: express.Application = express()
+const app: express.Application = express()
 
 app.engine('adoc', AsciidoctorEngine)
 app.set('view engine', 'adoc')
@@ -26,33 +26,33 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser())
 
-app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, '..', 'public')))
 
 theia.hooks.express.call(theia, app)
 
-app.post('/render', (req, res) => {
+app.post('/render', (req: express.Request, res: express.Response) => {
   res.send(theia.render(req.query.componentLibrary, req.query.component, req.body))
 })
 
-app.get('/chunks', function(req, res, next) {
+app.get('/chunks', function (req: express.Request, res: express.Response, next: express.NextFunction) {
   if (req.path.endsWith('.js') /*|| req.path.endsWith('.js.map')*/) {
     return next()
   }
-  
-  res.send(404)
+
+  res.send(HttpStatus.NOT_FOUND)
 })
 app.use('/chunks', express.static(path.join(__dirname, '..', 'libs')))
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  var err: ResponseError = new Error('Not Found')
-  err.status = 404
+app.use(function (req: express.Request, res: express.Response, next: express.NextFunction) {
+  let err: ResponseError = new Error('Not Found')
+  err.status = HttpStatus.NOT_FOUND
   next(err)
 })
 
 // error handler
-app.use(function(err, req, res, next) {
-  err.status = err.status || 500
+app.use(function (err: ResponseError, req: express.Request, res: express.Response, next: express.NextFunction) {
+  err.status = err.status || HttpStatus.INTERNAL_SERVER_ERROR
 
   if (err.status >= 400 && err.status < 500) {
     console.trace(err.stack)

@@ -5,11 +5,11 @@ import {
 } from '../theia'
 
 class ReheatCachePlugin implements TheiaPlugin {
-  apply(theia: Theia) {
-    theia.hooks.componentLibraryUpdate.tap("ReheatCachePlugin", this.onComponentLibraryUpdate.bind(this))
+  apply (theia: Theia) {
+    theia.hooks.componentLibraryUpdate.tap('ReheatCachePlugin', this.onComponentLibraryUpdate.bind(this))
   }
 
-  onComponentLibraryUpdate(theia: Theia, componentLibrary: string, libVersion: TheiaBuildManifestLibVersion) {
+  onComponentLibraryUpdate (theia: Theia, componentLibrary: string, libVersion: TheiaBuildManifestLibVersion) {
     console.log(`reheating cache for ${componentLibrary} ...`)
     console.log('TODO: implement')
   }
