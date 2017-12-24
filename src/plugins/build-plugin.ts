@@ -54,8 +54,8 @@ class BuildPlugin implements TheiaPlugin {
     }
 
     function hasBuilt (componentLibrary: string, commitHash: string) {
-      const libVerions = buildManifest.libs[componentLibrary]
-      return libVerions && libVerions.some(libVersion => libVersion.commitHash === commitHash)
+      const libVersions = buildManifest.libs[componentLibrary]
+      return libVersions && libVersions.some(libVersion => libVersion.commitHash === commitHash)
     }
 
     const isLocalBuildingEnabled = process.env.THEIA_LOCAL === '1'
@@ -72,8 +72,8 @@ class BuildPlugin implements TheiaPlugin {
     const localLibs = isLocalBuildingEnabled ? theia.localConfig.libs : {}
 
     for (const componentLibrary in libs) {
-      const cl = localLibs[componentLibrary] || libs[componentLibrary]
-      build(componentLibrary, cl, branch)
+      const projectPath = localLibs[componentLibrary] || libs[componentLibrary]
+      build(componentLibrary, projectPath, branch)
     }
   }
 }
