@@ -22,6 +22,10 @@ interface TheiaConfiguration {
   libs: { [key: string]: string }
 }
 
+interface TheiaLocalConfiguration {
+  libs: { [key: string]: string }
+}
+
 interface TheiaBuildManifestLibVersion {
   commitHash: string
   manifest: string
@@ -40,6 +44,13 @@ interface ComponentLibrary {
   [key: string]: ReactComponentClass
 }
 
+interface CtorParams {
+  configPath: string
+  localConfigPath: string
+  buildManifestPath: string
+  plugins: TheiaPlugin[]
+}
+
 global.React = React
 
 const libCache: { [key: string]: ComponentLibrary } = {}
@@ -54,12 +65,18 @@ class Theia {
   configPath: string
   config: TheiaConfiguration
 
+  localConfigPath: string
+  localConfig: TheiaLocalConfiguration
+
   buildManifestPath: string
   buildManifest: TheiaBuildManifest
 
-  constructor (configPath: string, buildManifestPath: string, plugins: TheiaPlugin[]) {
+  constructor ({ configPath, localConfigPath, buildManifestPath, plugins }: CtorParams) {
     this.configPath = configPath
     this.config = require(configPath)
+
+    this.localConfigPath = localConfigPath
+    this.localConfig = require(localConfigPath)
 
     this.buildManifestPath = buildManifestPath
     if (fs.existsSync(buildManifestPath)) {
