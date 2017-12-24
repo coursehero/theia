@@ -1,5 +1,6 @@
 import Theia from './theia'
 import BuildPlugin from './plugins/build-plugin'
+import RollbarPlugin from './plugins/rollbar-plugin'
 import ReheatCachePlugin from './plugins/reheat-cache-plugin'
 import AuthPlugin from './plugins/auth-plugin'
 import HeartbeatPlugin from './plugins/heartbeat-plugin'
@@ -13,6 +14,7 @@ const theia = new Theia(
     buildManifestPath: path.resolve(__dirname, '..', 'libs', 'build-manifest.json'),
     plugins: [
       new BuildPlugin(),
+      new RollbarPlugin(),
       new ReheatCachePlugin(),
       new AuthPlugin('courseherobatman'),
       new HeartbeatPlugin(),

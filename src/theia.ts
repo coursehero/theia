@@ -58,6 +58,7 @@ const libCache: { [key: string]: ComponentLibrary } = {}
 class Theia {
   hooks = {
     start: new SyncHook(['theia']),
+    render: new SyncHook(['theia']),
     componentLibraryUpdate: new SyncHook(['theia', 'componentLibrary', 'libVersion']),
     express: new SyncHook(['theia', 'app'])
   }
@@ -76,7 +77,7 @@ class Theia {
     this.config = require(configPath)
 
     this.localConfigPath = localConfigPath
-    this.localConfig = require(localConfigPath)
+    this.localConfig = fs.existsSync(localConfigPath) ? require(localConfigPath) : {}
 
     this.buildManifestPath = buildManifestPath
     if (fs.existsSync(buildManifestPath)) {
@@ -98,7 +99,11 @@ class Theia {
 
   render (componentLibrary: string, componentName: string, props: object): string {
     const component = this.getComponent(componentLibrary, componentName)
-    return ReactDOMServer.renderToString(React.createElement(component, props))
+    const result =  ReactDOMServer.renderToString(React.createElement(component, props))
+
+    this.hooks.render.call(this, componentLibrary, componentName, props)
+
+    return result
   }
 
   registerComponentLibraryVersion (componentLibrary: string, libVersion: TheiaBuildManifestLibVersion): void {
