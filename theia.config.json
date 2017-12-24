@@ -6,6 +6,6 @@
         "branch": "master"
     },
     "libs": {
-        "@coursehero-components/mythos": "/websites/coursehero/components/mythos/"
+        "@coursehero-components/mythos": "git@git.coursehero.com:coursehero/components/mythos.git"
     }
 }
