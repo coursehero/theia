@@ -15,7 +15,7 @@ class UsagePlugin implements TheiaPlugin {
         name: 'World'
       })
 
-      res.render('index', {
+      res.render('usage', {
         helloWorldResult,
         helloWorldResultRaw: `<pre>${helloWorldResult}</pre>`
       })

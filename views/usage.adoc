@@ -11,11 +11,15 @@ Connor Clark <connor.clark@coursehero.com>
 Payload schema:
 [source,javascript]
 POST /render?componentLibrary=@coursehero-components/hello-world&component=Greeting
+Content-Type: application/json
+CH-Auth: ...
 {
-    "name": "World"
+  "name": "World"
 }
 
-Response:
-var:helloWorldResult[]
+Response (raw):
+[source,html,subs="macros"]
+var:helloWorldResult[raw=true]
 
-var:helloWorldResultRaw[]
+Response (rendered):
+var:helloWorldResult[]

@@ -99,7 +99,7 @@ class Theia {
 
   render (componentLibrary: string, componentName: string, props: object): string {
     const component = this.getComponent(componentLibrary, componentName)
-    const result =  ReactDOMServer.renderToString(React.createElement(component, props))
+    const result = ReactDOMServer.renderToString(React.createElement(component, props))
 
     this.hooks.render.call(this, componentLibrary, componentName, props)
 
