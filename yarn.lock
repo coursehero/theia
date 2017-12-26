@@ -21,6 +21,10 @@
   dependencies:
     "@types/express" "*"
 
+"@types/escape-html@^0.0.20":
+  version "0.0.20"
+  resolved "https://registry.yarnpkg.com/@types/escape-html/-/escape-html-0.0.20.tgz#cae698714dd61ebee5ab3f2aeb9a34ba1011735a"
+
 "@types/express-serve-static-core@*":
   version "4.11.0"
   resolved "https://registry.yarnpkg.com/@types/express-serve-static-core/-/express-serve-static-core-4.11.0.tgz#aaaf472777191c3e56ec7aa160034c6b55ebdd59"

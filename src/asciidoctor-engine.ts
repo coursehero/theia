@@ -13,7 +13,7 @@ const AsciidoctorEngine: Function = function (filePath: string, options: { [key:
         const macro = this
         macro.named('var')
 
-        macro.process(function (parent: object, target: string, attrs: object): string {
+        macro.process(function (parent: any, target: string, attrs: any): string {
           return attrs['$$smap'].raw === 'true' ? escapeHtml(options[target]) : options[target]
         })
       })
