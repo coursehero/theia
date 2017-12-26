@@ -16,8 +16,7 @@ class UsagePlugin implements TheiaPlugin {
       })
 
       res.render('usage', {
-        helloWorldResult,
-        helloWorldResultRaw: `<pre>${helloWorldResult}</pre>`
+        helloWorldResult
       })
     })
 
