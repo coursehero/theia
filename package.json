@@ -1,6 +1,6 @@
 {
   "name": "theia",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "main": "dist/entry.js",
   "repository": "https://git.coursehero.com/coursehero/theia.git",
   "author": "Connor Clark <connor.clark@coursehero.com>",
