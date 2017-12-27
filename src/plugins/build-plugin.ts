@@ -22,18 +22,12 @@ class BuildPlugin implements TheiaPlugin {
     const buildManifest = theia.buildManifest
     const projectRootDir = path.resolve(__dirname, '..', '..')
 
-    function build (componentLibrary: string, projectPath: string, branch: string) {
-      const workingDir = path.resolve(projectRootDir, 'var', componentLibrary)
-
-      if (fs.existsSync(workingDir)) {
-        execSync(`git checkout --quiet ${branch} && git pull`, { cwd: workingDir })
-      } else {
-        execSync(`git clone -b ${branch} ${projectPath} ${workingDir}`)
-      }
+    function build (componentLibrary: string, workingDir: string) {
+      console.log(`building ${componentLibrary} from ${workingDir} ...`)
 
       const commitHash = execSync(`git rev-parse HEAD`, { cwd: workingDir }).toString().trim()
       if (!hasBuilt(componentLibrary, commitHash)) {
-        console.log(`building ${componentLibrary} ${commitHash} ...`)
+        console.log(`building commit hash ${commitHash} ...`)
         const now = new Date().toString()
 
         const statsFilename = `stats.${commitHash}.json`
@@ -53,6 +47,18 @@ class BuildPlugin implements TheiaPlugin {
       }
     }
 
+    function buildWithGitCache (componentLibrary: string, projectPath: string, branch: string) {
+      const workingDir = path.resolve(projectRootDir, 'var', componentLibrary)
+
+      if (fs.existsSync(workingDir)) {
+        execSync(`git checkout --quiet ${branch} && git pull`, { cwd: workingDir })
+      } else {
+        execSync(`git clone -b ${branch} ${projectPath} ${workingDir}`)
+      }
+
+      build(componentLibrary, workingDir)
+    }
+
     function hasBuilt (componentLibrary: string, commitHash: string) {
       const libVersions = buildManifest.libs[componentLibrary]
       return libVersions && libVersions.some(libVersion => libVersion.commitHash === commitHash)
@@ -67,13 +73,16 @@ class BuildPlugin implements TheiaPlugin {
     }
 
     const environment: ('development' | 'production') = (process.env.NODE_ENV as 'development' | 'production') || 'development'
-    const branch = theia.config[environment].branch
     const libs = theia.config.libs
     const localLibs = isLocalBuildingEnabled ? theia.localConfig.libs : {}
 
     for (const componentLibrary in libs) {
-      const projectPath = localLibs[componentLibrary] || libs[componentLibrary]
-      build(componentLibrary, projectPath, branch)
+      if (localLibs[componentLibrary]) {
+        build(componentLibrary, localLibs[componentLibrary])
+      } else {
+        const componentLibraryConfig = libs[componentLibrary]
+        buildWithGitCache(componentLibrary, componentLibraryConfig.source, componentLibraryConfig[environment].branch)
+      }
     }
   }
 }

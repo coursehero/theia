@@ -35,7 +35,7 @@ app.post('/render', (req: express.Request, res: express.Response) => {
 })
 
 app.get('/chunks', function (req: express.Request, res: express.Response, next: express.NextFunction) {
-  if (req.path.endsWith('.js') /*|| req.path.endsWith('.js.map')*/) {
+  if (/\.(js|css|map)$/.test(req.path)) {
     return next()
   }
 

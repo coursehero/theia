@@ -19,7 +19,19 @@ interface TheiaConfiguration {
     branch: string
   }
 
-  libs: { [key: string]: string }
+  libs: { [key: string]: TheiaConfigurationComponentLibrary }
+}
+
+interface TheiaConfigurationComponentLibrary {
+  source: string
+
+  development: {
+    branch: string
+  }
+
+  production: {
+    branch: string
+  }
 }
 
 interface TheiaLocalConfiguration {
@@ -75,6 +87,18 @@ class Theia {
   constructor ({ configPath, localConfigPath, buildManifestPath, plugins }: CtorParams) {
     this.configPath = configPath
     this.config = require(configPath)
+
+    for (const componentLibrary in this.config.libs) {
+      const componentLibraryConfig = this.config.libs[componentLibrary]
+
+      if (typeof componentLibraryConfig === 'string') {
+        this.config.libs[componentLibrary] = {
+          source: componentLibraryConfig,
+          development: this.config.development,
+          production: this.config.production
+        }
+      }
+    }
 
     this.localConfigPath = localConfigPath
     this.localConfig = fs.existsSync(localConfigPath) ? require(localConfigPath) : {}
