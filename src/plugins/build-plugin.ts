@@ -23,7 +23,7 @@ class BuildPlugin implements TheiaPlugin {
     const projectRootDir = path.resolve(__dirname, '..', '..')
 
     function build (componentLibrary: string, workingDir: string) {
-      console.log(`building ${componentLibrary} from ${workingDir} ...`)
+      console.log(`checking for updates for ${componentLibrary} from ${workingDir} ...`)
 
       const commitHash = execSync(`git rev-parse HEAD`, { cwd: workingDir }).toString().trim()
       if (!hasBuilt(componentLibrary, commitHash)) {
@@ -76,6 +76,8 @@ class BuildPlugin implements TheiaPlugin {
     const libs = theia.config.libs
     const localLibs = isLocalBuildingEnabled ? theia.localConfig.libs : {}
 
+    console.log('building component libraries ...')
+
     for (const componentLibrary in libs) {
       if (localLibs[componentLibrary]) {
         build(componentLibrary, localLibs[componentLibrary])
@@ -84,6 +86,8 @@ class BuildPlugin implements TheiaPlugin {
         buildWithGitCache(componentLibrary, componentLibraryConfig.source, componentLibraryConfig[environment].branch)
       }
     }
+
+    console.log('finished building component libraries')
   }
 }
 

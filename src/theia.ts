@@ -10,7 +10,7 @@ interface TheiaPlugin {
   apply (theia: Theia): void
 }
 
-interface TheiaConfiguration {
+interface TheiaConfigurationFromFilesystem {
   development: {
     branch: string
   }
@@ -19,6 +19,10 @@ interface TheiaConfiguration {
     branch: string
   }
 
+  libs: { [key: string]: TheiaConfigurationComponentLibrary | string }
+}
+
+interface TheiaConfiguration {
   libs: { [key: string]: TheiaConfigurationComponentLibrary }
 }
 
@@ -86,17 +90,26 @@ class Theia {
 
   constructor ({ configPath, localConfigPath, buildManifestPath, plugins }: CtorParams) {
     this.configPath = configPath
-    this.config = require(configPath)
+    this.config = {
+      libs: {}
+    }
 
-    for (const componentLibrary in this.config.libs) {
-      const componentLibraryConfig = this.config.libs[componentLibrary]
+    // normalize to type TheiaConfiguration
+    const configFromFilesystem: TheiaConfigurationFromFilesystem = require(configPath)
+    for (const componentLibrary in configFromFilesystem.libs) {
+      const componentLibraryConfig = configFromFilesystem.libs[componentLibrary]
 
       if (typeof componentLibraryConfig === 'string') {
         this.config.libs[componentLibrary] = {
           source: componentLibraryConfig,
-          development: this.config.development,
-          production: this.config.production
+          development: configFromFilesystem.development,
+          production: configFromFilesystem.production
         }
+      } else {
+        this.config.libs[componentLibrary] = Object.assign({}, {
+          development: configFromFilesystem.development,
+          production: configFromFilesystem.production
+        }, componentLibraryConfig)
       }
     }
 
@@ -157,8 +170,13 @@ class Theia {
     const manifestFilename = libVersions[libVersions.length - 1].manifest
     const manifestPath = path.resolve(__dirname, '..', 'libs', componentLibrary, manifestFilename)
     const source = fs.readFileSync(manifestPath, 'utf8')
+    const evaluated = eval(source)
 
-    return libCache[componentLibrary] = eval(source).default
+    if (!evaluated.default) {
+      throw new Error(`${componentLibrary} component manifest does not have a default export`)
+    }
+
+    return libCache[componentLibrary] = evaluated.default
   }
 
   getComponent (componentLibrary: string, component: string): ReactComponentClass {
