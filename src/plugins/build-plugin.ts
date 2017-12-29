@@ -4,7 +4,7 @@ import {
 } from '../theia'
 import * as fs from 'fs-extra'
 import * as path from 'path'
-import { execSync } from 'child_process'
+import { execSync } from 'child_process' // TODO: don't use Sync
 
 class BuildPlugin implements TheiaPlugin {
   apply (theia: Theia) {
@@ -79,11 +79,16 @@ class BuildPlugin implements TheiaPlugin {
     console.log('building component libraries ...')
 
     for (const componentLibrary in libs) {
-      if (localLibs[componentLibrary]) {
-        build(componentLibrary, localLibs[componentLibrary])
-      } else {
-        const componentLibraryConfig = libs[componentLibrary]
-        buildWithGitCache(componentLibrary, componentLibraryConfig.source, componentLibraryConfig[environment].branch)
+      try {
+        if (localLibs[componentLibrary]) {
+          build(componentLibrary, localLibs[componentLibrary])
+        } else {
+          const componentLibraryConfig = libs[componentLibrary]
+          buildWithGitCache(componentLibrary, componentLibraryConfig.source, componentLibraryConfig[environment].branch)
+        }
+      } catch (ex) {
+        console.error(`error building ${componentLibrary}`)
+        console.error(ex.toString())
       }
     }
 
