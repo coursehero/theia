@@ -1,4 +1,0 @@
-== var:message[]
-
-:hardbreaks:
-var:stacktrace[]

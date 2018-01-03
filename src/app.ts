@@ -61,8 +61,8 @@ app.use(function (err: ResponseError, req: express.Request, res: express.Respons
   }
 
   res.status(err.status)
-  res.render('error', {
-    message: err.message,
+  res.json({
+    error: err.message,
     stacktrace: err.stack
   })
 })
