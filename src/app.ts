@@ -31,7 +31,10 @@ app.use(express.static(path.join(__dirname, '..', 'public')))
 theia.hooks.express.call(theia, app)
 
 app.post('/render', (req: express.Request, res: express.Response) => {
-  res.send(theia.render(req.query.componentLibrary, req.query.component, req.body))
+  const result = theia.render(req.query.componentLibrary, req.query.component, req.body)
+
+  res.set('Theia-Assets', JSON.stringify(result.assets))
+  res.send(result.html)
 })
 
 app.get('/chunks', function (req: express.Request, res: express.Response, next: express.NextFunction) {

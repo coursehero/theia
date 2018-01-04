@@ -60,6 +60,16 @@ interface ComponentLibrary {
   [key: string]: ReactComponentClass
 }
 
+interface RenderResult {
+  html: string
+  assets: RenderResultAssets
+}
+
+interface RenderResultAssets {
+  javascripts: string[]
+  stylesheets: string[]
+}
+
 interface CtorParams {
   configPath: string
   localConfigPath: string
@@ -134,13 +144,19 @@ class Theia {
     this.hooks.start.call(this)
   }
 
-  render (componentLibrary: string, componentName: string, props: object): string {
+  render (componentLibrary: string, componentName: string, props: object): RenderResult {
     const component = this.getComponent(componentLibrary, componentName)
-    const result = ReactDOMServer.renderToString(React.createElement(component, props))
+    const html = ReactDOMServer.renderToString(React.createElement(component, props))
+
+    // TODO: code splittig w/ universal components
+    const assets = this.getAssets(componentLibrary)
 
     this.hooks.render.call(this, componentLibrary, componentName, props)
 
-    return result
+    return {
+      html,
+      assets
+    }
   }
 
   registerComponentLibraryVersion (componentLibrary: string, libVersion: TheiaBuildManifestLibVersion): void {
@@ -187,6 +203,22 @@ class Theia {
     }
 
     return lib[component]
+  }
+
+  // temporary. just returns all the assets for a CL.
+  getAssets (componentLibrary: string): RenderResultAssets {
+    const libVersions = this.buildManifest.libs[componentLibrary]
+    const latestLibVersion = libVersions[libVersions.length - 1]
+    const commitHash = latestLibVersion.commitHash
+    const statsFilename = `stats.${commitHash}.json`
+    const statsPath = path.resolve(__dirname, '..', 'libs', componentLibrary, statsFilename)
+    const stats = require(statsPath)
+    const manifestAssets = stats.assetsByChunkName.manifest
+
+    return {
+      javascripts: manifestAssets.filter((asset: string) => asset.endsWith('.js')),
+      stylesheets: manifestAssets.filter((asset: string) => asset.endsWith('.css'))
+    }
   }
 }
 
