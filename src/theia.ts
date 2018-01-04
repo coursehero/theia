@@ -186,7 +186,7 @@ class Theia {
     const manifestFilename = libVersions[libVersions.length - 1].manifest
     const manifestPath = path.resolve(__dirname, '..', 'libs', componentLibrary, manifestFilename)
     const source = fs.readFileSync(manifestPath, 'utf8')
-    const evaluated = eval(source)
+    const evaluated = eval('var window = {React: React}; ' + source)
 
     if (!evaluated.default) {
       throw new Error(`${componentLibrary} component manifest does not have a default export`)
@@ -214,10 +214,11 @@ class Theia {
     const statsPath = path.resolve(__dirname, '..', 'libs', componentLibrary, statsFilename)
     const stats = require(statsPath)
     const manifestAssets = stats.assetsByChunkName.manifest
+    const prefix = `${componentLibrary}/`
 
     return {
-      javascripts: manifestAssets.filter((asset: string) => asset.endsWith('.js')),
-      stylesheets: manifestAssets.filter((asset: string) => asset.endsWith('.css'))
+      javascripts: manifestAssets.filter((asset: string) => asset.endsWith('.js')).map((asset: string) => prefix + asset),
+      stylesheets: manifestAssets.filter((asset: string) => asset.endsWith('.css')).map((asset: string) => prefix + asset)
     }
   }
 }

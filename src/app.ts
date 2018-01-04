@@ -37,14 +37,14 @@ app.post('/render', (req: express.Request, res: express.Response) => {
   res.send(result.html)
 })
 
-app.get('/chunks', function (req: express.Request, res: express.Response, next: express.NextFunction) {
+app.get('/assets', function (req: express.Request, res: express.Response, next: express.NextFunction) {
   if (/\.(js|css|map)$/.test(req.path)) {
     return next()
   }
 
   res.send(HttpStatus.NOT_FOUND)
 })
-app.use('/chunks', express.static(path.join(__dirname, '..', 'libs')))
+app.use('/assets', express.static(path.join(__dirname, '..', 'libs')))
 
 // catch 404 and forward to error handler
 app.use(function (req: express.Request, res: express.Response, next: express.NextFunction) {
