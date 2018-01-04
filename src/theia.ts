@@ -214,10 +214,11 @@ class Theia {
     const statsPath = path.resolve(__dirname, '..', 'libs', componentLibrary, statsFilename)
     const stats = require(statsPath)
     const manifestAssets = stats.assetsByChunkName.manifest
+    const prefix = `${componentLibrary}/`
 
     return {
-      javascripts: manifestAssets.filter((asset: string) => asset.endsWith('.js')),
-      stylesheets: manifestAssets.filter((asset: string) => asset.endsWith('.css'))
+      javascripts: manifestAssets.filter((asset: string) => asset.endsWith('.js')).map((asset: string) => prefix + asset),
+      stylesheets: manifestAssets.filter((asset: string) => asset.endsWith('.css')).map((asset: string) => prefix + asset)
     }
   }
 }
