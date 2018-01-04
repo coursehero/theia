@@ -186,7 +186,7 @@ class Theia {
     const manifestFilename = libVersions[libVersions.length - 1].manifest
     const manifestPath = path.resolve(__dirname, '..', 'libs', componentLibrary, manifestFilename)
     const source = fs.readFileSync(manifestPath, 'utf8')
-    const evaluated = eval(source)
+    const evaluated = eval('var window = {React: React}; ' + source)
 
     if (!evaluated.default) {
       throw new Error(`${componentLibrary} component manifest does not have a default export`)
