@@ -51,7 +51,11 @@ class BuildPlugin implements TheiaPlugin {
       build(componentLibrary, workingDir)
     }
 
-    function hasBuilt (componentLibrary: string, commitHash: string) {
+    function hasBuilt (componentLibrary: string, commitHash: string): boolean {
+      if (!theia.hasBuildManifest(componentLibrary)) {
+        return false
+      }
+
       const buildManifest = theia.getBuildManifest(componentLibrary)
       return buildManifest && buildManifest.some(entry => entry.commitHash === commitHash)
     }

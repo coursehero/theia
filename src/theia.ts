@@ -158,7 +158,7 @@ class Theia {
     const manifestExists = this.storage.exists(componentLibrary, 'build-manifest.json')
     const manifest: TheiaBuildManifest = manifestExists ? JSON.parse(this.storage.load(componentLibrary, 'build-manifest.json')) : []
     
-    const statsBasename = path.basename(buildAssets.find(asset => path.basename(asset).startsWith('stats')))
+    const statsBasename = path.basename(buildAssets.find(asset => path.basename(asset).startsWith('stats')) as string)
     if (!statsBasename) {
       throw new Error(`Building ${componentLibrary} did not emit a stats file`)
     }
@@ -177,11 +177,11 @@ class Theia {
     delete libCache[componentLibrary]
   }
 
-  getBuildManifest (componentLibrary: string): ?TheiaBuildManifest {
-    if (!this.storage.exists(componentLibrary, 'build-manifest.json')) {
-      return null
-    }
+  hasBuildManifest (componentLibrary: string): boolean {
+    return this.storage.exists(componentLibrary, 'build-manifest.json')
+  }
 
+  getBuildManifest (componentLibrary: string): TheiaBuildManifest {
     return JSON.parse(this.storage.load(componentLibrary, 'build-manifest.json'))
   }
 
@@ -190,11 +190,11 @@ class Theia {
       return libCache[componentLibrary]
     }
 
-    const buildManifest = this.getBuildManifest(componentLibrary)
-    if (!buildManifest) {
+    if (!this.hasBuildManifest(componentLibrary)) {
       throw new Error(`${componentLibrary} is not a registered component library`)
     }
 
+    const buildManifest = this.getBuildManifest(componentLibrary)
     const latest = buildManifest[buildManifest.length - 1]
     const stats = JSON.parse(this.storage.load(componentLibrary, latest.stats))
     const componentManifestBasename = stats.assetsByChunkName.manifest.find((asset: string) => asset.startsWith('manifest') && asset.endsWith('.js'))
