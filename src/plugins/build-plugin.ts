@@ -27,7 +27,6 @@ class BuildPlugin implements TheiaPlugin {
       const commitHash = execSync(`git rev-parse HEAD`, { cwd: workingDir }).toString().trim()
       if (!hasBuilt(componentLibrary, commitHash)) {
         console.log(`building commit hash ${commitHash} ...`)
-        const now = new Date().toString()
 
         const statsFilename = `stats.${commitHash}.json`
         execSync(`yarn install --production=false --non-interactive && rm -rf dist && mkdir dist && ./node_modules/.bin/webpack --json > dist/${statsFilename}`, { cwd: workingDir })
