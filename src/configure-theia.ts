@@ -18,7 +18,7 @@ const theia = new Theia(
       new RollbarPlugin(),
       new ReheatCachePlugin(),
       new HeartbeatPlugin(),
-      new AuthPlugin('courseherobatman'),
+      new AuthPlugin('CH-Auth', 'courseherobatman'),
       new UsagePlugin()
     ]
   }

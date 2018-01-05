@@ -6,9 +6,11 @@ import * as express from 'express'
 import * as HttpStatus from 'http-status-codes'
 
 class AuthPlugin implements TheiaPlugin {
+  header: string
   secret: string
 
-  constructor (secret: string) {
+  constructor (header: string, secret: string) {
+    this.header = header
     this.secret = secret
   }
 
@@ -18,7 +20,7 @@ class AuthPlugin implements TheiaPlugin {
 
   onExpress (theia: Theia, app: express.Application) {
     app.use((req, res, next) => {
-      if (req.get('CH-Auth') === this.secret) {
+      if (req.get(this.header) === this.secret) {
         return next()
       }
 
