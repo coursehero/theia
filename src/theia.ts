@@ -157,7 +157,7 @@ class Theia {
 
     const manifestExists = this.storage.exists(componentLibrary, 'build-manifest.json')
     const manifest: TheiaBuildManifest = manifestExists ? JSON.parse(this.storage.load(componentLibrary, 'build-manifest.json')) : []
-    
+
     const statsBasename = path.basename(buildAssets.find(asset => path.basename(asset).startsWith('stats')) as string)
     if (!statsBasename) {
       throw new Error(`Building ${componentLibrary} did not emit a stats file`)
