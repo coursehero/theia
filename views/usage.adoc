@@ -1,6 +1,4 @@
 = Theia
-Connor Clark <connor.clark@coursehero.com>
-{localdate}
 :toc: left
 :sectnums:
 :icons: font
