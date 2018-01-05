@@ -1,4 +1,5 @@
 import Theia from './theia'
+import LocalStoragePlugin from './plugins/local-storage-plugin'
 import BuildPlugin from './plugins/build-plugin'
 import RollbarPlugin from './plugins/rollbar-plugin'
 import ReheatCachePlugin from './plugins/reheat-cache-plugin'
@@ -11,8 +12,8 @@ const theia = new Theia(
   {
     configPath: path.resolve(__dirname, '..', 'theia.config.json'),
     localConfigPath: path.resolve(__dirname, '..', 'theia.local.config.json'),
-    buildManifestPath: path.resolve(__dirname, '..', 'libs', 'build-manifest.json'),
     plugins: [
+      new LocalStoragePlugin(path.resolve(__dirname, '..', 'libs')),
       new BuildPlugin(),
       new RollbarPlugin(),
       new ReheatCachePlugin(),
