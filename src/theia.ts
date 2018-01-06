@@ -42,16 +42,13 @@ interface TheiaLocalConfiguration {
   libs: { [key: string]: string }
 }
 
-interface TheiaBuildManifestLibVersion {
+interface TheiaBuildManifestEntry {
   commitHash: string
-  manifest: string
+  stats: string
   createdAt: string
 }
 
-interface TheiaBuildManifest {
-  libs: { [key: string]: TheiaBuildManifestLibVersion[] }
-  lastUpdatedAt?: string
-}
+interface TheiaBuildManifest extends Array<TheiaBuildManifestEntry> {}
 
 interface ReactComponentClass extends React.ComponentClass<object> {
 }
@@ -73,7 +70,6 @@ interface RenderResultAssets {
 interface CtorParams {
   configPath: string
   localConfigPath: string
-  buildManifestPath: string
   plugins: TheiaPlugin[]
 }
 
@@ -85,8 +81,15 @@ class Theia {
   hooks = {
     start: new SyncHook(['theia']),
     render: new SyncHook(['theia']),
-    componentLibraryUpdate: new SyncHook(['theia', 'componentLibrary', 'libVersion']),
+    componentLibraryUpdate: new SyncHook(['theia', 'componentLibrary', 'manifestEntry']),
     express: new SyncHook(['theia', 'app'])
+  }
+
+  storage: {
+    write (componentLibrary: string, basename: string, contents: string): void
+    exists (componentLibrary: string, basename: string): boolean
+    copy (componentLibrary: string, file: string): void
+    load (componentLibrary: string, basename: string): string
   }
 
   configPath: string
@@ -95,10 +98,7 @@ class Theia {
   localConfigPath: string
   localConfig: TheiaLocalConfiguration
 
-  buildManifestPath: string
-  buildManifest: TheiaBuildManifest
-
-  constructor ({ configPath, localConfigPath, buildManifestPath, plugins }: CtorParams) {
+  constructor ({ configPath, localConfigPath, plugins }: CtorParams) {
     this.configPath = configPath
     this.config = {
       libs: {}
@@ -126,15 +126,6 @@ class Theia {
     this.localConfigPath = localConfigPath
     this.localConfig = fs.existsSync(localConfigPath) ? require(localConfigPath) : {}
 
-    this.buildManifestPath = buildManifestPath
-    if (fs.existsSync(buildManifestPath)) {
-      this.buildManifest = require(buildManifestPath)
-    } else {
-      this.buildManifest = {
-        libs: {}
-      }
-    }
-
     for (const plugin of plugins) {
       plugin.apply(this)
     }
@@ -159,18 +150,39 @@ class Theia {
     }
   }
 
-  registerComponentLibraryVersion (componentLibrary: string, libVersion: TheiaBuildManifestLibVersion): void {
-    const manifest = this.buildManifest
+  registerComponentLibrary (componentLibrary: string, buildAssets: string[], commitHash: string): void {
+    for (const asset of buildAssets) {
+      this.storage.copy(componentLibrary, asset)
+    }
 
-    manifest.libs[componentLibrary] = manifest.libs[componentLibrary] || []
-    manifest.libs[componentLibrary].push(libVersion)
-    manifest.lastUpdatedAt = libVersion.createdAt
+    const manifestExists = this.storage.exists(componentLibrary, 'build-manifest.json')
+    const manifest: TheiaBuildManifest = manifestExists ? JSON.parse(this.storage.load(componentLibrary, 'build-manifest.json')) : []
+
+    const statsBasename = path.basename(buildAssets.find(asset => path.basename(asset).startsWith('stats')) as string)
+    if (!statsBasename) {
+      throw new Error(`Building ${componentLibrary} did not emit a stats file`)
+    }
+
+    const manifestEntry = {
+      commitHash,
+      stats: statsBasename,
+      createdAt: new Date().toString()
+    }
+    manifest.push(manifestEntry)
+    this.hooks.componentLibraryUpdate.call(this, componentLibrary, manifestEntry)
+
+    const manifestJson = JSON.stringify(manifest, null, 2)
+    this.storage.write(componentLibrary, 'build-manifest.json', manifestJson)
 
     delete libCache[componentLibrary]
+  }
 
-    this.hooks.componentLibraryUpdate.call(this, componentLibrary, libVersion)
+  hasBuildManifest (componentLibrary: string): boolean {
+    return this.storage.exists(componentLibrary, 'build-manifest.json')
+  }
 
-    fs.writeFileSync(this.buildManifestPath, JSON.stringify(manifest, null, 2))
+  getBuildManifest (componentLibrary: string): TheiaBuildManifest {
+    return JSON.parse(this.storage.load(componentLibrary, 'build-manifest.json'))
   }
 
   getComponentLibrary (componentLibrary: string): ComponentLibrary {
@@ -178,14 +190,15 @@ class Theia {
       return libCache[componentLibrary]
     }
 
-    if (!(componentLibrary in this.buildManifest.libs)) {
+    if (!this.hasBuildManifest(componentLibrary)) {
       throw new Error(`${componentLibrary} is not a registered component library`)
     }
 
-    const libVersions = this.buildManifest.libs[componentLibrary]
-    const manifestFilename = libVersions[libVersions.length - 1].manifest
-    const manifestPath = path.resolve(__dirname, '..', 'libs', componentLibrary, manifestFilename)
-    const source = fs.readFileSync(manifestPath, 'utf8')
+    const buildManifest = this.getBuildManifest(componentLibrary)
+    const latest = buildManifest[buildManifest.length - 1]
+    const stats = JSON.parse(this.storage.load(componentLibrary, latest.stats))
+    const componentManifestBasename = stats.assetsByChunkName.manifest.find((asset: string) => asset.startsWith('manifest') && asset.endsWith('.js'))
+    const source = this.storage.load(componentLibrary, componentManifestBasename)
     const evaluated = eval('var window = {React: React}; ' + source)
 
     if (!evaluated.default) {
@@ -205,20 +218,16 @@ class Theia {
     return lib[component]
   }
 
-  // temporary. just returns all the assets for a CL.
+  // temporary. just returns all the assets for a CL. change when codesplitting is working
   getAssets (componentLibrary: string): RenderResultAssets {
-    const libVersions = this.buildManifest.libs[componentLibrary]
-    const latestLibVersion = libVersions[libVersions.length - 1]
-    const commitHash = latestLibVersion.commitHash
-    const statsFilename = `stats.${commitHash}.json`
-    const statsPath = path.resolve(__dirname, '..', 'libs', componentLibrary, statsFilename)
-    const stats = require(statsPath)
+    const buildManifest = this.getBuildManifest(componentLibrary)
+    const latest = buildManifest[buildManifest.length - 1]
+    const stats = JSON.parse(this.storage.load(componentLibrary, latest.stats))
     const manifestAssets = stats.assetsByChunkName.manifest
-    const prefix = `${componentLibrary}/`
 
     return {
-      javascripts: manifestAssets.filter((asset: string) => asset.endsWith('.js')).map((asset: string) => prefix + asset),
-      stylesheets: manifestAssets.filter((asset: string) => asset.endsWith('.css')).map((asset: string) => prefix + asset)
+      javascripts: manifestAssets.filter((asset: string) => asset.endsWith('.js')),
+      stylesheets: manifestAssets.filter((asset: string) => asset.endsWith('.css'))
     }
   }
 }
@@ -226,5 +235,5 @@ class Theia {
 export default Theia
 export { TheiaPlugin }
 export { TheiaConfiguration }
-export { TheiaBuildManifestLibVersion }
+export { TheiaBuildManifestEntry }
 export { TheiaBuildManifest }

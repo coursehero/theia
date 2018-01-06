@@ -19,7 +19,6 @@ class BuildPlugin implements TheiaPlugin {
   }
 
   buildAll (theia: Theia) {
-    const buildManifest = theia.buildManifest
     const projectRootDir = path.resolve(__dirname, '..', '..')
 
     function build (componentLibrary: string, workingDir: string) {
@@ -28,22 +27,14 @@ class BuildPlugin implements TheiaPlugin {
       const commitHash = execSync(`git rev-parse HEAD`, { cwd: workingDir }).toString().trim()
       if (!hasBuilt(componentLibrary, commitHash)) {
         console.log(`building commit hash ${commitHash} ...`)
-        const now = new Date().toString()
 
         const statsFilename = `stats.${commitHash}.json`
-        execSync(`yarn install --production=false --non-interactive && mkdir -p dist && ./node_modules/.bin/webpack --json > dist/${statsFilename}`, { cwd: workingDir })
+        execSync(`yarn install --production=false --non-interactive && rm -rf dist && mkdir dist && ./node_modules/.bin/webpack --json > dist/${statsFilename}`, { cwd: workingDir })
 
-        const outputDir = path.resolve(projectRootDir, 'libs', componentLibrary)
-        fs.ensureDirSync(outputDir)
-        fs.copySync(path.resolve(workingDir, 'dist'), outputDir)
+        const buildAssets = fs.readdirSync(path.resolve(workingDir, 'dist')).map(assetPath => path.join(workingDir, 'dist', assetPath))
+        theia.registerComponentLibrary(componentLibrary, buildAssets, commitHash)
 
         console.log(`built ${componentLibrary} ${commitHash}`)
-
-        theia.registerComponentLibraryVersion(componentLibrary, {
-          commitHash,
-          manifest: require(path.resolve(outputDir, statsFilename)).assetsByChunkName.manifest[0],
-          createdAt: now
-        })
       }
     }
 
@@ -59,9 +50,13 @@ class BuildPlugin implements TheiaPlugin {
       build(componentLibrary, workingDir)
     }
 
-    function hasBuilt (componentLibrary: string, commitHash: string) {
-      const libVersions = buildManifest.libs[componentLibrary]
-      return libVersions && libVersions.some(libVersion => libVersion.commitHash === commitHash)
+    function hasBuilt (componentLibrary: string, commitHash: string): boolean {
+      if (!theia.hasBuildManifest(componentLibrary)) {
+        return false
+      }
+
+      const buildManifest = theia.getBuildManifest(componentLibrary)
+      return buildManifest && buildManifest.some(entry => entry.commitHash === commitHash)
     }
 
     const isLocalBuildingEnabled = process.env.THEIA_LOCAL === '1'
@@ -88,7 +83,7 @@ class BuildPlugin implements TheiaPlugin {
         }
       } catch (ex) {
         console.error(`error building ${componentLibrary}`)
-        console.error(ex.toString())
+        console.error(ex.stack)
       }
     }
 

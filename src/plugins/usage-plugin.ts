@@ -16,10 +16,10 @@ class UsagePlugin implements TheiaPlugin {
       })
 
       res.render('usage', {
-        helloWorldResult
+        helloWorldResultHtml: helloWorldResult.html,
+        helloWorldResultAssets: JSON.stringify(helloWorldResult.assets, null, 2)
       })
     })
-
   }
 }
 

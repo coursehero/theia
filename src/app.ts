@@ -22,7 +22,7 @@ app.set('views', path.join(__dirname, '..', 'views'))
 
 app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')))
 app.use(logger('dev'))
-app.use(bodyParser.json({limit: '20mb'}))
+app.use(bodyParser.json({ limit: '20mb' }))
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser())
 
@@ -37,24 +37,32 @@ app.post('/render', (req: express.Request, res: express.Response) => {
   res.send(result.html)
 })
 
-app.get('/assets', function (req: express.Request, res: express.Response, next: express.NextFunction) {
+app.get('/assets', (req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (/\.(js|css|map)$/.test(req.path)) {
     return next()
   }
 
   res.send(HttpStatus.NOT_FOUND)
 })
-app.use('/assets', express.static(path.join(__dirname, '..', 'libs')))
+
+app.use('/assets', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const split = req.path.split('/')
+  const componentLibrary = split.slice(1, split.length - 1).join('/')
+  const asset = split[split.length - 1]
+
+  res.contentType(asset)
+  res.send(theia.storage.load(componentLibrary, asset))
+})
 
 // catch 404 and forward to error handler
-app.use(function (req: express.Request, res: express.Response, next: express.NextFunction) {
+app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
   let err: ResponseError = new Error('Not Found')
   err.status = HttpStatus.NOT_FOUND
   next(err)
 })
 
 // error handler
-app.use(function (err: ResponseError, req: express.Request, res: express.Response, next: express.NextFunction) {
+app.use((err: ResponseError, req: express.Request, res: express.Response, next: express.NextFunction) => {
   err.status = err.status || HttpStatus.INTERNAL_SERVER_ERROR
 
   if (err.status >= 400 && err.status < 500) {

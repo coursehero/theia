@@ -1,6 +1,4 @@
 = Theia
-Connor Clark <connor.clark@coursehero.com>
-{localdate}
 :toc: left
 :sectnums:
 :icons: font
@@ -19,7 +17,11 @@ CH-Auth: ...
 
 Response (raw):
 [source,html,subs="macros"]
-var:helloWorldResult[raw=true]
+var:helloWorldResultHtml[raw=true]
+
+Response (assets):
+[source,json,subs="macros"]
+var:helloWorldResultAssets[]
 
 Response (rendered):
-var:helloWorldResult[]
+var:helloWorldResultHtml[]

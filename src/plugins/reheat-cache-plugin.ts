@@ -1,7 +1,7 @@
 import {
   default as Theia,
   TheiaPlugin,
-  TheiaBuildManifestLibVersion
+  TheiaBuildManifestEntry
 } from '../theia'
 
 class ReheatCachePlugin implements TheiaPlugin {
@@ -9,7 +9,7 @@ class ReheatCachePlugin implements TheiaPlugin {
     theia.hooks.componentLibraryUpdate.tap('ReheatCachePlugin', this.onComponentLibraryUpdate.bind(this))
   }
 
-  onComponentLibraryUpdate (theia: Theia, componentLibrary: string, libVersion: TheiaBuildManifestLibVersion) {
+  onComponentLibraryUpdate (theia: Theia, componentLibrary: string, manifestEntry: TheiaBuildManifestEntry) {
     console.log(`reheating cache for ${componentLibrary} ...`)
     console.log('TODO: implement')
   }
