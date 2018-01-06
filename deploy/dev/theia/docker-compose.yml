@@ -16,12 +16,13 @@ services:
     #provide external links to services directly
 #    external_links:
 #      - external-service-name/container-name:how-i-want-to-talk-to-it.dev-internal.coursehero.com
-    logging:
-      driver: syslog
-      options:
-        syslog-facility: local0
-        tag: '{"docker_image":"{{.ImageName}}", "docker_name":"{{.Name}}", "docker_id":"{{.ID}}",
-          "service_name":"dev-theia"}'
+    #commenting out logging so we can see logs right in Rancher
+#   logging:
+#     driver: syslog
+#     options:
+#       syslog-facility: local0
+#       tag: '{"docker_image":"{{.ImageName}}", "docker_name":"{{.Name}}", "docker_id":"{{.ID}}",
+#         "service_name":"dev-theia"}'
     labels:
       io.rancher.container.pull_image: always
       traefik.enable: 'true'
