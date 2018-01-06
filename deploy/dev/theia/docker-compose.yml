@@ -8,7 +8,7 @@ services:
     stdin_open: true
     volumes:
       - /run/secrets/theia.id_rsa:/root/.ssh/id_rsa
-      - /run/secrets/known_hosts:/root/.ssh/known_hosts
+      - /run/secrets/theia.known_hosts:/root/.ssh/known_hosts
       - /run/secrets/api.authKey:/run/secrets/api.authKey
       - /run/secrets/newrelic.license:/run/secrets/newrelic.license
       - /var/rollbar:/var/rollbar
