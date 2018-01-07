@@ -21,21 +21,21 @@ class LocalStoragePlugin implements TheiaPlugin {
     }
   }
 
-  onWrite (componentLibrary: string, basename: string, contents: string) {
-    fs.writeFileSync(path.join(this.rootStorageDir, componentLibrary, basename), contents)
+  onWrite (componentLibrary: string, basename: string, contents: string): Promise<void> {
+    return fs.writeFile(path.join(this.rootStorageDir, componentLibrary, basename), contents)
   }
 
-  onExists (componentLibrary: string, basename: string): boolean {
-    return fs.existsSync(path.join(this.rootStorageDir, componentLibrary, basename))
+  onExists (componentLibrary: string, basename: string): Promise<boolean> {
+    return fs.pathExists(path.join(this.rootStorageDir, componentLibrary, basename))
   }
 
-  onCopy (componentLibrary: string, file: string) {
+  onCopy (componentLibrary: string, file: string): Promise<void> {
     const basename = path.basename(file)
-    fs.copySync(file, path.join(this.rootStorageDir, componentLibrary, basename))
+    return fs.copy(file, path.join(this.rootStorageDir, componentLibrary, basename))
   }
 
-  onLoad (componentLibrary: string, basename: string): string {
-    return fs.readFileSync(path.join(this.rootStorageDir, componentLibrary, basename), 'utf-8')
+  onLoad (componentLibrary: string, basename: string): Promise<string> {
+    return fs.readFile(path.join(this.rootStorageDir, componentLibrary, basename), 'utf-8')
   }
 }
 

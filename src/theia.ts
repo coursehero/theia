@@ -86,10 +86,10 @@ class Theia {
   }
 
   storage: {
-    write (componentLibrary: string, basename: string, contents: string): void
-    exists (componentLibrary: string, basename: string): boolean
-    copy (componentLibrary: string, file: string): void
-    load (componentLibrary: string, basename: string): string
+    write (componentLibrary: string, basename: string, contents: string): Promise<void>
+    exists (componentLibrary: string, basename: string): Promise<boolean>
+    copy (componentLibrary: string, file: string): Promise<void>
+    load (componentLibrary: string, basename: string): Promise<string>
   }
 
   configPath: string
@@ -135,12 +135,12 @@ class Theia {
     this.hooks.start.call(this)
   }
 
-  render (componentLibrary: string, componentName: string, props: object): RenderResult {
-    const component = this.getComponent(componentLibrary, componentName)
+  async render (componentLibrary: string, componentName: string, props: object): Promise<RenderResult> {
+    const component = await this.getComponent(componentLibrary, componentName)
     const html = ReactDOMServer.renderToString(React.createElement(component, props))
 
-    // TODO: code splittig w/ universal components
-    const assets = this.getAssets(componentLibrary)
+    // TODO: code splitting w/ universal components
+    const assets = await this.getAssets(componentLibrary)
 
     this.hooks.render.call(this, componentLibrary, componentName, props)
 
@@ -150,13 +150,15 @@ class Theia {
     }
   }
 
-  registerComponentLibrary (componentLibrary: string, buildAssets: string[], commitHash: string): void {
+  async registerComponentLibrary (componentLibrary: string, buildAssets: string[], commitHash: string): Promise<void> {
     for (const asset of buildAssets) {
-      this.storage.copy(componentLibrary, asset)
+      await this.storage.copy(componentLibrary, asset)
     }
 
-    const manifestExists = this.storage.exists(componentLibrary, 'build-manifest.json')
-    const manifest: TheiaBuildManifest = manifestExists ? JSON.parse(this.storage.load(componentLibrary, 'build-manifest.json')) : []
+    let manifest: TheiaBuildManifest = []
+    if (await this.hasBuildManifest(componentLibrary)) {
+      manifest = await this.getBuildManifest(componentLibrary)
+    }
 
     const statsBasename = path.basename(buildAssets.find(asset => path.basename(asset).startsWith('stats')) as string)
     if (!statsBasename) {
@@ -172,20 +174,23 @@ class Theia {
     this.hooks.componentLibraryUpdate.call(this, componentLibrary, manifestEntry)
 
     const manifestJson = JSON.stringify(manifest, null, 2)
-    this.storage.write(componentLibrary, 'build-manifest.json', manifestJson)
+    await this.storage.write(componentLibrary, 'build-manifest.json', manifestJson)
 
     delete libCache[componentLibrary]
+
+    return Promise.resolve()
   }
 
-  hasBuildManifest (componentLibrary: string): boolean {
+  hasBuildManifest (componentLibrary: string): Promise<boolean> {
     return this.storage.exists(componentLibrary, 'build-manifest.json')
   }
 
-  getBuildManifest (componentLibrary: string): TheiaBuildManifest {
-    return JSON.parse(this.storage.load(componentLibrary, 'build-manifest.json'))
+  async getBuildManifest (componentLibrary: string): Promise<TheiaBuildManifest> {
+    const contents = await this.storage.load(componentLibrary, 'build-manifest.json')
+    return JSON.parse(contents)
   }
 
-  getComponentLibrary (componentLibrary: string): ComponentLibrary {
+  async getComponentLibrary (componentLibrary: string): Promise<ComponentLibrary> {
     if (libCache[componentLibrary]) {
       return libCache[componentLibrary]
     }
@@ -194,11 +199,12 @@ class Theia {
       throw new Error(`${componentLibrary} is not a registered component library`)
     }
 
-    const buildManifest = this.getBuildManifest(componentLibrary)
+    const buildManifest = await this.getBuildManifest(componentLibrary)
     const latest = buildManifest[buildManifest.length - 1]
-    const stats = JSON.parse(this.storage.load(componentLibrary, latest.stats))
+    const statsContents = await this.storage.load(componentLibrary, latest.stats)
+    const stats = JSON.parse(statsContents)
     const componentManifestBasename = stats.assetsByChunkName.manifest.find((asset: string) => asset.startsWith('manifest') && asset.endsWith('.js'))
-    const source = this.storage.load(componentLibrary, componentManifestBasename)
+    const source = await this.storage.load(componentLibrary, componentManifestBasename)
     const evaluated = eval('var window = {React: React}; ' + source)
 
     if (!evaluated.default) {
@@ -208,8 +214,8 @@ class Theia {
     return libCache[componentLibrary] = evaluated.default
   }
 
-  getComponent (componentLibrary: string, component: string): ReactComponentClass {
-    const lib = this.getComponentLibrary(componentLibrary)
+  async getComponent (componentLibrary: string, component: string): Promise<ReactComponentClass> {
+    const lib = await this.getComponentLibrary(componentLibrary)
 
     if (!(component in lib)) {
       throw new Error(`${component} is not a registered component of ${componentLibrary}`)
@@ -219,10 +225,11 @@ class Theia {
   }
 
   // temporary. just returns all the assets for a CL. change when codesplitting is working
-  getAssets (componentLibrary: string): RenderResultAssets {
-    const buildManifest = this.getBuildManifest(componentLibrary)
+  async getAssets (componentLibrary: string): Promise<RenderResultAssets> {
+    const buildManifest = await this.getBuildManifest(componentLibrary)
     const latest = buildManifest[buildManifest.length - 1]
-    const stats = JSON.parse(this.storage.load(componentLibrary, latest.stats))
+    const statsContents = await this.storage.load(componentLibrary, latest.stats)
+    const stats = JSON.parse(statsContents)
     const manifestAssets = stats.assetsByChunkName.manifest
 
     return {

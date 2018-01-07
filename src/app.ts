@@ -30,8 +30,8 @@ app.use(express.static(path.join(__dirname, '..', 'public')))
 
 theia.hooks.express.call(theia, app)
 
-app.post('/render', (req: express.Request, res: express.Response) => {
-  const result = theia.render(req.query.componentLibrary, req.query.component, req.body)
+app.post('/render', async (req: express.Request, res: express.Response) => {
+  const result = await theia.render(req.query.componentLibrary, req.query.component, req.body)
 
   res.set('Theia-Assets', JSON.stringify(result.assets))
   res.send(result.html)

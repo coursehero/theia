@@ -21,21 +21,29 @@ class BuildPlugin implements TheiaPlugin {
   buildAll (theia: Theia) {
     const projectRootDir = path.resolve(__dirname, '..', '..')
 
-    function build (componentLibrary: string, workingDir: string) {
-      console.log(`checking for updates for ${componentLibrary} from ${workingDir} ...`)
+    async function build (componentLibrary: string, workingDir: string) {
+      console.log(`${componentLibrary}: checking for updates in ${workingDir} ...`)
 
       const commitHash = execSync(`git rev-parse HEAD`, { cwd: workingDir }).toString().trim()
-      if (!hasBuilt(componentLibrary, commitHash)) {
-        console.log(`building commit hash ${commitHash} ...`)
 
-        const statsFilename = `stats.${commitHash}.json`
-        execSync(`yarn install --production=false --non-interactive && rm -rf dist && mkdir dist && ./node_modules/.bin/webpack --json > dist/${statsFilename}`, { cwd: workingDir })
-
-        const buildAssets = fs.readdirSync(path.resolve(workingDir, 'dist')).map(assetPath => path.join(workingDir, 'dist', assetPath))
-        theia.registerComponentLibrary(componentLibrary, buildAssets, commitHash)
-
-        console.log(`built ${componentLibrary} ${commitHash}`)
+      if (await hasBuilt(componentLibrary, commitHash)) {
+        console.log(`${componentLibrary}: no updates found`)
+        return Promise.resolve()
       }
+
+      console.log(`${componentLibrary}: building commit hash ${commitHash} ...`)
+
+      const statsFilename = `stats.${commitHash}.json`
+      execSync(`yarn install --production=false --non-interactive && rm -rf dist && mkdir dist && ./node_modules/.bin/webpack --json > dist/${statsFilename}`, { cwd: workingDir })
+      const workingDistDir = path.resolve(workingDir, 'dist')
+
+      return fs.readdir(workingDistDir).then(buildAssetBasenames => {
+        return buildAssetBasenames.map(basename => path.join(workingDir, 'dist', basename))
+      }).then(buildAssets => {
+        return theia.registerComponentLibrary(componentLibrary, buildAssets, commitHash)
+      }).then(() => {
+        console.log(`${componentLibrary}: built ${commitHash}`)
+      })
     }
 
     function buildWithGitCache (componentLibrary: string, projectPath: string, branch: string) {
@@ -47,19 +55,19 @@ class BuildPlugin implements TheiaPlugin {
         execSync(`git clone -b ${branch} ${projectPath} ${workingDir}`)
       }
 
-      build(componentLibrary, workingDir)
+      return build(componentLibrary, workingDir)
     }
 
-    function hasBuilt (componentLibrary: string, commitHash: string): boolean {
-      if (!theia.hasBuildManifest(componentLibrary)) {
-        return false
-      }
-
-      const buildManifest = theia.getBuildManifest(componentLibrary)
-      return buildManifest && buildManifest.some(entry => entry.commitHash === commitHash)
+    function hasBuilt (componentLibrary: string, commitHash: string): Promise<boolean> {
+      return theia.hasBuildManifest(componentLibrary).then(result => {
+        if (!result) return false
+        return theia.getBuildManifest(componentLibrary).then(buildManifest => {
+          return buildManifest.some(entry => entry.commitHash === commitHash)
+        })
+      })
     }
 
-    const isLocalBuildingEnabled = process.env.THEIA_LOCAL === '1'
+    const isLocalBuildingEnabled = process.env.THEIA_LOCAL_GIT === '1'
     if (isLocalBuildingEnabled) {
       console.log('***********')
       console.log('BUILDING LOCALLY')
@@ -73,21 +81,20 @@ class BuildPlugin implements TheiaPlugin {
 
     console.log('building component libraries ...')
 
-    for (const componentLibrary in libs) {
-      try {
-        if (localLibs[componentLibrary]) {
-          build(componentLibrary, localLibs[componentLibrary])
-        } else {
-          const componentLibraryConfig = libs[componentLibrary]
-          buildWithGitCache(componentLibrary, componentLibraryConfig.source, componentLibraryConfig[environment].branch)
-        }
-      } catch (ex) {
-        console.error(`error building ${componentLibrary}`)
-        console.error(ex.stack)
+    Promise.all(Object.keys(libs).map(componentLibrary => {
+      if (localLibs[componentLibrary]) {
+        return build(componentLibrary, localLibs[componentLibrary])
+      } else {
+        const componentLibraryConfig = libs[componentLibrary]
+        return buildWithGitCache(componentLibrary, componentLibraryConfig.source, componentLibraryConfig[environment].branch)
       }
-    }
-
-    console.log('finished building component libraries')
+    })).then(() => {
+      console.log('finished building component libraries')
+      return
+    }).catch(errors => {
+      console.log('errors building component libraries')
+      console.log(errors)
+    })
   }
 }
 
