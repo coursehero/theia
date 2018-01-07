@@ -135,6 +135,8 @@ class Theia {
     this.hooks.start.call(this)
   }
 
+  // TODO: should only hit storage if build files are not in cache/memory.
+  // need to cache stats/build-manifest.json files just like source is being cached
   async render (componentLibrary: string, componentName: string, props: object): Promise<RenderResult> {
     const component = await this.getComponent(componentLibrary, componentName)
     const html = ReactDOMServer.renderToString(React.createElement(component, props))

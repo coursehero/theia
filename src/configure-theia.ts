@@ -1,5 +1,5 @@
 import Theia from './theia'
-// import S3StoragePlugin from './plugins/s3-storage-plugin'
+import S3StoragePlugin from './plugins/s3-storage-plugin'
 import LocalStoragePlugin from './plugins/local-storage-plugin'
 import BuildPlugin from './plugins/build-plugin'
 import RollbarPlugin from './plugins/rollbar-plugin'
@@ -10,11 +10,11 @@ import UsagePlugin from './plugins/usage-plugin'
 import * as path from 'path'
 
 let storagePlugin
-// if (process.env.THEIA_LOCAL_STORAGE === '1') {
-storagePlugin = new LocalStoragePlugin(path.resolve(__dirname, '..', 'libs'))
-// } else {
-  // storagePlugin = new S3StoragePlugin('coursehero-dev-pub', 'theia')
-// }
+if (process.env.THEIA_LOCAL_STORAGE === '1') {
+  storagePlugin = new LocalStoragePlugin(path.resolve(__dirname, '..', 'libs'))
+} else {
+  storagePlugin = new S3StoragePlugin('coursehero-dev-pub', 'theia')
+}
 
 const theia = new Theia(
   {

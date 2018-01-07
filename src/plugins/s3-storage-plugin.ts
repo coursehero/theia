@@ -1,4 +1,4 @@
-/*import {
+import {
   default as Theia,
   TheiaPlugin
 } from '../theia'
@@ -15,7 +15,6 @@ class S3StoragePlugin implements TheiaPlugin {
     this.bucket = bucket
     this.rootDir = rootDir
     this.client = new AWS.S3()
-    this.client
   }
 
   apply (theia: Theia) {
@@ -27,57 +26,61 @@ class S3StoragePlugin implements TheiaPlugin {
     }
   }
 
-  onWrite (componentLibrary: string, basename: string, contents: string) {
-    let params = {
+  onWrite (componentLibrary: string, basename: string, contents: string): Promise<void> {
+    const params = {
       Bucket: this.bucket,
       Key: [this.rootDir, componentLibrary, basename].join('/'),
       Body: contents
     }
 
-    const client = this.client
-    const makeUpload = function () {
-      return new Promise((resolve, reject) => {
-        client.putObject(params, (err, data) => {
-          console.log(err)
-          console.log(data)
-          if (err) return reject(err)
-          resolve(data)
-        })
+    return new Promise((resolve, reject) => {
+      this.client.putObject(params, (err, data) => {
+        if (err) return reject(err)
+        resolve()
       })
+    })
+  }
+
+  onExists (componentLibrary: string, basename: string): Promise<boolean> {
+    const params = {
+      Bucket: this.bucket,
+      Key: [this.rootDir, componentLibrary, basename].join('/')
     }
 
-    console.log('uploading ' + basename)
-    const b = (async () => {
-      const a = await makeUpload()
-    console.log('done uploading ' + basename)
-      console.log(a)
-    })()
-    // let re = await makeUpload()
-
-    // this.client.putObject(params, (err, data) => {
-    //   console.log(err)
-    //   console.log(data)
-    // })
-
-    // fs.writeFileSync(path.join(this.bucket, componentLibrary, basename), contents)
+    return new Promise((resolve, reject) => {
+      return this.client.headObject(params, (err, metadata) => {
+        if (err && err.code === 'NotFound') {
+          resolve(false)
+        } else if (err) {
+          reject(err)
+        } else {
+          resolve(true)
+        }
+      })
+    })
   }
 
-  onExists (componentLibrary: string, basename: string): boolean {
-    return false
-    // return fs.existsSync(path.join(this.bucket, componentLibrary, basename))
-  }
-
-  onCopy (componentLibrary: string, file: string) {
+  onCopy (componentLibrary: string, file: string): Promise<void> {
     const basename = path.basename(file)
-    const contents = fs.readFileSync(file)
-    this.onWrite(componentLibrary, basename, contents)
+    const contents = fs.readFileSync(file, 'utf-8')
+    return this.onWrite(componentLibrary, basename, contents)
   }
 
-  onLoad (componentLibrary: string, basename: string): string {
-    return ''
-    // return fs.readFileSync(path.join(this.bucket, componentLibrary, basename), 'utf-8')
+  onLoad (componentLibrary: string, basename: string): Promise<string> {
+    console.log('getting ' + basename)
+    const params = {
+      Bucket: this.bucket,
+      Key: [this.rootDir, componentLibrary, basename].join('/')
+    }
+
+    return new Promise((resolve, reject) => {
+      this.client.getObject(params, (err, data) => {
+        if (err) return reject(err)
+        if (!data.Body) return reject('no Body')
+        resolve(data.Body.toString())
+      })
+    })
   }
 }
 
 export default S3StoragePlugin
-*/
