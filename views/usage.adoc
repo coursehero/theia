@@ -8,7 +8,7 @@
 
 Payload schema:
 [source,javascript]
-POST /render?componentLibrary=@coursehero-components/hello-world&component=Greeting
+POST /render?componentLibrary=@coursehero-components/mythos&component=Greeting
 Content-Type: application/json
 CH-Auth: ...
 {
