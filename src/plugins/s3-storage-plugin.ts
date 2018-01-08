@@ -67,7 +67,6 @@ class S3StoragePlugin implements TheiaPlugin {
   }
 
   onLoad (componentLibrary: string, basename: string): Promise<string> {
-    console.log('getting ' + basename)
     const params = {
       Bucket: this.bucket,
       Key: [this.rootDir, componentLibrary, basename].join('/')
