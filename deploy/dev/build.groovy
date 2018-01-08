@@ -21,7 +21,7 @@ try{
             sh 'docker run --rm -v ~/.ssh:/root/.ssh -v $(pwd):/var/build -w /var/build node:carbon /bin/bash -c "yarn run test"'
 
         stage 'Build'
-            sh "docker build -t 315915642113.dkr.ecr.us-east-1.amazonaws.com/dev-theia ."
+            sh "docker build --build-arg NODE_ENV=development -t 315915642113.dkr.ecr.us-east-1.amazonaws.com/dev-theia ."
 
         stage 'Push'
             sh "eval \$(aws ecr get-login)"
