@@ -9,6 +9,8 @@ services:
     volumes:
       - /run/secrets/theia.id_rsa:/root/.ssh/id_rsa
       - /run/secrets/theia.known_hosts:/root/.ssh/known_hosts
+      - /run/secrets/theia.aws.config/:/root/.aws/config
+      - /run/secrets/theia.aws.credentials/:/root/.aws/credentials
       - /run/secrets/api.authKey:/run/secrets/api.authKey
       - /run/secrets/newrelic.license:/run/secrets/newrelic.license
       - /var/rollbar:/var/rollbar
