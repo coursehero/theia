@@ -9,6 +9,8 @@ import HeartbeatPlugin from './plugins/heartbeat-plugin'
 import UsagePlugin from './plugins/usage-plugin'
 import * as path from 'path'
 
+const FIVE_MINUTES = 1000 * 60 * 5
+
 let storagePlugin
 if (process.env.THEIA_LOCAL_STORAGE === '1') {
   storagePlugin = new LocalStoragePlugin(path.resolve(__dirname, '..', 'libs'))
@@ -22,7 +24,7 @@ const theia = new Theia(
     localConfigPath: path.resolve(__dirname, '..', 'theia.local.config.json'),
     plugins: [
       storagePlugin,
-      new BuildPlugin(),
+      new BuildPlugin(FIVE_MINUTES),
       new RollbarPlugin(),
       new ReheatCachePlugin(),
       new HeartbeatPlugin(),

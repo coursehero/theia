@@ -23,15 +23,19 @@ function promiseExec (cmd: string, opts = {}) {
 }
 
 class BuildPlugin implements TheiaPlugin {
+  buildInterval: int
+
+  constructor (buildInterval: int) {
+    this.buildInterval = buildInterval
+  }
+
   apply (theia: Theia) {
     theia.hooks.start.tap('BuildPlugin', this.onStart.bind(this))
   }
 
   onStart (theia: Theia) {
     this.buildAll(theia)
-
-    const FIVE_MINUTES = 1000 * 60 * 5
-    setInterval(() => this.buildAll(theia), FIVE_MINUTES)
+    setInterval(() => this.buildAll(theia), this.buildInterval)
   }
 
   buildAll (theia: Theia) {
@@ -96,7 +100,6 @@ class BuildPlugin implements TheiaPlugin {
       return buildFromDir(componentLibrary, workingDir, branch)
     })).then(() => {
       console.log('finished building component libraries')
-      return
     }).catch(errors => {
       console.log('errors building component libraries')
       console.log(errors)
