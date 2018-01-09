@@ -4,7 +4,23 @@ import {
 } from '../theia'
 import * as fs from 'fs-extra'
 import * as path from 'path'
-import { execSync } from 'child_process' // TODO: don't use Sync
+import { exec as __exec } from 'child_process'
+
+function promiseExec (cmd: string, opts = {}) {
+  const childProcess = __exec(cmd, opts)
+
+  let stdout = ''
+  childProcess.stdout.on('data', function (buf) {
+    stdout += buf
+  })
+
+  return new Promise((resolve, reject) => {
+    childProcess.addListener('error', reject)
+    childProcess.addListener('exit', statusCode => {
+      resolve(stdout)
+    })
+  })
+}
 
 class BuildPlugin implements TheiaPlugin {
   apply (theia: Theia) {
@@ -21,12 +37,12 @@ class BuildPlugin implements TheiaPlugin {
   buildAll (theia: Theia) {
     const projectRootDir = path.resolve(__dirname, '..', '..')
 
-    async function buildFromDir (componentLibrary: string, workingDir: string, branch: string) {
+    async function buildFromDir (componentLibrary: string, workingDir: string, branch: string): Promise<void> {
       console.log(`${componentLibrary}: checking for updates in ${workingDir} ...`)
 
-      execSync(`git checkout --quiet ${branch} && git pull`, { cwd: workingDir })
+      await promiseExec(`git checkout --quiet ${branch} && git pull`, { cwd: workingDir })
 
-      const commitHash = execSync(`git rev-parse HEAD`, { cwd: workingDir }).toString().trim()
+      const commitHash = (await promiseExec(`git rev-parse HEAD`, { cwd: workingDir })).toString().trim()
 
       if (await hasBuilt(componentLibrary, commitHash)) {
         console.log(`${componentLibrary}: no updates found`)
@@ -36,7 +52,7 @@ class BuildPlugin implements TheiaPlugin {
       console.log(`${componentLibrary}: building commit hash ${commitHash} ...`)
 
       const statsFilename = `stats.${commitHash}.json`
-      execSync(`yarn install --production=false --non-interactive && rm -rf dist && mkdir dist && ./node_modules/.bin/webpack --json > dist/${statsFilename}`, { cwd: workingDir })
+      await promiseExec(`yarn install --production=false --non-interactive && rm -rf dist && mkdir dist && ./node_modules/.bin/webpack --json > dist/${statsFilename}`, { cwd: workingDir })
       const workingDistDir = path.resolve(workingDir, 'dist')
 
       return fs.readdir(workingDistDir).then(buildAssetBasenames => {
@@ -48,14 +64,15 @@ class BuildPlugin implements TheiaPlugin {
       })
     }
 
-    function ensureRepoIsCloned (componentLibrary: string, repoSource: string) {
+    async function ensureRepoIsCloned (componentLibrary: string, repoSource: string): Promise<string> {
       const workingDir = path.resolve(projectRootDir, 'var', componentLibrary)
 
-      if (!fs.existsSync(workingDir)) {
-        execSync(`git clone ${repoSource} ${workingDir}`)
+      const exists = await fs.pathExists(workingDir)
+      if (!exists) {
+        await promiseExec(`git clone ${repoSource} ${workingDir}`)
       }
 
-      return workingDir
+      return Promise.resolve(workingDir)
     }
 
     function hasBuilt (componentLibrary: string, commitHash: string): Promise<boolean> {
@@ -72,10 +89,10 @@ class BuildPlugin implements TheiaPlugin {
 
     console.log('building component libraries ...')
 
-    Promise.all(Object.keys(libs).map(componentLibrary => {
+    Promise.all(Object.keys(libs).map(async (componentLibrary) => {
       const componentLibraryConfig = libs[componentLibrary]
       const branch = componentLibraryConfig[environment].branch
-      const workingDir = ensureRepoIsCloned(componentLibrary, componentLibraryConfig.source)
+      const workingDir = await ensureRepoIsCloned(componentLibrary, componentLibraryConfig.source)
       return buildFromDir(componentLibrary, workingDir, branch)
     })).then(() => {
       console.log('finished building component libraries')

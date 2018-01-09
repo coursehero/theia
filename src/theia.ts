@@ -123,6 +123,7 @@ class Theia {
       }
     }
 
+    // This actually may not be very useful
     const isLocalBuildingEnabled = process.env.THEIA_LOCAL_GIT === '1'
     if (isLocalBuildingEnabled) {
       console.log('*************************')
