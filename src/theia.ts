@@ -123,12 +123,25 @@ class Theia {
       }
     }
 
-    this.localConfigPath = localConfigPath
-    this.localConfig = fs.existsSync(localConfigPath) ? require(localConfigPath) : {}
+    const isLocalBuildingEnabled = process.env.THEIA_LOCAL_GIT === '1'
+    if (isLocalBuildingEnabled) {
+      console.log('*************************')
+      console.log('USING LOCAL CONFIGURATION')
+      console.log('*************************')
+
+      // merge local config into config
+      const localConfig = fs.existsSync(localConfigPath) ? require(localConfigPath) : {}
+      for (const componentLibrary in localConfig.libs) {
+        const localSource = localConfig.libs[componentLibrary]
+        this.config.libs[componentLibrary].source = localSource
+      }
+    }
 
     for (const plugin of plugins) {
       plugin.apply(this)
     }
+
+    console.log(JSON.stringify(this.config, null, 2))
   }
 
   start (): void {

@@ -21,8 +21,10 @@ class BuildPlugin implements TheiaPlugin {
   buildAll (theia: Theia) {
     const projectRootDir = path.resolve(__dirname, '..', '..')
 
-    async function build (componentLibrary: string, workingDir: string) {
+    async function buildFromDir (componentLibrary: string, workingDir: string, branch: string) {
       console.log(`${componentLibrary}: checking for updates in ${workingDir} ...`)
+
+      execSync(`git checkout --quiet ${branch} && git pull`, { cwd: workingDir })
 
       const commitHash = execSync(`git rev-parse HEAD`, { cwd: workingDir }).toString().trim()
 
@@ -46,16 +48,14 @@ class BuildPlugin implements TheiaPlugin {
       })
     }
 
-    function buildWithGitCache (componentLibrary: string, projectPath: string, branch: string) {
+    function ensureRepoIsCloned (componentLibrary: string, repoSource: string) {
       const workingDir = path.resolve(projectRootDir, 'var', componentLibrary)
 
-      if (fs.existsSync(workingDir)) {
-        execSync(`git checkout --quiet ${branch} && git pull`, { cwd: workingDir })
-      } else {
-        execSync(`git clone -b ${branch} ${projectPath} ${workingDir}`)
+      if (!fs.existsSync(workingDir)) {
+        execSync(`git clone ${repoSource} ${workingDir}`)
       }
 
-      return build(componentLibrary, workingDir)
+      return workingDir
     }
 
     function hasBuilt (componentLibrary: string, commitHash: string): Promise<boolean> {
@@ -67,27 +67,16 @@ class BuildPlugin implements TheiaPlugin {
       })
     }
 
-    const isLocalBuildingEnabled = process.env.THEIA_LOCAL_GIT === '1'
-    if (isLocalBuildingEnabled) {
-      console.log('***********')
-      console.log('BUILDING LOCALLY')
-      console.log(theia.localConfig.libs)
-      console.log('***********')
-    }
-
     const environment: ('development' | 'production') = (process.env.NODE_ENV as 'development' | 'production') || 'development'
     const libs = theia.config.libs
-    const localLibs = isLocalBuildingEnabled ? theia.localConfig.libs : {}
 
     console.log('building component libraries ...')
 
     Promise.all(Object.keys(libs).map(componentLibrary => {
-      if (localLibs[componentLibrary]) {
-        return build(componentLibrary, localLibs[componentLibrary])
-      } else {
-        const componentLibraryConfig = libs[componentLibrary]
-        return buildWithGitCache(componentLibrary, componentLibraryConfig.source, componentLibraryConfig[environment].branch)
-      }
+      const componentLibraryConfig = libs[componentLibrary]
+      const branch = componentLibraryConfig[environment].branch
+      const workingDir = ensureRepoIsCloned(componentLibrary, componentLibraryConfig.source)
+      return buildFromDir(componentLibrary, workingDir, branch)
     })).then(() => {
       console.log('finished building component libraries')
       return
