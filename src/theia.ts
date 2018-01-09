@@ -6,6 +6,8 @@ import * as fs from 'fs-extra'
 import * as path from 'path'
 import { SyncHook } from 'tapable'
 
+// TODO: can these ts definitions be in their own file?
+
 interface TheiaPlugin {
   apply (theia: Theia): void
 }
@@ -79,6 +81,7 @@ const libCache: { [key: string]: ComponentLibrary } = {}
 
 class Theia {
   hooks = {
+    // TODO: make all hooks async
     start: new SyncHook(['theia']),
     render: new SyncHook(['theia']),
     componentLibraryUpdate: new SyncHook(['theia', 'componentLibrary', 'manifestEntry']),

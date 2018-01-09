@@ -23,9 +23,9 @@ function promiseExec (cmd: string, opts = {}) {
 }
 
 class BuildPlugin implements TheiaPlugin {
-  buildInterval: int
+  buildInterval: number
 
-  constructor (buildInterval: int) {
+  constructor (buildInterval: number) {
     this.buildInterval = buildInterval
   }
 
