@@ -1,6 +1,6 @@
 /* tslint:disable:no-eval */
 
-import * as fs from 'fs-extra'
+import * as React from 'react' // only imported for typing purposes
 import * as path from 'path'
 import * as rp from 'request-promise'
 import { SyncHook } from 'tapable'
@@ -77,8 +77,8 @@ interface CtorParams {
 const libCache: { [key: string]: ComponentLibrary } = {}
 
 interface ReactCacheEntry {
-  React: object
-  ReactDOMServer: object
+  React: any
+  ReactDOMServer: any
 }
 
 /*
@@ -86,13 +86,13 @@ interface ReactCacheEntry {
   and stores within a cache separate from other versions.
 */
 const reactCache: { [key: string]: ReactCacheEntry } = {}
-async function getReact(version: string): Promise<ReactCacheEntry> {
+async function getReact (version: string): Promise<ReactCacheEntry> {
   if (reactCache[version]) {
     return Promise.resolve(reactCache[version])
   }
 
-  const reactCacheEntry = reactCache[version] = {}
-  const majorVersion = parseInt(version.split('.')[0])
+  const reactCacheEntry = reactCache[version] = {} as ReactCacheEntry
+  const majorVersion = parseInt(version.split('.')[0], 10)
 
   if (majorVersion >= 16) {
     const reactUrl = `https://cdnjs.cloudflare.com/ajax/libs/react/${version}/umd/react.production.min.js`
@@ -121,8 +121,9 @@ async function getReact(version: string): Promise<ReactCacheEntry> {
   by passing "this" to a module function. In the browser context, "this" is points to "window" at the top scope.
   By creating a new scope above the module code, we can modify where React gets stored.
 */
-async function getUMD(url: string, thisContext: object): Promise<void> {
-  const fn = new Function(await rp.get(url))
+async function getUMD (url: string, thisContext: object): Promise<void> {
+  // TODO: not sure why tslint says that "rp.get" does not return a promise.
+  const fn = new Function(await rp.get(url)) // tslint:disable-line
   fn.call(thisContext)
 }
 
@@ -276,8 +277,8 @@ class Theia {
     const stats = JSON.parse(statsContents)
     const componentManifestBasename = stats.assetsByChunkName.manifest.find((asset: string) => asset.startsWith('manifest') && asset.endsWith('.js'))
     const source = await this.storage.load(componentLibrary, componentManifestBasename)
-    // const { React } =  await getReact(latest.react) // TODO
-    const { React } =  await getReact(reactVersion)
+    // const { React } = await getReact(latest.react) // TODO
+    const { React } = await getReact(reactVersion) // tslint:disable-line
     const evaluated = eval(`var window = {React: React}; ` + source)
 
     if (!evaluated.default) {
