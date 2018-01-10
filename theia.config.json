@@ -7,14 +7,6 @@
     },
     "libs": {
         "@coursehero-components/mythos": "git@git.coursehero.com:coursehero/components/mythos.git",
-        "@coursehero-components/study-guides": {
-            "source": "git@git.coursehero.com:coursehero/components/study-guides.git",
-            "development": {
-                "branch": "chess-46-make-cl"
-            },
-            "production": {
-                "branch": "chess-46-make-cl"
-            }
-        }
+        "@coursehero-components/study-guides": "git@git.coursehero.com:coursehero/components/study-guides.git"
     }
 }
