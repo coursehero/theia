@@ -1,9 +1,8 @@
 /* tslint:disable:no-eval */
 
-import * as React from 'react'
-import * as ReactDOMServer from 'react-dom/server'
 import * as fs from 'fs-extra'
 import * as path from 'path'
+import * as rp from 'request-promise'
 import { SyncHook } from 'tapable'
 
 // TODO: can these ts definitions be in their own file?
@@ -75,9 +74,57 @@ interface CtorParams {
   plugins: TheiaPlugin[]
 }
 
-global.React = React
-
 const libCache: { [key: string]: ComponentLibrary } = {}
+
+interface ReactCacheEntry {
+  React: object
+  ReactDOMServer: object
+}
+
+/*
+  This loads the production bundle of React for a specified version, evaluates the code,
+  and stores within a cache separate from other versions.
+*/
+const reactCache: { [key: string]: ReactCacheEntry } = {}
+async function getReact(version: string): Promise<ReactCacheEntry> {
+  if (reactCache[version]) {
+    return Promise.resolve(reactCache[version])
+  }
+
+  const reactCacheEntry = reactCache[version] = {}
+  const majorVersion = parseInt(version.split('.')[0])
+
+  if (majorVersion >= 16) {
+    const reactUrl = `https://cdnjs.cloudflare.com/ajax/libs/react/${version}/umd/react.production.min.js`
+    await getUMD(reactUrl, reactCacheEntry)
+
+    // this expects "React" to already be defined
+    const reactDomServerUrl = `https://cdnjs.cloudflare.com/ajax/libs/react-dom/${version}/umd/react-dom-server.browser.production.min.js`
+    await getUMD(reactDomServerUrl, reactCacheEntry)
+  } else {
+    // React had a major overhaul in their build process at version 16. So, doing the above trick won't work.
+    // Using a version >=16 is really necessary to get the full benefits of SSR (ReactDOM.hydrate wasn't added until 16)
+    // So, not supporting <=15 shouldn't be a big deal.
+
+    // (Note: it's still possible to support <=15, I just don't care to figure it out right now.)
+
+    // hopefully we can get the website migrated to version 16 before Theia goes live
+
+    throw new Error('unsupported version of react: ' + version)
+  }
+
+  return reactCacheEntry
+}
+
+/*
+  This works because the UMD bundle (targeted for browsers) defines React on the global window object
+  by passing "this" to a module function. In the browser context, "this" is points to "window" at the top scope.
+  By creating a new scope above the module code, we can modify where React gets stored.
+*/
+async function getUMD(url: string, thisContext: object): Promise<void> {
+  const fn = new Function(await rp.get(url))
+  fn.call(thisContext)
+}
 
 class Theia {
   hooks = {
@@ -127,19 +174,19 @@ class Theia {
     }
 
     // This actually may not be very useful
-    const isLocalBuildingEnabled = process.env.THEIA_LOCAL_GIT === '1'
-    if (isLocalBuildingEnabled) {
-      console.log('*************************')
-      console.log('USING LOCAL CONFIGURATION')
-      console.log('*************************')
+    // const isLocalBuildingEnabled = process.env.THEIA_LOCAL_GIT === '1'
+    // if (isLocalBuildingEnabled) {
+    //   console.log('*************************')
+    //   console.log('USING LOCAL CONFIGURATION')
+    //   console.log('*************************')
 
-      // merge local config into config
-      const localConfig = fs.existsSync(localConfigPath) ? require(localConfigPath) : {}
-      for (const componentLibrary in localConfig.libs) {
-        const localSource = localConfig.libs[componentLibrary]
-        this.config.libs[componentLibrary].source = localSource
-      }
-    }
+    //   // merge local config into config
+    //   const localConfig = fs.existsSync(localConfigPath) ? require(localConfigPath) : {}
+    //   for (const componentLibrary in localConfig.libs) {
+    //     const localSource = localConfig.libs[componentLibrary]
+    //     this.config.libs[componentLibrary].source = localSource
+    //   }
+    // }
 
     for (const plugin of plugins) {
       plugin.apply(this)
@@ -155,7 +202,12 @@ class Theia {
   // TODO: should only hit storage if build files are not in cache/memory.
   // need to cache stats/build-manifest.json files just like source is being cached
   async render (componentLibrary: string, componentName: string, props: object): Promise<RenderResult> {
-    const component = await this.getComponent(componentLibrary, componentName)
+    // TODO: this version should come from the CL's yarn.lock. at build time, the react version should be
+    // saved in build-manifest.json for that CL
+    const reactVersion = '16.0.0'
+    const { React, ReactDOMServer } = await getReact(reactVersion)
+
+    const component = await this.getComponent(reactVersion, componentLibrary, componentName)
     const html = ReactDOMServer.renderToString(React.createElement(component, props))
 
     // TODO: code splitting w/ universal components
@@ -209,7 +261,7 @@ class Theia {
     return JSON.parse(contents)
   }
 
-  async getComponentLibrary (componentLibrary: string): Promise<ComponentLibrary> {
+  async getComponentLibrary (reactVersion: string, componentLibrary: string): Promise<ComponentLibrary> {
     if (libCache[componentLibrary]) {
       return libCache[componentLibrary]
     }
@@ -224,7 +276,9 @@ class Theia {
     const stats = JSON.parse(statsContents)
     const componentManifestBasename = stats.assetsByChunkName.manifest.find((asset: string) => asset.startsWith('manifest') && asset.endsWith('.js'))
     const source = await this.storage.load(componentLibrary, componentManifestBasename)
-    const evaluated = eval('var window = {React: React}; ' + source)
+    // const { React } =  await getReact(latest.react) // TODO
+    const { React } =  await getReact(reactVersion)
+    const evaluated = eval(`var window = {React: React}; ` + source)
 
     if (!evaluated.default) {
       throw new Error(`${componentLibrary} component manifest does not have a default export`)
@@ -233,8 +287,8 @@ class Theia {
     return libCache[componentLibrary] = evaluated.default
   }
 
-  async getComponent (componentLibrary: string, component: string): Promise<ReactComponentClass> {
-    const lib = await this.getComponentLibrary(componentLibrary)
+  async getComponent (reactVersion: string, componentLibrary: string, component: string): Promise<ReactComponentClass> {
+    const lib = await this.getComponentLibrary(reactVersion, componentLibrary)
 
     if (!(component in lib)) {
       throw new Error(`${component} is not a registered component of ${componentLibrary}`)
