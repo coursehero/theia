@@ -7,19 +7,16 @@ import * as path from 'path'
 import { exec as __exec } from 'child_process'
 
 function promiseExec (cmd: string, opts = {}) {
-  const childProcess = __exec(cmd, opts)
+  return new Promise((resolve, reject) =>
+    __exec(cmd, opts, (err, stdout) => {
+      if (err) {
+        reject(err)
+        return
+      }
 
-  let stdout = ''
-  childProcess.stdout.on('data', function (buf) {
-    stdout += buf
-  })
-
-  return new Promise((resolve, reject) => {
-    childProcess.addListener('error', reject)
-    childProcess.addListener('exit', statusCode => {
       resolve(stdout)
     })
-  })
+  )
 }
 
 class BuildPlugin implements TheiaPlugin {
