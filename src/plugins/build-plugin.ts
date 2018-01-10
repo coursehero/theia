@@ -53,8 +53,24 @@ class BuildPlugin implements TheiaPlugin {
       console.log(`${componentLibrary}: building commit hash ${commitHash} ...`)
 
       const statsFilename = `stats.${commitHash}.json`
-      await promiseExec(`yarn install --production=false --non-interactive && rm -rf dist && mkdir dist && ./node_modules/.bin/webpack --json > dist/${statsFilename}`, { cwd: workingDir })
       const workingDistDir = path.resolve(workingDir, 'dist')
+      
+      await promiseExec('yarn install --production=false --non-interactive', { cwd: workingDir })
+      await promiseExec('rm -rf dist && mkdir dist', { cwd: workingDir })
+      
+      await promiseExec(`./node_modules/.bin/webpack --json > dist/${statsFilename}`, { cwd: workingDir }).catch(err => {
+        // webpack does not send error to stdout when using "--json"
+        // instead, it puts it in the json output
+        const statsPath = path.join(workingDir, 'dist', statsFilename)
+        if (fs.pathExistsSync(statsPath, { cwd: workingDir })) {
+          const stats = require(statsPath)
+          if (stats.errors && stats.errors.length) {
+            throw new Error(stats.errors.join("\n====\n"))
+          }
+        }
+        
+        throw err
+      })
 
       return fs.readdir(workingDistDir).then(buildAssetBasenames => {
         return buildAssetBasenames.map(basename => path.join(workingDir, 'dist', basename))
