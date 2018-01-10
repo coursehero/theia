@@ -205,7 +205,7 @@ class Theia {
   async render (componentLibrary: string, componentName: string, props: object): Promise<RenderResult> {
     // TODO: this version should come from the CL's yarn.lock. at build time, the react version should be
     // saved in build-manifest.json for that CL
-    const reactVersion = '16.0.0'
+    const reactVersion = '16.2.0'
     const { React, ReactDOMServer } = await getReact(reactVersion)
 
     const component = await this.getComponent(reactVersion, componentLibrary, componentName)
