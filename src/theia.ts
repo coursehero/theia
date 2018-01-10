@@ -277,9 +277,9 @@ class Theia {
     const stats = JSON.parse(statsContents)
     const componentManifestBasename = stats.assetsByChunkName.manifest.find((asset: string) => asset.startsWith('manifest') && asset.endsWith('.js'))
     const source = await this.storage.load(componentLibrary, componentManifestBasename)
-    // const { React } = await getReact(latest.react) // TODO
-    const { React } = await getReact(reactVersion) // tslint:disable-line
-    const evaluated = eval(`var window = {React: React}; ` + source)
+    const { React } = await getReact(reactVersion)
+    const window = { React } // tslint:disable-line
+    const evaluated = eval(source)
 
     if (!evaluated.default) {
       throw new Error(`${componentLibrary} component manifest does not have a default export`)
