@@ -32,7 +32,7 @@ class S3StoragePlugin implements TheiaPlugin {
       Bucket: this.bucket,
       Key: [this.rootDir, componentLibrary, basename].join('/'),
       Body: contents,
-      ContentType: mime.lookup(basename)
+      ContentType: mime.lookup(basename) || undefined
     }
 
     return new Promise((resolve, reject) => {
