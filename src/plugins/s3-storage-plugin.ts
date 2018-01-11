@@ -44,7 +44,6 @@ class S3StoragePlugin implements TheiaPlugin {
   }
 
   onExists (componentLibrary: string, basename: string): Promise<boolean> {
-    return Promise.resolve(false)
     const params = {
       Bucket: this.bucket,
       Key: [this.rootDir, componentLibrary, basename].join('/')
