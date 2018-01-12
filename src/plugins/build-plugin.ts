@@ -47,7 +47,7 @@ class BuildPlugin implements TheiaPlugin {
 
       if (await hasBuilt(componentLibrary, commitHash)) {
         console.log(`${componentLibrary}: no updates found`)
-        return Promise.resolve()
+        return
       }
 
       console.log(`${componentLibrary}: building commit hash ${commitHash} ...`)
@@ -89,7 +89,7 @@ class BuildPlugin implements TheiaPlugin {
         await promiseExec(`git clone ${repoSource} ${workingDir}`)
       }
 
-      return Promise.resolve(workingDir)
+      return workingDir
     }
 
     function hasBuilt (componentLibrary: string, commitHash: string): Promise<boolean> {

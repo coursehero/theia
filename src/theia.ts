@@ -88,7 +88,7 @@ interface ReactCacheEntry {
 const reactCache: { [key: string]: ReactCacheEntry } = {}
 async function getReact (version: string): Promise<ReactCacheEntry> {
   if (reactCache[version]) {
-    return Promise.resolve(reactCache[version])
+    return reactCache[version]
   }
 
   const reactCacheEntry = reactCache[version] = {} as ReactCacheEntry
@@ -250,7 +250,7 @@ class Theia {
 
     delete libCache[componentLibrary]
 
-    return Promise.resolve()
+    return
   }
 
   hasBuildManifest (componentLibrary: string): Promise<boolean> {
