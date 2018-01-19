@@ -11,5 +11,8 @@ COPY ./package.json /var/www/current/package.json
 ARG NODE_ENV=development
 ENV NODE_ENV=$NODE_ENV
 
+ARG THEIA_AUTH_SECRET=courseherobatman
+ENV THEIA_AUTH_SECRET=$THEIA_AUTH_SECRET
+
 WORKDIR /var/www/current
 CMD NODE_ENV=development PORT=80 yarn run start
