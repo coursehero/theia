@@ -1,7 +1,7 @@
 try{
     node {
         stage 'Checkout'
-            git url: 'git@prod-git.coursehero.com:coursehero/theia.git', branch: BRANCH
+            git url: 'git@prod-git.coursehero.com:coursehero/service/theia.git', branch: BRANCH
 
         // stage 'Ready Parameters'
         //     sh "touch /var/filecabinet/devops/shared/dev-service-study-guide-data/PARAMS_BEING_USED"
