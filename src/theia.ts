@@ -84,11 +84,13 @@ interface ReactCacheEntry {
 /*
   This loads the production bundle of React for a specified version, evaluates the code,
   and stores within a cache separate from other versions.
+
+  This doesn't have to be dynamic, but this will enable multiple versions of React to be supported.
 */
 const reactCache: { [key: string]: ReactCacheEntry } = {}
 async function getReact (version: string): Promise<ReactCacheEntry> {
   if (reactCache[version]) {
-    return Promise.resolve(reactCache[version])
+    return reactCache[version]
   }
 
   const reactCacheEntry = reactCache[version] = {} as ReactCacheEntry
@@ -118,7 +120,7 @@ async function getReact (version: string): Promise<ReactCacheEntry> {
 
 /*
   This works because the UMD bundle (targeted for browsers) defines React on the global window object
-  by passing "this" to a module function. In the browser context, "this" is points to "window" at the top scope.
+  by passing "this" to a module function. In the browser context, "this" points to "window" at the top scope.
   By creating a new scope above the module code, we can modify where React gets stored.
 */
 async function getUMD (url: string, thisContext: object): Promise<void> {
@@ -205,7 +207,7 @@ class Theia {
   async render (componentLibrary: string, componentName: string, props: object): Promise<RenderResult> {
     // TODO: this version should come from the CL's yarn.lock. at build time, the react version should be
     // saved in build-manifest.json for that CL
-    const reactVersion = '16.0.0'
+    const reactVersion = '16.2.0'
     const { React, ReactDOMServer } = await getReact(reactVersion)
 
     const component = await this.getComponent(reactVersion, componentLibrary, componentName)
@@ -249,8 +251,6 @@ class Theia {
     await this.storage.write(componentLibrary, 'build-manifest.json', manifestJson)
 
     delete libCache[componentLibrary]
-
-    return Promise.resolve()
   }
 
   hasBuildManifest (componentLibrary: string): Promise<boolean> {

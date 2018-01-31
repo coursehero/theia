@@ -5,6 +5,7 @@ import {
 import * as path from 'path'
 import * as fs from 'fs-extra'
 import * as AWS from 'aws-sdk'
+import * as mime from 'mime-types'
 
 class S3StoragePlugin implements TheiaPlugin {
   bucket: string
@@ -30,7 +31,8 @@ class S3StoragePlugin implements TheiaPlugin {
     const params = {
       Bucket: this.bucket,
       Key: [this.rootDir, componentLibrary, basename].join('/'),
-      Body: contents
+      Body: contents,
+      ContentType: mime.lookup(basename) || undefined
     }
 
     return new Promise((resolve, reject) => {
