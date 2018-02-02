@@ -24,7 +24,7 @@ class AuthPlugin implements TheiaPlugin {
         return next()
       }
 
-      res.send(HttpStatus.FORBIDDEN)
+      res.sendStatus(HttpStatus.FORBIDDEN)
     })
   }
 }
