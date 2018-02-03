@@ -1,4 +1,7 @@
-import Theia from './theia'
+import {
+  default as Theia,
+  TheiaPlugin
+} from './theia'
 import S3StoragePlugin from './plugins/s3-storage-plugin'
 import LocalStoragePlugin from './plugins/local-storage-plugin'
 import BuildPlugin from './plugins/build-plugin'
@@ -18,19 +21,26 @@ if (process.env.THEIA_LOCAL_STORAGE === '1') {
   storagePlugin = new S3StoragePlugin('coursehero-dev-pub', 'theia')
 }
 
+const plugins: Array<TheiaPlugin> = [
+  storagePlugin,
+  new BuildPlugin(FIVE_MINUTES),
+  new ReheatCachePlugin(),
+  new HeartbeatPlugin(),
+  new AuthPlugin('CH-Auth', process.env.THEIA_AUTH_SECRET || 'courseherobatman'),
+  new UsagePlugin()
+]
+
+if (process.env.THEIA_ROLLBAR_TOKEN) {
+  plugins.push(new RollbarPlugin(process.env.THEIA_ROLLBAR_TOKEN as string))
+}
+
+console.log(plugins)
+
 const theia = new Theia(
   {
     configPath: path.resolve(__dirname, '..', 'theia.config.json'),
     localConfigPath: path.resolve(__dirname, '..', 'theia.local.config.json'),
-    plugins: [
-      storagePlugin,
-      new BuildPlugin(FIVE_MINUTES),
-      new RollbarPlugin(),
-      new ReheatCachePlugin(),
-      new HeartbeatPlugin(),
-      new AuthPlugin('CH-Auth', process.env.THEIA_AUTH_SECRET || 'courseherobatman'),
-      new UsagePlugin()
-    ]
+    plugins
   }
 )
 

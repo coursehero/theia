@@ -133,9 +133,10 @@ class Theia {
   hooks = {
     // TODO: make all hooks async
     start: new SyncHook(['theia']),
-    render: new SyncHook(['theia']),
+    render: new SyncHook(['theia', 'componentLibrary', 'component', 'props']),
     componentLibraryUpdate: new SyncHook(['theia', 'componentLibrary', 'manifestEntry']),
-    express: new SyncHook(['theia', 'app'])
+    express: new SyncHook(['theia', 'app']),
+    error: new SyncHook(['theia', 'error'])
   }
 
   storage: {

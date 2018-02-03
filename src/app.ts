@@ -30,11 +30,14 @@ app.use(express.static(path.join(__dirname, '..', 'public')))
 
 theia.hooks.express.call(theia, app)
 
-app.post('/render', async (req: express.Request, res: express.Response) => {
-  const result = await theia.render(req.query.componentLibrary, req.query.component, req.body)
-
-  res.set('Theia-Assets', JSON.stringify(result.assets))
-  res.send(result.html)
+app.post('/render', async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  theia.render(req.query.componentLibrary, req.query.component, req.body)
+    .then(result => {
+      res.set('Theia-Assets', JSON.stringify(result.assets))
+      res.send(result.html)
+    }).catch(reason => {
+      next(reason)
+    })
 })
 
 app.get('/assets', (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -64,6 +67,8 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
 // error handler
 app.use((err: ResponseError, req: express.Request, res: express.Response, next: express.NextFunction) => {
   err.status = err.status || HttpStatus.INTERNAL_SERVER_ERROR
+
+  theia.hooks.error.call(theia, err)
 
   if (err.status >= 400 && err.status < 500) {
     console.trace(err.stack)
