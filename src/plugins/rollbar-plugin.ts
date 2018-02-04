@@ -81,6 +81,10 @@ class RollbarPlugin implements TheiaPlugin {
         times.splice(0, i)
         break
       }
+
+      if (times.length === 0) {
+        delete this.hashCache[hash]
+      }
     }
   }
 }
