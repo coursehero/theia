@@ -113,13 +113,10 @@ class BuildPlugin implements TheiaPlugin {
       return buildFromDir(componentLibrary, workingDir, branch)
     })).then(() => {
       console.log('finished building component libraries')
-    }).catch(errors => {
-      console.error('errors building component libraries')
-
-      for (const error of errors) {
-        console.error(error)
-        theia.hooks.error.call(theia, error)
-      }
+    }).catch(error => {
+      console.error('error while building component libraries')
+      console.error(error)
+      theia.hooks.error.call(theia, error)
     })
   }
 }
