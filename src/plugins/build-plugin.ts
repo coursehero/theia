@@ -38,21 +38,19 @@ class BuildPlugin implements TheiaPlugin {
   buildAll (theia: Theia) {
     const projectRootDir = path.resolve(__dirname, '..', '..')
 
-    async function buildFromDir (componentLibrary: string, workingDir: string, branch: string): Promise<void> {
+    async function buildFromDir (componentLibrary: string, workingDir: string, commitHash: string | undefined): Promise<void> {
       console.log(`${componentLibrary}: checking for updates in ${workingDir} ...`)
 
-      await promiseExec(`git checkout --quiet ${branch} && git pull`, { cwd: workingDir })
-
-      const commitHash = (await promiseExec(`git rev-parse HEAD`, { cwd: workingDir })).toString().trim()
-
-      if (await hasBuilt(componentLibrary, commitHash)) {
+      if (commitHash && await hasBuilt(componentLibrary, commitHash)) {
         console.log(`${componentLibrary}: no updates found`)
         return
       }
 
-      console.log(`${componentLibrary}: building commit hash ${commitHash} ...`)
+      const tag = commitHash || 'local'
 
-      const statsFilename = `stats.${commitHash}.json`
+      console.log(`${componentLibrary}: building ${tag} ...`)
+
+      const statsFilename = `stats.${tag}.json`
       const workingDistDir = path.resolve(workingDir, 'dist')
 
       await promiseExec('yarn install --production=false --non-interactive', { cwd: workingDir })
@@ -75,19 +73,21 @@ class BuildPlugin implements TheiaPlugin {
       return fs.readdir(workingDistDir).then(buildAssetBasenames => {
         return buildAssetBasenames.map(basename => path.join(workingDir, 'dist', basename))
       }).then(buildAssets => {
-        return theia.registerComponentLibrary(componentLibrary, buildAssets, commitHash)
+        return theia.registerComponentLibrary(componentLibrary, buildAssets, tag)
       }).then(() => {
-        console.log(`${componentLibrary}: built ${commitHash}`)
+        console.log(`${componentLibrary}: built ${tag}`)
       })
     }
 
-    async function ensureRepoIsCloned (componentLibrary: string, repoSource: string): Promise<string> {
+    async function ensureRepoIsClonedAndUpdated (componentLibrary: string, repoSource: string, branch: string): Promise<string> {
       const workingDir = path.resolve(projectRootDir, 'var', componentLibrary)
 
       const exists = await fs.pathExists(workingDir)
       if (!exists) {
         await promiseExec(`git clone ${repoSource} ${workingDir}`)
       }
+
+      await promiseExec(`git checkout --quiet ${branch} && git pull`, { cwd: workingDir })
 
       return workingDir
     }
@@ -109,8 +109,16 @@ class BuildPlugin implements TheiaPlugin {
     Promise.all(Object.keys(libs).map(async (componentLibrary) => {
       const componentLibraryConfig = libs[componentLibrary]
       const branch = componentLibraryConfig[environment].branch
-      const workingDir = await ensureRepoIsCloned(componentLibrary, componentLibraryConfig.source)
-      return buildFromDir(componentLibrary, workingDir, branch)
+
+      if (componentLibraryConfig.source.startsWith('git@')) {
+        // source is a git protocol. this is a normal build. the latest commit in the tracked branch will be persisted
+        const workingDir = await ensureRepoIsClonedAndUpdated(componentLibrary, componentLibraryConfig.source, branch)
+        const commitHash = (await promiseExec(`git rev-parse HEAD`, { cwd: workingDir })).toString().trim()
+        return buildFromDir(componentLibrary, workingDir, commitHash)
+      } else {
+        // source is a local folder. this is for local testing. it will use the contents of the source folder directly, instead of the latest commit
+        return buildFromDir(componentLibrary, componentLibraryConfig.source, undefined)
+      }
     })).then(() => {
       console.log('finished building component libraries')
     }).catch(errors => {

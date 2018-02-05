@@ -45,13 +45,13 @@ app.get('/assets', (req: express.Request, res: express.Response, next: express.N
   res.send(HttpStatus.NOT_FOUND)
 })
 
-app.use('/assets', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use('/assets', async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   const split = req.path.split('/')
   const componentLibrary = split.slice(1, split.length - 1).join('/')
   const asset = split[split.length - 1]
 
   res.contentType(asset)
-  res.send(theia.storage.load(componentLibrary, asset))
+  res.send(await theia.storage.load(componentLibrary, asset))
 })
 
 // catch 404 and forward to error handler

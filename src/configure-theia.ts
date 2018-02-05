@@ -12,7 +12,7 @@ import * as path from 'path'
 const FIVE_MINUTES = 1000 * 60 * 5
 
 let storagePlugin
-if (process.env.THEIA_LOCAL_STORAGE === '1') {
+if (process.env.THEIA_LOCAL === '1') {
   storagePlugin = new LocalStoragePlugin(path.resolve(__dirname, '..', 'libs'))
 } else {
   storagePlugin = new S3StoragePlugin('coursehero-dev-pub', 'theia')

@@ -3,6 +3,7 @@
 import * as React from 'react' // only imported for typing purposes
 import * as path from 'path'
 import * as rp from 'request-promise'
+import * as fs from 'fs-extra'
 import { SyncHook } from 'tapable'
 
 // TODO: can these ts definitions be in their own file?
@@ -177,19 +178,19 @@ class Theia {
     }
 
     // This actually may not be very useful
-    // const isLocalBuildingEnabled = process.env.THEIA_LOCAL_GIT === '1'
-    // if (isLocalBuildingEnabled) {
-    //   console.log('*************************')
-    //   console.log('USING LOCAL CONFIGURATION')
-    //   console.log('*************************')
+    const isLocalBuildingEnabled = process.env.THEIA_LOCAL === '1'
+    if (isLocalBuildingEnabled) {
+      console.log('*************************')
+      console.log('USING LOCAL CONFIGURATION')
+      console.log('*************************')
 
-    //   // merge local config into config
-    //   const localConfig = fs.existsSync(localConfigPath) ? require(localConfigPath) : {}
-    //   for (const componentLibrary in localConfig.libs) {
-    //     const localSource = localConfig.libs[componentLibrary]
-    //     this.config.libs[componentLibrary].source = localSource
-    //   }
-    // }
+      // merge local config into config
+      const localConfig = fs.existsSync(localConfigPath) ? require(localConfigPath) : {}
+      for (const componentLibrary in localConfig.libs) {
+        const localSource = localConfig.libs[componentLibrary]
+        this.config.libs[componentLibrary].source = localSource
+      }
+    }
 
     for (const plugin of plugins) {
       plugin.apply(this)
