@@ -53,8 +53,13 @@ app.use('/assets', async (req: express.Request, res: express.Response, next: exp
   const componentLibrary = split.slice(1, split.length - 1).join('/')
   const asset = split[split.length - 1]
 
-  res.contentType(asset)
-  res.send(await theia.storage.load(componentLibrary, asset))
+  theia.storage.load(componentLibrary, asset)
+    .then(content => {
+      res.contentType(asset)
+      res.send(content)
+    }).catch(reason => {
+      next(reason)
+    })
 })
 
 // catch 404 and forward to error handler
