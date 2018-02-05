@@ -121,9 +121,10 @@ class BuildPlugin implements TheiaPlugin {
       }
     })).then(() => {
       console.log('finished building component libraries')
-    }).catch(errors => {
-      console.log('errors building component libraries')
-      console.log(errors)
+    }).catch(error => {
+      console.error('error while building component libraries')
+      console.error(error)
+      theia.hooks.error.call(theia, error)
     })
   }
 }
