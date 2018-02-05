@@ -75,7 +75,16 @@ interface CtorParams {
   plugins: TheiaPlugin[]
 }
 
+interface Stats {
+  assetsByChunkName: {
+    manifest: Array<string>
+  }
+}
+
+// if we ever scale to more than 1 microservice, these caches may present issues
 const libCache: { [key: string]: ComponentLibrary } = {}
+const buildManifestCache: { [key: string]: TheiaBuildManifest } = {}
+const statsContentsCache: { [key: string]: Stats } = {}
 
 interface ReactCacheEntry {
   React: any
@@ -253,6 +262,8 @@ class Theia {
     await this.storage.write(componentLibrary, 'build-manifest.json', manifestJson)
 
     delete libCache[componentLibrary]
+    delete buildManifestCache[componentLibrary]
+    delete statsContentsCache[componentLibrary]
   }
 
   hasBuildManifest (componentLibrary: string): Promise<boolean> {
@@ -260,8 +271,23 @@ class Theia {
   }
 
   async getBuildManifest (componentLibrary: string): Promise<TheiaBuildManifest> {
+    if (buildManifestCache[componentLibrary]) {
+      return buildManifestCache[componentLibrary]
+    }
+
     const contents = await this.storage.load(componentLibrary, 'build-manifest.json')
-    return JSON.parse(contents)
+    return buildManifestCache[componentLibrary] = JSON.parse(contents)
+  }
+
+  async getLatestStatsContents (componentLibrary: string): Promise<Stats> {
+    if (statsContentsCache[componentLibrary]) {
+      return statsContentsCache[componentLibrary]
+    }
+
+    const buildManifest = await this.getBuildManifest(componentLibrary)
+    const latest = buildManifest[buildManifest.length - 1]
+    const statsContents = await this.storage.load(componentLibrary, latest.stats)
+    return statsContentsCache[componentLibrary] = JSON.parse(statsContents)
   }
 
   async getComponentLibrary (reactVersion: string, componentLibrary: string): Promise<ComponentLibrary> {
@@ -302,10 +328,7 @@ class Theia {
 
   // temporary. just returns all the assets for a CL. change when codesplitting is working
   async getAssets (componentLibrary: string): Promise<RenderResultAssets> {
-    const buildManifest = await this.getBuildManifest(componentLibrary)
-    const latest = buildManifest[buildManifest.length - 1]
-    const statsContents = await this.storage.load(componentLibrary, latest.stats)
-    const stats = JSON.parse(statsContents)
+    const stats = await this.getLatestStatsContents(componentLibrary)
     const manifestAssets = stats.assetsByChunkName.manifest
 
     return {
