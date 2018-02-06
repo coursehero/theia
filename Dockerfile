@@ -8,14 +8,8 @@ COPY ./node_modules /var/www/current/node_modules
 COPY ./theia.config.json /var/www/current/theia.config.json
 COPY ./package.json /var/www/current/package.json
 
-ARG NODE_ENV=development
-ENV NODE_ENV=$NODE_ENV
-
-ARG THEIA_AUTH_SECRET
-ENV THEIA_AUTH_SECRET=$THEIA_AUTH_SECRET
-
-ARG THEIA_ROLLBAR_TOKEN
-ENV THEIA_ROLLBAR_TOKEN=$THEIA_ROLLBAR_TOKEN
+ARG secrets_path=development
+COPY $secrets_path /etc/profile.d/secrets.sh
 
 WORKDIR /var/www/current
 CMD NODE_ENV=development PORT=80 yarn run start

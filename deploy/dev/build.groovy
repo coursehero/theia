@@ -14,9 +14,7 @@ try{
 
         stage 'Build'
             sh 'docker build \
-            --build-arg NODE_ENV=development \
-            --build-arg THEIA_AUTH_SECRET=$(cat /run/secrets/api.authKey) \
-            --build-arg THEIA_ROLLBAR_TOKEN=$(cat /run/secrets/theia.rollbar.token) \
+            --build-arg secrets_path=./deploy/dev/secrets.sh \
             -t 315915642113.dkr.ecr.us-east-1.amazonaws.com/dev-theia .'
 
         stage 'Push'
