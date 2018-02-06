@@ -14,7 +14,7 @@ try{
 
         stage 'Build'
             sh 'docker build \
-            --build-arg secrets_path=./deploy/dev/secrets.sh \
+            --build-arg node_env=development \
             -t 315915642113.dkr.ecr.us-east-1.amazonaws.com/dev-theia .'
 
         stage 'Push'

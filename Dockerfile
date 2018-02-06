@@ -7,9 +7,10 @@ COPY ./views /var/www/current/views
 COPY ./node_modules /var/www/current/node_modules
 COPY ./theia.config.json /var/www/current/theia.config.json
 COPY ./package.json /var/www/current/package.json
+COPY ./deploy/secrets.sh /root/.bashrc
 
-ARG secrets_path=development
-COPY $secrets_path /etc/profile.d/secrets.sh
+ARG node_env=development
+ENV NODE_ENV=$node_env
 
 WORKDIR /var/www/current
 CMD NODE_ENV=development PORT=80 yarn run start
