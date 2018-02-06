@@ -143,6 +143,7 @@ class Theia {
   hooks = {
     // TODO: make all hooks async
     start: new SyncHook(['theia']),
+    beforeRender: new SyncHook(['theia', 'componentLibrary', 'component', 'props']),
     render: new SyncHook(['theia', 'componentLibrary', 'component', 'props']),
     componentLibraryUpdate: new SyncHook(['theia', 'componentLibrary', 'manifestEntry']),
     express: new SyncHook(['theia', 'app']),
@@ -216,6 +217,8 @@ class Theia {
   // TODO: should only hit storage if build files are not in cache/memory.
   // need to cache stats/build-manifest.json files just like source is being cached
   async render (componentLibrary: string, componentName: string, props: object): Promise<RenderResult> {
+    this.hooks.beforeRender.call(this, componentLibrary, componentName, props)
+
     // TODO: this version should come from the CL's yarn.lock. at build time, the react version should be
     // saved in build-manifest.json for that CL
     const reactVersion = '16.2.0'
