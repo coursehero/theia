@@ -13,4 +13,4 @@ ARG node_env=development
 ENV NODE_ENV=$node_env
 
 WORKDIR /var/www/current
-CMD source ./secrets.sh && PORT=80 yarn run start
+CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn run start" ]
