@@ -7,10 +7,10 @@ COPY ./views /var/www/current/views
 COPY ./node_modules /var/www/current/node_modules
 COPY ./theia.config.json /var/www/current/theia.config.json
 COPY ./package.json /var/www/current/package.json
-COPY ./deploy/secrets.sh /var/www/current/.theiaenv
+COPY ./deploy/secrets.sh /var/www/current/secrets.sh
 
 ARG node_env=development
 ENV NODE_ENV=$node_env
 
 WORKDIR /var/www/current
-CMD source .theiaenv && PORT=80 yarn run start
+CMD ./secrets.sh && PORT=80 yarn run start
