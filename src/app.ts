@@ -64,7 +64,7 @@ app.use('/assets', async (req: express.Request, res: express.Response, next: exp
 
 // catch 404 and forward to error handler
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-  let err: ResponseError = new Error('Not Found')
+  let err: ResponseError = new Error('Not Found: ' + req.path)
   err.status = HttpStatus.NOT_FOUND
   next(err)
 })
