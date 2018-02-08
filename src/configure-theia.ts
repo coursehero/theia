@@ -31,7 +31,7 @@ const plugins: Array<TheiaPlugin> = [
 ]
 
 if (process.env.THEIA_ROLLBAR_TOKEN) {
-  plugins.push(new RollbarPlugin(process.env.THEIA_ROLLBAR_TOKEN as string))
+  plugins.push(new RollbarPlugin(process.env.THEIA_ROLLBAR_TOKEN as string, process.env.ROLLBAR_ENV as string))
 }
 
 console.log(plugins)

@@ -24,9 +24,10 @@ class RollbarPlugin implements TheiaPlugin {
   rollbar: any
   hashCache: HashCache = {}
 
-  constructor (accessToken: string) {
+  constructor (accessToken: string, environment: string) {
     this.rollbar = new Rollbar({
-      accessToken
+      accessToken,
+      environment
     })
   }
 
