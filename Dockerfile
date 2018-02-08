@@ -13,4 +13,4 @@ ARG node_env=development
 ENV NODE_ENV=$node_env
 
 WORKDIR /var/www/current
-CMD source .theiaenv && NODE_ENV=development PORT=80 yarn run start
+CMD source .theiaenv && PORT=80 yarn run start
