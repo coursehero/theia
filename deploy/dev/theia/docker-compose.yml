@@ -27,12 +27,6 @@ services:
 #       syslog-facility: local0
 #       tag: '{"docker_image":"{{.ImageName}}", "docker_name":"{{.Name}}", "docker_id":"{{.ID}}",
 #         "service_name":"dev-theia"}'
-    logging:
-      driver: "awslogs"
-      options:
-         awslogs-region: "us-east-1"
-         awslogs-group: "dev-theia"
-         awslogs-stream: "{.Name}/{.ID}"
     labels:
       io.rancher.container.pull_image: always
       traefik.enable: 'true'
