@@ -1,0 +1,35 @@
+version: '2'
+services:
+  web-api:
+    image: 315915642113.dkr.ecr.us-east-1.amazonaws.com/theia
+    environment:
+      NR_APP_NAME: theia
+      ROLLBAR_ENV: theia
+    stdin_open: true
+    volumes:
+      - /run/secrets/theia.id_rsa:/root/.ssh/id_rsa
+      - /run/secrets/theia.known_hosts:/root/.ssh/known_hosts
+      - /run/secrets/theia.aws.config/:/root/.aws/config
+      - /run/secrets/theia.rollbar.token:/run/secrets/theia.rollbar.token
+      - /run/secrets/aws.key:/run/secrets/aws.key
+      - /run/secrets/aws.secret:/run/secrets/aws.secret
+      - /run/secrets/api.authKey:/run/secrets/api.authKey
+      - /run/secrets/newrelic.license:/run/secrets/newrelic.license
+      - /var/rollbar:/var/rollbar
+    tty: true
+    #provide external links to services directly
+#    external_links:
+#      - external-service-name/container-name:how-i-want-to-talk-to-it.internal.coursehero.com
+    #commenting out logging so we can see logs right in Rancher
+#   logging:
+#     driver: syslog
+#     options:
+#       syslog-facility: local0
+#       tag: '{"docker_image":"{{.ImageName}}", "docker_name":"{{.Name}}", "docker_id":"{{.ID}}",
+#         "service_name":"dev-theia"}'
+    labels:
+      io.rancher.container.pull_image: always
+      traefik.enable: 'true'
+      traefik.alias: theia
+      traefik.port: '80'
+      traefik.domain: internal.coursehero.com
