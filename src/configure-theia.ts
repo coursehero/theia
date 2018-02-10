@@ -53,7 +53,7 @@ if (useLocalStorage) {
 
 const plugins: Array<TheiaPlugin> = [
   storagePlugin,
-  new BuildPlugin(process.env.NODE_ENV as Theia.TheiaEnvironment, FIVE_MINUTES),
+  new BuildPlugin((process.env.NODE_ENV as Theia.TheiaEnvironment) || 'development', FIVE_MINUTES),
   new ReheatCachePlugin(),
   new HeartbeatPlugin(),
   new AuthPlugin('CH-Auth', process.env.THEIA_AUTH_SECRET || 'courseherobatman'),
