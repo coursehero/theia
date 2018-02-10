@@ -2,5 +2,12 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+"$DIR"/build
+
 touch ~/.theia_bash_history
-docker run --rm -v ~/.ssh:/root/.ssh -v ~/.aws:/root/.aws -v ~/.theia_bash_history:/root/.bash_history -v "$DIR"/..:/var/www/current -w /var/www/current -it node:carbon bash
+docker run --rm -it \
+  -v ~/.ssh:/root/.ssh \
+  -v ~/.aws:/root/.aws \
+  -v ~/.theia_bash_history:/root/.bash_history \
+  -v "$DIR"/..:/var/www/current \
+  theia bash
