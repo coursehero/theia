@@ -24,7 +24,6 @@
     "rollbar": "^2.3.8",
     "serve-favicon": "~2.4.5",
     "tapable": "^1.0.0-beta.5",
-    "typescript": "^2.6.2",
     "xxhash": "^0.2.4"
   },
   "devDependencies": {
@@ -44,7 +43,8 @@
     "nodemon": "^1.13.3",
     "ts-node": "^4.0.2",
     "tslint": "^5.8.0",
-    "tslint-config-standard": "^7.0.0"
+    "tslint-config-standard": "^7.0.0",
+    "typescript": "^2.6.2"
   },
   "scripts": {
     "lint": "tslint --fix --project .",
