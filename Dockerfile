@@ -1,5 +1,4 @@
 FROM scratch as base
-# WORKDIR /var/www/current
 COPY ./package.json ./
 COPY ./yarn.lock ./
 COPY ./theia.config.json ./
