@@ -1,4 +1,6 @@
-declare module Theia {
+/// <reference path="../../node_modules/@types/react/index.d.ts" />
+
+declare namespace Theia {
   type Environment = 'development' | 'production'
 
   interface Plugin {
