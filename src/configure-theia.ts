@@ -1,9 +1,5 @@
 import * as path from 'path'
-import {
-  default as Theia,
-  TheiaPlugin,
-  TheiaConfiguration
-} from './theia'
+import Theia from './theia'
 import S3StoragePlugin from './plugins/s3-storage-plugin'
 import LocalStoragePlugin from './plugins/local-storage-plugin'
 import BuildPlugin from './plugins/build-plugin'
@@ -17,11 +13,11 @@ const FIVE_MINUTES = 1000 * 60 * 5
 const useLocalStorage = process.env.THEIA_LOCAL === '1' || process.env.THEIA_LOCAL_STORAGE === '1'
 const useLocalConfig = process.env.THEIA_LOCAL === '1' || process.env.THEIA_LOCAL_CONFIG === '1'
 
-function getConfig (configPath: string): TheiaConfiguration {
+function getConfig (configPath: string): Theia.Configuration {
   return require(configPath)
 }
 
-function mergeConfigs (config1: TheiaConfiguration, config2: TheiaConfiguration): TheiaConfiguration {
+function mergeConfigs (config1: Theia.Configuration, config2: Theia.Configuration): Theia.Configuration {
   const config = JSON.parse(JSON.stringify(config1))
 
   for (const componentLibrary in config2.libs) {
@@ -51,9 +47,9 @@ if (useLocalStorage) {
   storagePlugin = new S3StoragePlugin('coursehero-dev-pub', 'theia')
 }
 
-const plugins: Array<TheiaPlugin> = [
+const plugins: Array<Theia.Plugin> = [
   storagePlugin,
-  new BuildPlugin((process.env.NODE_ENV as Theia.TheiaEnvironment) || 'development', FIVE_MINUTES),
+  new BuildPlugin((process.env.NODE_ENV as Theia.Environment) || 'development', FIVE_MINUTES),
   new ReheatCachePlugin(),
   new HeartbeatPlugin(),
   new AuthPlugin('CH-Auth', process.env.THEIA_AUTH_SECRET || 'courseherobatman'),

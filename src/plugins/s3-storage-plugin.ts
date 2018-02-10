@@ -1,13 +1,10 @@
-import {
-  default as Theia,
-  TheiaPlugin
-} from '../theia'
+import Theia from '../theia'
 import * as path from 'path'
 import * as fs from 'fs-extra'
 import * as AWS from 'aws-sdk'
 import * as mime from 'mime-types'
 
-class S3StoragePlugin implements TheiaPlugin {
+class S3StoragePlugin implements Theia.Plugin {
   bucket: string
   rootDir: string
   client: AWS.S3

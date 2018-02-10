@@ -1,7 +1,4 @@
-import {
-  default as Theia,
-  TheiaPlugin
-} from '../theia'
+import Theia from '../theia'
 import * as Rollbar from 'rollbar'
 import * as XXHash from 'xxhash'
 
@@ -20,7 +17,7 @@ const REPEAT_RENDER_REQUEST_ERROR_THRESHOLD = 10
 const PRUNE_INTERVAL = FIVE_MINUTES
 const CACHE_TTL = ONE_HOUR
 
-class RollbarPlugin implements TheiaPlugin {
+class RollbarPlugin implements Theia.Plugin {
   rollbar: any
   hashCache: HashCache = {}
 

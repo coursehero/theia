@@ -1,11 +1,8 @@
-import {
-  default as Theia,
-  TheiaPlugin
-} from '../theia'
+import Theia from '../theia'
 import * as express from 'express'
 import * as HttpStatus from 'http-status-codes'
 
-class AuthPlugin implements TheiaPlugin {
+class AuthPlugin implements Theia.Plugin {
   header: string
   secret: string
 

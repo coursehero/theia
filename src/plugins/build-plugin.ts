@@ -1,7 +1,4 @@
-import {
-  default as Theia,
-  TheiaPlugin
-} from '../theia'
+import Theia from '../theia'
 import * as fs from 'fs-extra'
 import * as path from 'path'
 import * as bluebird from 'bluebird'
@@ -20,11 +17,11 @@ function promiseExec (cmd: string, opts = {}) {
   )
 }
 
-class BuildPlugin implements TheiaPlugin {
-  environment: Theia.TheiaEnvironment
+class BuildPlugin implements Theia.Plugin {
+  environment: Theia.Environment
   buildInterval: number
 
-  constructor (environment: Theia.TheiaEnvironment, buildInterval: number) {
+  constructor (environment: Theia.Environment, buildInterval: number) {
     this.environment = environment
     this.buildInterval = buildInterval
   }
