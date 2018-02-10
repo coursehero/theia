@@ -1,6 +1,8 @@
+import * as path from 'path'
 import {
   default as Theia,
-  TheiaPlugin
+  TheiaPlugin,
+  TheiaConfiguration
 } from './theia'
 import S3StoragePlugin from './plugins/s3-storage-plugin'
 import LocalStoragePlugin from './plugins/local-storage-plugin'
@@ -10,12 +12,40 @@ import ReheatCachePlugin from './plugins/reheat-cache-plugin'
 import AuthPlugin from './plugins/auth-plugin'
 import HeartbeatPlugin from './plugins/heartbeat-plugin'
 import UsagePlugin from './plugins/usage-plugin'
-import * as path from 'path'
 
 const FIVE_MINUTES = 1000 * 60 * 5
+const useLocalStorage = process.env.THEIA_LOCAL === '1' || process.env.THEIA_LOCAL_STORAGE === '1'
+const useLocalConfig = process.env.THEIA_LOCAL === '1' || process.env.THEIA_LOCAL_CONFIG === '1'
+
+function getConfig (configPath: string): TheiaConfiguration {
+  return require(configPath)
+}
+
+function mergeConfigs (config1: TheiaConfiguration, config2: TheiaConfiguration): TheiaConfiguration {
+  const config = JSON.parse(JSON.stringify(config1))
+
+  for (const componentLibrary in config2.libs) {
+    const config1ComponentLibrary = config1.libs[componentLibrary]
+    const config2ComponentLibrary = config2.libs[componentLibrary]
+
+    config.libs[componentLibrary] = Object.assign({}, config1ComponentLibrary, config2ComponentLibrary)
+  }
+
+  return config
+}
+
+let config = getConfig(path.resolve(__dirname, '..', 'theia.config.json'))
+if (useLocalConfig) {
+  console.log('*************************')
+  console.log('USING LOCAL CONFIGURATION')
+  console.log('*************************')
+
+  const localConfig = getConfig(path.resolve(__dirname, '..', 'theia.local.config.json'))
+  config = mergeConfigs(config, localConfig)
+}
 
 let storagePlugin
-if (process.env.THEIA_LOCAL === '1') {
+if (useLocalStorage) {
   storagePlugin = new LocalStoragePlugin(path.resolve(__dirname, '..', 'libs'))
 } else {
   storagePlugin = new S3StoragePlugin('coursehero-dev-pub', 'theia')
@@ -23,7 +53,7 @@ if (process.env.THEIA_LOCAL === '1') {
 
 const plugins: Array<TheiaPlugin> = [
   storagePlugin,
-  new BuildPlugin(FIVE_MINUTES),
+  new BuildPlugin(process.env.NODE_ENV as Theia.TheiaEnvironment, FIVE_MINUTES),
   new ReheatCachePlugin(),
   new HeartbeatPlugin(),
   new AuthPlugin('CH-Auth', process.env.THEIA_AUTH_SECRET || 'courseherobatman'),
@@ -35,11 +65,11 @@ if (process.env.THEIA_ROLLBAR_TOKEN) {
 }
 
 console.log(plugins)
+console.log(JSON.stringify(config, null, 2))
 
 const theia = new Theia(
   {
-    configPath: path.resolve(__dirname, '..', 'theia.config.json'),
-    localConfigPath: path.resolve(__dirname, '..', 'theia.local.config.json'),
+    config,
     plugins
   }
 )

@@ -3,7 +3,6 @@
 import * as React from 'react' // only imported for typing purposes
 import * as path from 'path'
 import * as rp from 'request-promise'
-import * as fs from 'fs-extra'
 import { SyncHook } from 'tapable'
 
 // TODO: can these ts definitions be in their own file?
@@ -12,36 +11,16 @@ interface TheiaPlugin {
   apply (theia: Theia): void
 }
 
-interface TheiaConfigurationFromFilesystem {
-  development: {
-    branch: string
-  }
-
-  production: {
-    branch: string
-  }
-
-  libs: { [key: string]: TheiaConfigurationComponentLibrary | string }
-}
-
 interface TheiaConfiguration {
   libs: { [key: string]: TheiaConfigurationComponentLibrary }
 }
 
 interface TheiaConfigurationComponentLibrary {
   source: string
-
-  development: {
-    branch: string
+  branches: {
+    development: string
+    production: string
   }
-
-  production: {
-    branch: string
-  }
-}
-
-interface TheiaLocalConfiguration {
-  libs: { [key: string]: string }
 }
 
 interface TheiaBuildManifestEntry {
@@ -70,8 +49,7 @@ interface RenderResultAssets {
 }
 
 interface CtorParams {
-  configPath: string
-  localConfigPath: string
+  config: TheiaConfiguration
   plugins: TheiaPlugin[]
 }
 
@@ -157,57 +135,14 @@ class Theia {
     load (componentLibrary: string, basename: string): Promise<string>
   }
 
-  configPath: string
   config: TheiaConfiguration
 
-  localConfigPath: string
-  localConfig: TheiaLocalConfiguration
-
-  constructor ({ configPath, localConfigPath, plugins }: CtorParams) {
-    this.configPath = configPath
-    this.config = {
-      libs: {}
-    }
-
-    // normalize to type TheiaConfiguration
-    const configFromFilesystem: TheiaConfigurationFromFilesystem = require(configPath)
-    for (const componentLibrary in configFromFilesystem.libs) {
-      const componentLibraryConfig = configFromFilesystem.libs[componentLibrary]
-
-      if (typeof componentLibraryConfig === 'string') {
-        this.config.libs[componentLibrary] = {
-          source: componentLibraryConfig,
-          development: configFromFilesystem.development,
-          production: configFromFilesystem.production
-        }
-      } else {
-        this.config.libs[componentLibrary] = Object.assign({}, {
-          development: configFromFilesystem.development,
-          production: configFromFilesystem.production
-        }, componentLibraryConfig)
-      }
-    }
-
-    // This actually may not be very useful
-    const isLocalBuildingEnabled = process.env.THEIA_LOCAL === '1'
-    if (isLocalBuildingEnabled) {
-      console.log('*************************')
-      console.log('USING LOCAL CONFIGURATION')
-      console.log('*************************')
-
-      // merge local config into config
-      const localConfig = fs.existsSync(localConfigPath) ? require(localConfigPath) : {}
-      for (const componentLibrary in localConfig.libs) {
-        const localSource = localConfig.libs[componentLibrary]
-        this.config.libs[componentLibrary].source = localSource
-      }
-    }
+  constructor ({ config, plugins }: CtorParams) {
+    this.config = config
 
     for (const plugin of plugins) {
       plugin.apply(this)
     }
-
-    console.log(JSON.stringify(this.config, null, 2))
   }
 
   start (): void {

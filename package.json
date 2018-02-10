@@ -6,8 +6,10 @@
   "author": "Connor Clark <connor.clark@coursehero.com>",
   "license": "MIT",
   "dependencies": {
+    "@types/bluebird": "^3.5.20",
     "asciidoctor.js": "^1.5.6-preview.4",
     "aws-sdk": "^2.177.0",
+    "bluebird": "^3.5.1",
     "body-parser": "~1.18.2",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
@@ -46,9 +48,9 @@
   },
   "scripts": {
     "lint": "tslint --fix --project .",
-    "build": "yarn run lint && tsc",
+    "build": "tsc",
     "start": "node ./dist/entry.js",
     "start-dev": "nodemon",
-    "test": "yarn run build && echo 'TODO: write tests'"
+    "test": "echo 'TODO: write tests'"
   }
 }
