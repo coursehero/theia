@@ -3,16 +3,7 @@ try{
         stage 'Checkout'
             git url: 'git@prod-git.coursehero.com:coursehero/service/theia.git', branch: BRANCH
 
-        stage 'Yarn Install'
-            sh 'docker run --rm -v ~/.ssh:/root/.ssh -v $(pwd):/var/build -w /var/build node:carbon /bin/bash -c "yarn install"'
-
-        stage 'Yarn Build'
-            sh 'docker run --rm -v ~/.ssh:/root/.ssh -v $(pwd):/var/build -w /var/build node:carbon /bin/bash -c "yarn run build"'
-
-        stage 'Tests'
-            sh 'docker run --rm -v ~/.ssh:/root/.ssh -v $(pwd):/var/build -w /var/build node:carbon /bin/bash -c "yarn run test"'
-
-        stage 'Build'
+        stage 'Build / Test'
             sh 'docker build \
             --build-arg node_env=production \
             -t 315915642113.dkr.ecr.us-east-1.amazonaws.com/theia .'
