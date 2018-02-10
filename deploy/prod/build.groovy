@@ -1,7 +1,7 @@
 try{
     node {
         stage 'Checkout'
-            git url: 'git@prod-git.coursehero.com:coursehero/service/theia.git', branch: BRANCH
+            git url: 'git@prod-git.coursehero.com:coursehero/service/theia.git', branch: 'master'
 
         stage 'Yarn Install'
             sh 'docker run --rm -v ~/.ssh:/root/.ssh -v $(pwd):/var/build -w /var/build node:carbon /bin/bash -c "yarn install"'
