@@ -3,10 +3,12 @@ try{
         stage 'Checkout'
             git url: 'git@prod-git.coursehero.com:coursehero/service/theia.git', branch: BRANCH
 
+        // until Jenkin's docker is >=17.05, use dockerception
         stage 'Build / Test'
-            sh 'docker build \
-            --build-arg node_env=production \
-            -t 315915642113.dkr.ecr.us-east-1.amazonaws.com/theia .'
+            sh 'docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD":/theia -w /theia docker:18 \
+                  docker build \
+                  --build-arg node_env=production \
+                  -t 315915642113.dkr.ecr.us-east-1.amazonaws.com/theia .'
 
         stage 'Push'
             sh "eval \$(aws ecr get-login)"
