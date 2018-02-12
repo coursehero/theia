@@ -2,7 +2,7 @@
 
 = Theia Cache Reheating
 Connor Clark <connor.clark@coursehero.com>
-v1.0, {localdate}
+v1.1, {localdate}
 :toc: left
 :sectnums:
 :icons: font
