@@ -3,11 +3,9 @@ try{
         stage 'Checkout'
             git url: 'git@prod-git.coursehero.com:coursehero/service/theia.git', branch: BRANCH
 
-        // until Jenkin's docker is >=17.05, use dockerception. Can not map docker.sock to container- the host docker uses API v1.22,
-        // which doesn't support multi stage building. 
         stage 'Build / Test'
-            sh 'docker run --rm -v "$PWD":/theia -w /theia docker:18 \
-                  docker build \
+            sh 'docker build \
+                  -v ~/.ssh:/root.ssh \
                   --build-arg node_env=production \
                   -t 315915642113.dkr.ecr.us-east-1.amazonaws.com/theia .'
 
