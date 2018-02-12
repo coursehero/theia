@@ -5,7 +5,7 @@ try{
 
         // until Jenkin's docker is >=17.05, use dockerception
         stage 'Build / Test'
-            sh 'docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD":/theia -w /theia docker:18 \
+            sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD":/theia -w /theia docker:18 \
                   docker build \
                   --build-arg node_env=production \
                   -t 315915642113.dkr.ecr.us-east-1.amazonaws.com/theia .'
