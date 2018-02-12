@@ -124,3 +124,19 @@ A: 2 possible solutions:
 
 a. Set a large-ish TTL for all cache items (1 year). Basically a punt.
 b. This first thing `new-build-job` does could be to set a TTL value for all existing cache items for the CL. If a job ends up writing a value for an existing cache key, remove this TTL value. At the end of the reheating process, any values that still have a TTL set should be safe to remove. Allow the TTL process to do the actual removal. TTL should be configured to be a duration strictly larger than how long it should take to run all the jobs.
+
+Option b is the suggested route to take. If we introduce a new column `producer_group` to the DynamoDB cache, updating the cache for a single producer group (all items that a single `producer-job` creates) would work like this (using ``study-guides` as an example):
+
+1. A previously published study guide is updated and republished.
+2. A single new `producer-job` is created (with `producer_group` set to the course name), which will be configured to prune the cache as laid out in option b, but only for items in the cache whose `producer_group` is a match.
+3. TTL eventually kicks in and remove old items associated with previous version of study guide
+
+== Task Breakdown
+
+1. Theia should emit an SQS `new-build-job` when a new build is finished
+2. Monolith should have a TheiaJobProcessCommand. It should offer an easy interface to create new jobs and register CL-specific callbacks for jobs. Use an interface to implement CL-specific job handling.
+3. Create ECS scaling task
+
+== Discussion
+
+Direct all discussion to link:https://course-hero.slack.com/archives/C82ECUK0W/p1517445664000267[this Slack thread].
