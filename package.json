@@ -47,8 +47,8 @@
   "scripts": {
     "lint": "tslint --fix --project .",
     "build": "yarn run lint && tsc",
-    "start": "node ./dist/entry.js",
-    "start-dev": "nodemon",
+    "start": "AWS_SDK_LOAD_CONFIG=true node ./dist/entry.js",
+    "start-dev": "AWS_SDK_LOAD_CONFIG=true nodemon",
     "test": "yarn run build && echo 'TODO: write tests'"
   }
 }

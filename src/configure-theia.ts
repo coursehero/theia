@@ -24,7 +24,7 @@ if (process.env.THEIA_LOCAL === '1') {
 const plugins: Array<TheiaPlugin> = [
   storagePlugin,
   new BuildPlugin(FIVE_MINUTES),
-  new ReheatCachePlugin(),
+  new ReheatCachePlugin(process.env.THEIA_SQS_REHEAT_CACHE_URL as string),
   new HeartbeatPlugin(),
   new AuthPlugin('CH-Auth', process.env.THEIA_AUTH_SECRET || 'courseherobatman'),
   new UsagePlugin()
