@@ -1,11 +1,8 @@
-import {
-  default as Theia,
-  TheiaPlugin
-} from '../theia'
+import Theia from '../theia'
 import * as path from 'path'
 import * as fs from 'fs-extra'
 
-class LocalStoragePlugin implements TheiaPlugin {
+class LocalStoragePlugin implements Theia.Plugin {
   rootStorageDir: string
 
   constructor (rootStorageDir: string) {

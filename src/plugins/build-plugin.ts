@@ -1,9 +1,7 @@
-import {
-  default as Theia,
-  TheiaPlugin
-} from '../theia'
+import Theia from '../theia'
 import * as fs from 'fs-extra'
 import * as path from 'path'
+import * as bluebird from 'bluebird'
 import { exec as __exec } from 'child_process'
 
 function promiseExec (cmd: string, opts = {}) {
@@ -19,10 +17,12 @@ function promiseExec (cmd: string, opts = {}) {
   )
 }
 
-class BuildPlugin implements TheiaPlugin {
+class BuildPlugin implements Theia.Plugin {
+  environment: Theia.Environment
   buildInterval: number
 
-  constructor (buildInterval: number) {
+  constructor (environment: Theia.Environment, buildInterval: number) {
+    this.environment = environment
     this.buildInterval = buildInterval
   }
 
@@ -52,6 +52,12 @@ class BuildPlugin implements TheiaPlugin {
 
       const statsFilename = `stats.${tag}.json`
       const workingDistDir = path.resolve(workingDir, 'dist')
+
+      // if THEIA_LOCAL=1, node_modules for a CL could have been volume mapped into the container. Those modules would have been installed
+      // from the host machine, which does not match the container environment. Must explicitly delete folder.
+      if (tag === 'local') {
+        await promiseExec('rm -rf node_modules/', { cwd: workingDir })
+      }
 
       await promiseExec('yarn install --production=false --non-interactive', { cwd: workingDir })
       await promiseExec('rm -rf dist && mkdir dist', { cwd: workingDir })
@@ -101,14 +107,14 @@ class BuildPlugin implements TheiaPlugin {
       })
     }
 
-    const environment: ('development' | 'production') = (process.env.NODE_ENV as 'development' | 'production') || 'development'
     const libs = theia.config.libs
 
     console.log('building component libraries ...')
 
-    Promise.all(Object.keys(libs).map(async (componentLibrary) => {
+    // purposefully serial - yarn has trouble running multiple processes
+    bluebird.each(Object.keys(libs), async componentLibrary => {
       const componentLibraryConfig = libs[componentLibrary]
-      const branch = componentLibraryConfig[environment].branch
+      const branch = componentLibraryConfig.branches[this.environment]
 
       if (componentLibraryConfig.source.startsWith('git@')) {
         // source is a git protocol. this is a normal build. the latest commit in the tracked branch will be persisted
@@ -119,7 +125,7 @@ class BuildPlugin implements TheiaPlugin {
         // source is a local folder. this is for local testing. it will use the contents of the source folder directly, instead of the latest commit
         return buildFromDir(componentLibrary, componentLibraryConfig.source, undefined)
       }
-    })).then(() => {
+    }).then(() => {
       console.log('finished building component libraries')
     }).catch(error => {
       console.error('error while building component libraries')

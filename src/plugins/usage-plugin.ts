@@ -1,10 +1,7 @@
-import {
-  default as Theia,
-  TheiaPlugin
-} from '../theia'
+import Theia from '../theia'
 import * as express from 'express'
 
-class UsagePlugin implements TheiaPlugin {
+class UsagePlugin implements Theia.Plugin {
   apply (theia: Theia) {
     theia.hooks.express.tap('UsagePlugin', this.onExpress.bind(this))
   }
