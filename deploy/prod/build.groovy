@@ -5,7 +5,7 @@ try{
 
         stage 'Build / Test'
             sh 'docker build \
-                  --build-arg node_env=production \
+                  --build-arg theia_env=production \
                   -t 315915642113.dkr.ecr.us-east-1.amazonaws.com/theia .'
 
         stage 'Push'

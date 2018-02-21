@@ -4,7 +4,7 @@ services:
     image: 315915642113.dkr.ecr.us-east-1.amazonaws.com/dev-theia
     environment:
       NR_APP_NAME: dev-theia
-      ROLLBAR_ENV: dev-theia
+      ROLLBAR_ENV: development
     stdin_open: true
     volumes:
       - /run/secrets/theia.id_rsa:/root/.ssh/id_rsa

@@ -44,7 +44,7 @@ class RollbarPlugin implements Theia.Plugin {
     // create errors if the same component/props is rendered repeatedly, which suggests a cache failure
 
     // TODO: maybe only enable in production ?
-    // const enabled = process.env.NODE_ENV === 'production'
+    // const enabled = process.env.THEIA_ENV === 'production'
     const enabled = true
 
     if (enabled) {
