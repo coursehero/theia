@@ -44,7 +44,10 @@ let storagePlugin
 if (useLocalStorage) {
   storagePlugin = new LocalStoragePlugin(path.resolve(__dirname, '..', 'libs'))
 } else {
-  storagePlugin = new S3StoragePlugin('coursehero-dev-pub', 'theia')
+  storagePlugin = new S3StoragePlugin(
+    process.env.THEIA_S3_BUCKET || 'coursehero-dev-pub',
+    process.env.THEIA_S3_BUCKET_FOLDER || 'theia'
+  )
 }
 
 const plugins: Array<Theia.Plugin> = [
