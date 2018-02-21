@@ -2,6 +2,7 @@
 
 export THEIA_AUTH_SECRET=$(cat /run/secrets/api.authKey)
 export THEIA_ROLLBAR_TOKEN=$(cat /run/secrets/theia.rollbar.token)
+export THEIA_S3_BUCKET=$(cat /run/secrets/theia.s3.bucket)
 
 if [ ! -f /root/.aws/credentials ]; then
   mkdir -p /root/.aws
