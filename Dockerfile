@@ -21,8 +21,8 @@ RUN yarn install --production
 
 RUN apk update && apk --no-cache add bash git openssh
 COPY ./deploy/secrets.sh ./secrets.sh
-ARG node_env=development
-ENV NODE_ENV=$node_env
+ARG theia_env=development
+ENV THEIA_ENV=$theia_env
 CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn run start" ]
 
 # Use the following when docker on Jenkins has been upgraded.
@@ -55,6 +55,6 @@ CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn run start" ]
 # COPY --from=build /var/www/current/node_modules ./node_modules
 # COPY --from=build /var/www/current/dist ./dist
 # COPY ./deploy/secrets.sh ./secrets.sh
-# ARG node_env=development
-# ENV NODE_ENV=$node_env
+# ARG theia_env=development
+# ENV THEIA_ENV=$theia_env
 # CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn run start" ]
