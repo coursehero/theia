@@ -1,7 +1,7 @@
 {
   "name": "theia",
   "version": "0.0.0",
-  "main": "dist/entry.js",
+  "main": "dist/index.js",
   "repository": "https://git.coursehero.com/coursehero/theia.git",
   "author": "Connor Clark <connor.clark@coursehero.com>",
   "license": "MIT",
@@ -41,16 +41,20 @@
     "@types/request-promise": "^4.1.39",
     "@types/serve-favicon": "^2.2.30",
     "nodemon": "^1.13.3",
+    "pre-commit": "^1.2.2",
+    "rimraf": "^2.6.2",
     "ts-node": "^4.0.2",
     "tslint": "^5.8.0",
     "tslint-config-standard": "^7.0.0",
     "typescript": "^2.6.2"
   },
+  "pre-commit": "lint",
   "scripts": {
     "lint": "tslint --fix --project .",
-    "build": "tsc",
-    "start": "node ./dist/entry.js",
-    "start-dev": "nodemon",
+    "build": "rimraf dist && tsc",
+    "start": "node ./dist/index.js",
+    "start-build": "node ./dist/build.js",
+    "start-dev": "THEIA_LOCAL=${THEIA_LOCAL:-1} nodemon",
     "test": "echo 'TODO: write tests'"
   }
 }

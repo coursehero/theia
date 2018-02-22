@@ -1,4 +1,3 @@
-import Theia from '../theia'
 import * as Rollbar from 'rollbar'
 import * as XXHash from 'xxhash'
 
@@ -28,19 +27,19 @@ class RollbarPlugin implements Theia.Plugin {
     })
   }
 
-  apply (theia: Theia) {
-    theia.hooks.error.tap('RollbarPlugin', this.onError.bind(this))
-    theia.hooks.beforeRender.tap('RollbarPlugin', this.onBeforeRender.bind(this))
+  apply (core: Theia.Core) {
+    core.hooks.error.tap('RollbarPlugin', this.onError.bind(this))
+    core.hooks.beforeRender.tap('RollbarPlugin', this.onBeforeRender.bind(this))
 
     setInterval(() => this.pruneHashCache(), PRUNE_INTERVAL)
   }
 
-  onError (theia: Theia, error: ResponseError) {
+  onError (core: Theia.Core, error: ResponseError) {
     this.rollbar.error(error)
   }
 
   // before render, because props can possibly be modified during render
-  onBeforeRender (theia: Theia, componentLibrary: string, component: string, props: object) {
+  onBeforeRender (core: Theia.Core, componentLibrary: string, component: string, props: object) {
     // create errors if the same component/props is rendered repeatedly, which suggests a cache failure
 
     // TODO: maybe only enable in production ?

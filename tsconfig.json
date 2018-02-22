@@ -2,23 +2,12 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
-    "types": ["node"],
     "outDir": "dist",
-    "sourceMap": true,
     "jsx": "react",
+    "sourceMap": true,
     "strict": true
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules"
-  ],
-  "paths": {
-    "*": [
-      "node_modules/*",
-      "src/types/*"
-    ]
-  }
+    "./src/**/*"
+  ]
 }
