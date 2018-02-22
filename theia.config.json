@@ -1,12 +1,18 @@
 {
-    "development": {
-        "branch": "dev"
-    },
-    "production": {
-        "branch": "master"
-    },
     "libs": {
-        "@coursehero-components/mythos": "git@git.coursehero.com:coursehero/components/mythos.git",
-        "@coursehero-components/study-guides": "git@git.coursehero.com:coursehero/components/study-guides.git"
+        "@coursehero-components/mythos": {
+            "source": "git@git.coursehero.com:coursehero/components/mythos.git",
+            "branches": {
+                "development": "dev",
+                "production": "master"
+            }
+        },
+        "@coursehero-components/study-guides": {
+            "source": "git@git.coursehero.com:coursehero/components/study-guides.git",
+            "branches": {
+                "development": "dev",
+                "production": "master"
+            }
+        }
     }
 }

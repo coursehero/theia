@@ -1,94 +1,17 @@
 /* tslint:disable:no-eval */
 
-import * as React from 'react' // only imported for typing purposes
 import * as path from 'path'
 import * as rp from 'request-promise'
-import * as fs from 'fs-extra'
 import { SyncHook } from 'tapable'
 
-// TODO: can these ts definitions be in their own file?
-
-interface TheiaPlugin {
-  apply (theia: Theia): void
-}
-
-interface TheiaConfigurationFromFilesystem {
-  development: {
-    branch: string
-  }
-
-  production: {
-    branch: string
-  }
-
-  libs: { [key: string]: TheiaConfigurationComponentLibrary | string }
-}
-
-interface TheiaConfiguration {
-  libs: { [key: string]: TheiaConfigurationComponentLibrary }
-}
-
-interface TheiaConfigurationComponentLibrary {
-  source: string
-
-  development: {
-    branch: string
-  }
-
-  production: {
-    branch: string
-  }
-}
-
-interface TheiaLocalConfiguration {
-  libs: { [key: string]: string }
-}
-
-interface TheiaBuildManifestEntry {
-  commitHash: string
-  stats: string
-  createdAt: string
-}
-
-interface TheiaBuildManifest extends Array<TheiaBuildManifestEntry> {}
-
-interface ReactComponentClass extends React.ComponentClass<object> {
-}
-
-interface ComponentLibrary {
-  [key: string]: ReactComponentClass
-}
-
-interface RenderResult {
-  html: string
-  assets: RenderResultAssets
-}
-
-interface RenderResultAssets {
-  javascripts: string[]
-  stylesheets: string[]
-}
+// if we ever scale to more than 1 microservice, these caches may present issues
+const libCache: { [key: string]: Theia.ComponentLibrary } = {}
+const buildManifestCache: { [key: string]: Theia.BuildManifest } = {}
+const statsContentsCache: { [key: string]: Theia.Stats } = {}
 
 interface CtorParams {
-  configPath: string
-  localConfigPath: string
-  plugins: TheiaPlugin[]
-}
-
-interface Stats {
-  assetsByChunkName: {
-    manifest: Array<string>
-  }
-}
-
-// if we ever scale to more than 1 microservice, these caches may present issues
-const libCache: { [key: string]: ComponentLibrary } = {}
-const buildManifestCache: { [key: string]: TheiaBuildManifest } = {}
-const statsContentsCache: { [key: string]: Stats } = {}
-
-interface ReactCacheEntry {
-  React: any
-  ReactDOMServer: any
+  config: Theia.Configuration
+  plugins: Theia.Plugin[]
 }
 
 /*
@@ -97,13 +20,13 @@ interface ReactCacheEntry {
 
   This doesn't have to be dynamic, but this will enable multiple versions of React to be supported.
 */
-const reactCache: { [key: string]: ReactCacheEntry } = {}
-async function getReact (version: string): Promise<ReactCacheEntry> {
+const reactCache: { [key: string]: Theia.ReactCacheEntry } = {}
+async function getReact (version: string): Promise<Theia.ReactCacheEntry> {
   if (reactCache[version]) {
     return reactCache[version]
   }
 
-  const reactCacheEntry = reactCache[version] = {} as ReactCacheEntry
+  const reactCacheEntry = reactCache[version] = {} as Theia.ReactCacheEntry
   const majorVersion = parseInt(version.split('.')[0], 10)
 
   if (majorVersion >= 16) {
@@ -157,57 +80,14 @@ class Theia {
     load (componentLibrary: string, basename: string): Promise<string>
   }
 
-  configPath: string
-  config: TheiaConfiguration
+  config: Theia.Configuration
 
-  localConfigPath: string
-  localConfig: TheiaLocalConfiguration
-
-  constructor ({ configPath, localConfigPath, plugins }: CtorParams) {
-    this.configPath = configPath
-    this.config = {
-      libs: {}
-    }
-
-    // normalize to type TheiaConfiguration
-    const configFromFilesystem: TheiaConfigurationFromFilesystem = require(configPath)
-    for (const componentLibrary in configFromFilesystem.libs) {
-      const componentLibraryConfig = configFromFilesystem.libs[componentLibrary]
-
-      if (typeof componentLibraryConfig === 'string') {
-        this.config.libs[componentLibrary] = {
-          source: componentLibraryConfig,
-          development: configFromFilesystem.development,
-          production: configFromFilesystem.production
-        }
-      } else {
-        this.config.libs[componentLibrary] = Object.assign({}, {
-          development: configFromFilesystem.development,
-          production: configFromFilesystem.production
-        }, componentLibraryConfig)
-      }
-    }
-
-    // This actually may not be very useful
-    const isLocalBuildingEnabled = process.env.THEIA_LOCAL === '1'
-    if (isLocalBuildingEnabled) {
-      console.log('*************************')
-      console.log('USING LOCAL CONFIGURATION')
-      console.log('*************************')
-
-      // merge local config into config
-      const localConfig = fs.existsSync(localConfigPath) ? require(localConfigPath) : {}
-      for (const componentLibrary in localConfig.libs) {
-        const localSource = localConfig.libs[componentLibrary]
-        this.config.libs[componentLibrary].source = localSource
-      }
-    }
+  constructor ({ config, plugins }: CtorParams) {
+    this.config = config
 
     for (const plugin of plugins) {
       plugin.apply(this)
     }
-
-    console.log(JSON.stringify(this.config, null, 2))
   }
 
   start (): void {
@@ -216,7 +96,7 @@ class Theia {
 
   // TODO: should only hit storage if build files are not in cache/memory.
   // need to cache stats/build-manifest.json files just like source is being cached
-  async render (componentLibrary: string, componentName: string, props: object): Promise<RenderResult> {
+  async render (componentLibrary: string, componentName: string, props: object): Promise<Theia.RenderResult> {
     this.hooks.beforeRender.call(this, componentLibrary, componentName, props)
 
     // TODO: this version should come from the CL's yarn.lock. at build time, the react version should be
@@ -243,7 +123,7 @@ class Theia {
       await this.storage.copy(componentLibrary, asset)
     }
 
-    let manifest: TheiaBuildManifest = []
+    let manifest: Theia.BuildManifest = []
     if (await this.hasBuildManifest(componentLibrary)) {
       manifest = await this.getBuildManifest(componentLibrary)
     }
@@ -273,7 +153,7 @@ class Theia {
     return this.storage.exists(componentLibrary, 'build-manifest.json')
   }
 
-  async getBuildManifest (componentLibrary: string): Promise<TheiaBuildManifest> {
+  async getBuildManifest (componentLibrary: string): Promise<Theia.BuildManifest> {
     if (buildManifestCache[componentLibrary]) {
       return buildManifestCache[componentLibrary]
     }
@@ -282,7 +162,7 @@ class Theia {
     return buildManifestCache[componentLibrary] = JSON.parse(contents)
   }
 
-  async getLatestStatsContents (componentLibrary: string): Promise<Stats> {
+  async getLatestStatsContents (componentLibrary: string): Promise<Theia.Stats> {
     if (statsContentsCache[componentLibrary]) {
       return statsContentsCache[componentLibrary]
     }
@@ -293,7 +173,7 @@ class Theia {
     return statsContentsCache[componentLibrary] = JSON.parse(statsContents)
   }
 
-  async getComponentLibrary (reactVersion: string, componentLibrary: string): Promise<ComponentLibrary> {
+  async getComponentLibrary (reactVersion: string, componentLibrary: string): Promise<Theia.ComponentLibrary> {
     if (libCache[componentLibrary]) {
       return libCache[componentLibrary]
     }
@@ -319,7 +199,7 @@ class Theia {
     return libCache[componentLibrary] = evaluated.default
   }
 
-  async getComponent (reactVersion: string, componentLibrary: string, component: string): Promise<ReactComponentClass> {
+  async getComponent (reactVersion: string, componentLibrary: string, component: string): Promise<Theia.ReactComponentClass> {
     const lib = await this.getComponentLibrary(reactVersion, componentLibrary)
 
     if (!(component in lib)) {
@@ -330,7 +210,7 @@ class Theia {
   }
 
   // temporary. just returns all the assets for a CL. change when codesplitting is working
-  async getAssets (componentLibrary: string): Promise<RenderResultAssets> {
+  async getAssets (componentLibrary: string): Promise<Theia.RenderResultAssets> {
     const stats = await this.getLatestStatsContents(componentLibrary)
     const manifestAssets = stats.assetsByChunkName.manifest
 
@@ -342,7 +222,3 @@ class Theia {
 }
 
 export default Theia
-export { TheiaPlugin }
-export { TheiaConfiguration }
-export { TheiaBuildManifestEntry }
-export { TheiaBuildManifest }

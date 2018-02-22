@@ -1,0 +1,26 @@
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+"$DIR"/build
+
+docker run --rm -it -p 3000:80 \
+  -v ~/.ssh:/root/.ssh \
+  -v ~/.aws:/root/.aws \
+  -v "$DIR"/../libs:/var/www/current/libs \
+  -v "$DIR"/../var:/var/www/current/var \
+  $( if [ ! -z ${THEIA_LOCAL+x} ]; then
+    echo "-e THEIA_LOCAL=$THEIA_LOCAL"
+  fi ) \
+  $( if [ ! -z ${THEIA_LOCAL_STORAGE+x} ]; then
+    echo "-e THEIA_LOCAL_STORAGE=$THEIA_LOCAL_STORAGE"
+  fi ) \
+  $( if [ ! -z ${THEIA_LOCAL_CONFIG+x} ]; then
+    echo "-e THEIA_LOCAL_CONFIG=$THEIA_LOCAL_CONFIG"
+  fi ) \
+  $( if [ -f theia.local.config.json ]; then
+    echo "-v ${DIR}/../theia.local.config.json:/var/www/current/theia.local.config.json"
+    echo "-v /websites/coursehero/components:/websites/coursehero/components"
+  fi ) \
+  $@ \
+  theia
