@@ -56,4 +56,4 @@ services:
       io.rancher.container.pull_image: always
       io.rancher.container.start_once: 'true'
       cron.schedule: '* * * * *'
-    command: source ./secrets.sh && yarn run start-build
+    command: bash -c 'source ./secrets.sh && yarn run start-build'
