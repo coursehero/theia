@@ -11,6 +11,7 @@ services:
       - /run/secrets/theia.known_hosts:/root/.ssh/known_hosts
       - /run/secrets/theia.aws.config/:/root/.aws/config
       - /run/secrets/theia.rollbar.token:/run/secrets/theia.rollbar.token
+      - /run/secrets/theia.sqs.queue:/run/secrets/theia.sqs.queue
       - /run/secrets/aws.key:/run/secrets/aws.key
       - /run/secrets/aws.secret:/run/secrets/aws.secret
       - /run/secrets/api.authKey:/run/secrets/api.authKey
