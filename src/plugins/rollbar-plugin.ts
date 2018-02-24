@@ -28,14 +28,9 @@ class RollbarPlugin implements Theia.Plugin {
   }
 
   apply (core: Theia.Core) {
-    core.hooks.error.tap('RollbarPlugin', this.onError.bind(this))
     core.hooks.beforeRender.tap('RollbarPlugin', this.onBeforeRender.bind(this))
-
-    setInterval(() => this.pruneHashCache(), PRUNE_INTERVAL)
-  }
-
-  onError (core: Theia.Core, error: ResponseError) {
-    this.rollbar.error(error)
+    core.hooks.error.tap('RollbarPlugin', this.onError.bind(this))
+    core.hooks.start.tap('RollbarPlugin', this.onStart.bind(this))
   }
 
   // before render, because props can possibly be modified during render
@@ -60,6 +55,14 @@ class RollbarPlugin implements Theia.Plugin {
         this.rollbar.error(`Potential cache failure: seeing many render requests for ${data}`)
       }
     }
+  }
+
+  onError (core: Theia.Core, error: ResponseError) {
+    this.rollbar.error(error)
+  }
+
+  onStart (core: Theia.Core) {
+    setInterval(() => this.pruneHashCache(), PRUNE_INTERVAL)
   }
 
   pruneHashCache () {
