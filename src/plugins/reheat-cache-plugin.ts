@@ -17,18 +17,18 @@ class ReheatCachePlugin implements Theia.Plugin {
   onComponentLibraryUpdate (theia: Theia, componentLibrary: string, manifestEntry: Theia.BuildManifestEntry) {
     console.log(`reheating cache for ${componentLibrary} ...`)
     const messageAttributes: SQS.Types.MessageBodyAttributeMap = {
-      'Type': {
+      Type: {
         DataType: 'String',
         StringValue: 'new-build-job'
       },
-      'ComponentLibrary': {
+      ComponentLibrary: {
         DataType: 'String',
         StringValue: componentLibrary
       }
     }
     const messageBody = {
-      'builtAt': manifestEntry.createdAt,
-      'commitHash': manifestEntry.commitHash
+      builtAt: manifestEntry.createdAt,
+      commitHash: manifestEntry.commitHash
     }
     const params: SQS.Types.SendMessageRequest = {
       MessageAttributes: messageAttributes,

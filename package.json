@@ -49,8 +49,8 @@
   "scripts": {
     "lint": "tslint --fix --project .",
     "build": "tsc",
-    "start": "AWS_SDK_LOAD_CONFIG=true node ./dist/entry.js",
-    "start-dev": "AWS_SDK_LOAD_CONFIG=true nodemon",
+    "start": "node ./dist/entry.js",
+    "start-dev": "nodemon",
     "test": "echo 'TODO: write tests'"
   }
 }

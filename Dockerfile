@@ -23,6 +23,7 @@ RUN apk update && apk --no-cache add bash git openssh
 COPY ./deploy/secrets.sh ./secrets.sh
 ARG theia_env=development
 ENV THEIA_ENV=$theia_env
+ENV AWS_SDK_LOAD_CONFIG=true
 CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn run start" ]
 
 # Use the following when docker on Jenkins has been upgraded.
