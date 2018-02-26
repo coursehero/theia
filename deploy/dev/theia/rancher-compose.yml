@@ -15,3 +15,5 @@ services:
       strategy: recreateOnQuorum
       request_line: GET "/heartbeat" "HTTP/1.0"
       reinitializing_timeout: 60000
+    upgrade_strategy:
+      start_first: true
