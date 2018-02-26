@@ -3,15 +3,15 @@
 import * as path from 'path'
 import * as rp from 'request-promise'
 import { SyncHook } from 'tapable'
-
-// if we ever scale to more than 1 microservice, these caches may present issues
-const libCache: { [key: string]: Theia.ComponentLibrary } = {}
-const buildManifestCache: { [key: string]: Theia.BuildManifest } = {}
-const statsContentsCache: { [key: string]: Theia.Stats } = {}
+import Builder from './builder'
+import LocalStorage from './local-storage'
 
 interface CtorParams {
+  builder?: Theia.Builder
   config: Theia.Configuration
+  environment?: Theia.Environment
   plugins: Theia.Plugin[]
+  storage?: Theia.Storage
 }
 
 /*
@@ -62,7 +62,15 @@ async function getUMD (url: string, thisContext: object): Promise<void> {
   fn.call(thisContext)
 }
 
-class Theia {
+class Core {
+  builder: Theia.Builder
+
+  config: Theia.Configuration
+
+  environment: Theia.Environment
+
+  storage: Theia.Storage
+
   hooks = {
     // TODO: make all hooks async
     start: new SyncHook(['theia']),
@@ -73,17 +81,15 @@ class Theia {
     error: new SyncHook(['theia', 'error'])
   }
 
-  storage: {
-    write (componentLibrary: string, basename: string, contents: string): Promise<void>
-    exists (componentLibrary: string, basename: string): Promise<boolean>
-    copy (componentLibrary: string, file: string): Promise<void>
-    load (componentLibrary: string, basename: string): Promise<string>
-  }
+  libCache: { [key: string]: Theia.ComponentLibrary } = {}
+  buildManifestCache: { [key: string]: Theia.BuildManifest } = {}
+  statsContentsCache: { [key: string]: Theia.Stats } = {}
 
-  config: Theia.Configuration
-
-  constructor ({ config, plugins }: CtorParams) {
+  constructor ({ builder, config, environment, plugins, storage }: CtorParams) {
+    this.builder = builder || new Builder()
     this.config = config
+    this.environment = environment || process.env.THEIA_ENV as Theia.Environment || 'development'
+    this.storage = storage || new LocalStorage(path.resolve(__dirname, '..', 'libs'))
 
     for (const plugin of plugins) {
       plugin.apply(this)
@@ -144,9 +150,9 @@ class Theia {
     const manifestJson = JSON.stringify(manifest, null, 2)
     await this.storage.write(componentLibrary, 'build-manifest.json', manifestJson)
 
-    delete libCache[componentLibrary]
-    delete buildManifestCache[componentLibrary]
-    delete statsContentsCache[componentLibrary]
+    delete this.libCache[componentLibrary]
+    delete this.buildManifestCache[componentLibrary]
+    delete this.statsContentsCache[componentLibrary]
   }
 
   hasBuildManifest (componentLibrary: string): Promise<boolean> {
@@ -154,28 +160,28 @@ class Theia {
   }
 
   async getBuildManifest (componentLibrary: string): Promise<Theia.BuildManifest> {
-    if (buildManifestCache[componentLibrary]) {
-      return buildManifestCache[componentLibrary]
+    if (this.buildManifestCache[componentLibrary]) {
+      return this.buildManifestCache[componentLibrary]
     }
 
     const contents = await this.storage.load(componentLibrary, 'build-manifest.json')
-    return buildManifestCache[componentLibrary] = JSON.parse(contents)
+    return this.buildManifestCache[componentLibrary] = JSON.parse(contents)
   }
 
   async getLatestStatsContents (componentLibrary: string): Promise<Theia.Stats> {
-    if (statsContentsCache[componentLibrary]) {
-      return statsContentsCache[componentLibrary]
+    if (this.statsContentsCache[componentLibrary]) {
+      return this.statsContentsCache[componentLibrary]
     }
 
     const buildManifest = await this.getBuildManifest(componentLibrary)
     const latest = buildManifest[buildManifest.length - 1]
     const statsContents = await this.storage.load(componentLibrary, latest.stats)
-    return statsContentsCache[componentLibrary] = JSON.parse(statsContents)
+    return this.statsContentsCache[componentLibrary] = JSON.parse(statsContents)
   }
 
   async getComponentLibrary (reactVersion: string, componentLibrary: string): Promise<Theia.ComponentLibrary> {
-    if (libCache[componentLibrary]) {
-      return libCache[componentLibrary]
+    if (this.libCache[componentLibrary]) {
+      return this.libCache[componentLibrary]
     }
 
     if (!this.hasBuildManifest(componentLibrary)) {
@@ -196,7 +202,7 @@ class Theia {
       throw new Error(`${componentLibrary} component manifest does not have a default export`)
     }
 
-    return libCache[componentLibrary] = evaluated.default
+    return this.libCache[componentLibrary] = evaluated.default
   }
 
   async getComponent (reactVersion: string, componentLibrary: string, component: string): Promise<Theia.ReactComponentClass> {
@@ -219,6 +225,12 @@ class Theia {
       stylesheets: manifestAssets.filter((asset: string) => asset.endsWith('.css'))
     }
   }
+
+  clearCache () {
+    this.libCache = {}
+    this.buildManifestCache = {}
+    this.statsContentsCache = {}
+  }
 }
 
-export default Theia
+export default Core

@@ -1,10 +1,9 @@
-import Theia from '../theia'
 import * as path from 'path'
 import * as fs from 'fs-extra'
 import * as AWS from 'aws-sdk'
 import * as mime from 'mime-types'
 
-class S3StoragePlugin implements Theia.Plugin {
+class S3Storage implements Theia.Storage {
   bucket: string
   rootDir: string
   client: AWS.S3
@@ -13,18 +12,14 @@ class S3StoragePlugin implements Theia.Plugin {
     this.bucket = bucket
     this.rootDir = rootDir
     this.client = new AWS.S3()
+
+    this.write = this.write.bind(this)
+    this.exists = this.exists.bind(this)
+    this.copy = this.copy.bind(this)
+    this.load = this.load.bind(this)
   }
 
-  apply (theia: Theia) {
-    theia.storage = {
-      write: this.onWrite.bind(this),
-      exists: this.onExists.bind(this),
-      copy: this.onCopy.bind(this),
-      load: this.onLoad.bind(this)
-    }
-  }
-
-  onWrite (componentLibrary: string, basename: string, contents: string): Promise<void> {
+  write (componentLibrary: string, basename: string, contents: string): Promise<void> {
     const params = {
       Bucket: this.bucket,
       Key: [this.rootDir, componentLibrary, basename].join('/'),
@@ -40,7 +35,7 @@ class S3StoragePlugin implements Theia.Plugin {
     })
   }
 
-  onExists (componentLibrary: string, basename: string): Promise<boolean> {
+  exists (componentLibrary: string, basename: string): Promise<boolean> {
     const params = {
       Bucket: this.bucket,
       Key: [this.rootDir, componentLibrary, basename].join('/')
@@ -59,13 +54,13 @@ class S3StoragePlugin implements Theia.Plugin {
     })
   }
 
-  onCopy (componentLibrary: string, file: string): Promise<void> {
+  copy (componentLibrary: string, file: string): Promise<void> {
     const basename = path.basename(file)
     const contents = fs.readFileSync(file, 'utf-8')
-    return this.onWrite(componentLibrary, basename, contents)
+    return this.write(componentLibrary, basename, contents)
   }
 
-  onLoad (componentLibrary: string, basename: string): Promise<string> {
+  load (componentLibrary: string, basename: string): Promise<string> {
     const params = {
       Bucket: this.bucket,
       Key: [this.rootDir, componentLibrary, basename].join('/')
@@ -81,4 +76,4 @@ class S3StoragePlugin implements Theia.Plugin {
   }
 }
 
-export default S3StoragePlugin
+export default S3Storage

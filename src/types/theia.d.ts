@@ -1,7 +1,48 @@
-/// <reference path="../../node_modules/@types/react/index.d.ts" />
+/// <reference types='react' />
 
 declare namespace Theia {
   type Environment = 'development' | 'production'
+
+  interface Core {
+    builder: Builder
+
+    config: Configuration
+
+    environment: Environment
+    
+    hooks: {
+      start: Tapable.SyncHook
+      beforeRender: Tapable.SyncHook
+      render: Tapable.SyncHook
+      componentLibraryUpdate: Tapable.SyncHook
+      express: Tapable.SyncHook
+      error: Tapable.SyncHook
+    }
+
+    storage: Storage
+
+    start(): void
+    render (componentLibrary: string, componentName: string, props: object): Promise<RenderResult>
+    registerComponentLibrary (componentLibrary: string, buildAssets: string[], commitHash: string): Promise<void>
+    hasBuildManifest (componentLibrary: string): Promise<boolean>
+    getBuildManifest (componentLibrary: string): Promise<BuildManifest>
+    getLatestStatsContents (componentLibrary: string): Promise<Stats>
+    getComponentLibrary (reactVersion: string, componentLibrary: string): Promise<ComponentLibrary>
+    getComponent (reactVersion: string, componentLibrary: string, component: string): Promise<ReactComponentClass>
+    getAssets (componentLibrary: string): Promise<RenderResultAssets>
+    clearCache(): void
+  }
+
+  interface Builder {
+    buildAll (theia: Core): void
+  }
+
+  interface Storage {
+    write (componentLibrary: string, basename: string, contents: string): Promise<void>
+    exists (componentLibrary: string, basename: string): Promise<boolean>
+    copy (componentLibrary: string, file: string): Promise<void>
+    load (componentLibrary: string, basename: string): Promise<string>
+  }
 
   interface Plugin {
     apply (theia: any): void // TODO: type this as Theia
