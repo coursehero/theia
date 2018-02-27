@@ -17,3 +17,6 @@ services:
       reinitializing_timeout: 60000
     upgrade_strategy:
       start_first: true
+  build:
+    scale: 1
+    start_on_create: false
