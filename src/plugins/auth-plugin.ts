@@ -1,4 +1,3 @@
-import Theia from '../theia'
 import * as express from 'express'
 import * as HttpStatus from 'http-status-codes'
 
@@ -11,11 +10,11 @@ class AuthPlugin implements Theia.Plugin {
     this.secret = secret
   }
 
-  apply (theia: Theia) {
-    theia.hooks.express.tap('AuthPlugin', this.onExpress.bind(this))
+  apply (core: Theia.Core) {
+    core.hooks.express.tap('AuthPlugin', this.onExpress.bind(this))
   }
 
-  onExpress (theia: Theia, app: express.Application) {
+  onExpress (core: Theia.Core, app: express.Application) {
     app.use((req, res, next) => {
       if (req.get(this.header) === this.secret) {
         return next()

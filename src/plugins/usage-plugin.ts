@@ -1,4 +1,4 @@
-import Theia from '../theia'
+import Theia from '../core'
 import * as express from 'express'
 
 class UsagePlugin implements Theia.Plugin {

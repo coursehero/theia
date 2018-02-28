@@ -35,3 +35,27 @@ services:
       traefik.alias: theia
       traefik.port: '80'
       traefik.domain: dev-internal.coursehero.com
+  build:
+    image: 315915642113.dkr.ecr.us-east-1.amazonaws.com/dev-theia
+    environment:
+      NR_APP_NAME: theia-build
+      ROLLBAR_ENV: development
+    stdin_open: true
+    volumes:
+      - /run/secrets/theia.id_rsa:/root/.ssh/id_rsa
+      - /run/secrets/theia.known_hosts:/root/.ssh/known_hosts
+      - /run/secrets/theia.aws.config/:/root/.aws/config
+      - /run/secrets/theia.rollbar.token:/run/secrets/theia.rollbar.token
+      - /run/secrets/theia.s3.bucket:/run/secrets/theia.s3.bucket
+      - /run/secrets/theia.sqs.queue:/run/secrets/theia.sqs.queue
+      - /run/secrets/aws.key:/run/secrets/aws.key
+      - /run/secrets/aws.secret:/run/secrets/aws.secret
+      - /run/secrets/api.authKey:/run/secrets/api.authKey
+      - /run/secrets/newrelic.license:/run/secrets/newrelic.license
+      - /var/rollbar:/var/rollbar
+    tty: true
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.container.start_once: 'true'
+      cron.schedule: '* * * * *'
+    command: bash -c 'source ./secrets.sh && yarn run start-build'

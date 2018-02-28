@@ -1,4 +1,3 @@
-import Theia from '../theia'
 import { SQS } from 'aws-sdk'
 
 class ReheatCachePlugin implements Theia.Plugin {
@@ -10,11 +9,11 @@ class ReheatCachePlugin implements Theia.Plugin {
     this.queueUrl = queueUrl
   }
 
-  apply (theia: Theia) {
-    theia.hooks.componentLibraryUpdate.tap('ReheatCachePlugin', this.onComponentLibraryUpdate.bind(this))
+  apply (core: Theia.Core) {
+    core.hooks.componentLibraryUpdate.tap('ReheatCachePlugin', this.onComponentLibraryUpdate.bind(this))
   }
 
-  onComponentLibraryUpdate (theia: Theia, componentLibrary: string, manifestEntry: Theia.BuildManifestEntry) {
+  onComponentLibraryUpdate (core: Theia.Core, componentLibrary: string, manifestEntry: Theia.BuildManifestEntry) {
     console.log(`reheating cache for ${componentLibrary} ...`)
     const messageAttributes: SQS.Types.MessageBodyAttributeMap = {
       Type: {
@@ -37,7 +36,7 @@ class ReheatCachePlugin implements Theia.Plugin {
     }
     this.sqs.sendMessage(params, (err, data) => {
       if (err) {
-        theia.hooks.error.call(theia, err)
+        core.hooks.error.call(core, err)
       }
     })
   }
