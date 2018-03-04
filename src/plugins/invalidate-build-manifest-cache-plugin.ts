@@ -1,7 +1,7 @@
 // when the build service runs, it updates the build-manifest in storage (S3)
-// the other instances of Theia (the ones that actuall render requests) won't get the new manifest b/c of internal caching
+// the other instances of Theia (the ones that actualy render requests) won't get the new manifest b/c of internal caching
 // for now, just clear the cache periodically
-// a real solution is to have the build service alert the render services when a build has occured
+// a real solution is to have the build service alert the render services when a build has occurred
 
 class InvalidateBuildManifestCachePlugin implements Theia.Plugin {
   invalidationInterval: number

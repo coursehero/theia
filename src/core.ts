@@ -9,7 +9,7 @@ import LocalStorage from './local-storage'
 
 interface CtorParams {
   builder?: Theia.Builder
-  config: Theia.Configuration
+  config?: Theia.Configuration
   environment?: Theia.Environment
   plugins?: Theia.Plugin[]
   storage?: Theia.Storage
@@ -88,11 +88,11 @@ class Core {
 
   constructor ({ builder, config, environment, plugins, storage }: CtorParams) {
     this.builder = builder || new Builder()
-    this.config = config
+    this.config = config || { libs: {} }
     this.environment = environment || process.env.THEIA_ENV as Theia.Environment || 'development'
     this.storage = storage || new LocalStorage(path.resolve(__dirname, '..', 'libs'))
 
-    for (const [componentLibraryName, componentLibraryConfig] of Object.entries(config.libs)) {
+    for (const [componentLibraryName, componentLibraryConfig] of Object.entries(this.config.libs)) {
       componentLibraryConfig.name = componentLibraryName
     }
 
@@ -131,7 +131,7 @@ class Core {
     }
   }
 
-  async registerComponentLibrary (componentLibrary: string, buildAssets: string[], commitHash: string): Promise<void> {
+  async registerComponentLibrary (componentLibrary: string, buildAssets: string[], buildManifestEntry: Theia.BuildManifestEntry): Promise<void> {
     for (const asset of buildAssets) {
       await this.storage.copy(componentLibrary, asset)
     }
@@ -141,18 +141,8 @@ class Core {
       manifest = await this.getBuildManifest(componentLibrary)
     }
 
-    const statsBasename = path.basename(buildAssets.find(asset => path.basename(asset).startsWith('stats')) as string)
-    if (!statsBasename) {
-      throw new Error(`Building ${componentLibrary} did not emit a stats file`)
-    }
-
-    const manifestEntry = {
-      commitHash,
-      stats: statsBasename,
-      createdAt: new Date().toString()
-    }
-    manifest.push(manifestEntry)
-    this.hooks.componentLibraryUpdate.call(this, componentLibrary, manifestEntry)
+    manifest.push(buildManifestEntry)
+    this.hooks.componentLibraryUpdate.call(this, componentLibrary, buildManifestEntry)
 
     const manifestJson = JSON.stringify(manifest, null, 2)
     await this.storage.write(componentLibrary, 'build-manifest.json', manifestJson)

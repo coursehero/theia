@@ -17,39 +17,32 @@ function promiseExec (cmd: string, opts = {}) {
 
 class Builder implements Theia.Builder {
   async build (core: Theia.Core, componentLibraryConfig: Theia.ComponentLibraryConfiguration) {
+    // the latest commit in the tracked branch will be persisted
     const componentLibrary = componentLibraryConfig.name
     const branch = componentLibraryConfig.branches[core.environment]
+    const workingDir = await this.ensureRepoIsClonedAndUpdated(componentLibrary, componentLibraryConfig.source, branch)
 
-    if (componentLibraryConfig.source.startsWith('git@')) {
-      // source is a git protocol. this is a normal build. the latest commit in the tracked branch will be persisted
-      const workingDir = await this.ensureRepoIsClonedAndUpdated(componentLibrary, componentLibraryConfig.source, branch)
-      const commitHash = (await promiseExec(`git rev-parse HEAD`, { cwd: workingDir })).toString().trim()
-      return this.buildFromDir(core, componentLibrary, workingDir, commitHash)
-    } else {
-      // source is a local folder. this is for local testing. it will use the contents of the source folder directly, instead of the latest commit
-      return this.buildFromDir(core, componentLibrary, componentLibraryConfig.source, undefined)
-    }
+    return this.buildFromDir(core, componentLibrary, workingDir)
   }
 
-  async buildFromDir (core: Theia.Core, componentLibrary: string, workingDir: string, commitHash?: string): Promise<void> {
+  async buildFromDir (core: Theia.Core, componentLibrary: string, workingDir: string): Promise<void> {
     console.log(`${componentLibrary}: checking for updates in ${workingDir} ...`)
 
+    const commitHash = (await promiseExec(`git rev-parse HEAD`, { cwd: workingDir })).toString().trim()
     if (commitHash && await this.hasBuilt(core, componentLibrary, commitHash)) {
       console.log(`${componentLibrary}: no updates found`)
       return
     }
 
-    const tag = commitHash || 'local'
+    const commitMessage = (await promiseExec(`git log -1 ${commitHash} --pretty=format:%s`, { cwd: workingDir })).toString().trim()
+    const author = {
+      name: (await promiseExec(`git log -1 ${commitHash} --pretty=format:%aN`, { cwd: workingDir })).toString().trim(),
+      email: (await promiseExec(`git log -1 ${commitHash} --pretty=format:%ae`, { cwd: workingDir })).toString().trim()
+    }
 
-    console.log(`${componentLibrary}: building ${tag} ...`)
+    console.log(`${componentLibrary}: building ${commitHash} ...`)
 
     const workingDistDir = path.resolve(workingDir, 'dist')
-
-    // if THEIA_LOCAL=1, node_modules for a CL could have been volume mapped into the container. Those modules would have been installed
-    // from the host machine, which does not match the container environment. Must explicitly delete folder.
-    if (tag === 'local') {
-      await promiseExec('rm -rf node_modules/', { cwd: workingDir })
-    }
 
     await promiseExec('yarn install --production=false --non-interactive', { cwd: workingDir })
     await promiseExec('rm -rf dist && mkdir dist', { cwd: workingDir })
@@ -74,7 +67,11 @@ class Builder implements Theia.Builder {
       throw err
     })
 
-    const statsFilename = `stats.${tag}.json`
+    if (!fs.existsSync(path.join(workingDir, 'dist', 'stats.json'))) {
+      throw new Error(`Building ${componentLibrary} did not emit a stats file`)
+    }
+
+    const statsFilename = `stats.${commitHash}.json`
     fs.renameSync(path.join(workingDir, 'dist', 'stats.json'), path.join(workingDir, 'dist', statsFilename))
 
     if (componentLibraryPackage.scripts.test) {
@@ -84,9 +81,17 @@ class Builder implements Theia.Builder {
     return fs.readdir(workingDistDir).then(buildAssetBasenames => {
       return buildAssetBasenames.map(basename => path.join(workingDir, 'dist', basename))
     }).then(buildAssets => {
-      return core.registerComponentLibrary(componentLibrary, buildAssets, tag)
+      const buildManifestEntry = {
+        commitHash,
+        commitMessage,
+        author,
+        stats: statsFilename,
+        createdAt: new Date().toString()
+      }
+
+      return core.registerComponentLibrary(componentLibrary, buildAssets, buildManifestEntry)
     }).then(() => {
-      console.log(`${componentLibrary}: built ${tag}`)
+      console.log(`${componentLibrary}: built ${commitHash}`)
     })
   }
 
