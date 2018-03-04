@@ -9,6 +9,7 @@ import HeartbeatPlugin from './plugins/heartbeat-plugin'
 import InvalidateBuildManifestCachePlugin from './plugins/invalidate-build-manifest-cache-plugin'
 import ReheatCachePlugin from './plugins/reheat-cache-plugin'
 import RollbarPlugin from './plugins/rollbar-plugin'
+import SlackPlugin from './plugins/slack-plugin'
 import UsagePlugin from './plugins/usage-plugin'
 
 const ONE_MINUTE = 1000 * 60
@@ -57,6 +58,12 @@ if (useLocalStorage) {
 
 const plugins = nn<Theia.Plugin>([
   process.env.THEIA_ROLLBAR_TOKEN ? new RollbarPlugin(process.env.THEIA_ROLLBAR_TOKEN!, process.env.ROLLBAR_ENV!) : null,
+  process.env.SLACK_TOKEN ? new SlackPlugin({
+    channel: {
+      development: '#theia-errors-dev',
+      production: '#theia-errors-prod'
+    }[process.env.THEIA_ENV as Theia.Environment]
+  }) : null,
   enablePeriodicBuilding ? new BuildPlugin(FIVE_MINUTES) : null,
   new InvalidateBuildManifestCachePlugin(ONE_MINUTE), // temporary. TODO: remove. see impl. file
   new ReheatCachePlugin(),

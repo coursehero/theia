@@ -15,6 +15,7 @@ services:
       - /run/secrets/aws.key:/run/secrets/aws.key
       - /run/secrets/aws.secret:/run/secrets/aws.secret
       - /run/secrets/api.authKey:/run/secrets/api.authKey
+      - /run/secrets/slack.token:/run/secrets/slack.token
       - /run/secrets/newrelic.license:/run/secrets/newrelic.license
       - /var/rollbar:/var/rollbar
     tty: true
@@ -49,6 +50,7 @@ services:
       - /run/secrets/aws.key:/run/secrets/aws.key
       - /run/secrets/aws.secret:/run/secrets/aws.secret
       - /run/secrets/api.authKey:/run/secrets/api.authKey
+      - /run/secrets/slack.token:/run/secrets/slack.token
       - /run/secrets/newrelic.license:/run/secrets/newrelic.license
       - /var/rollbar:/var/rollbar
     tty: true

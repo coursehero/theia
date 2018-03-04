@@ -6,6 +6,7 @@
   "author": "Connor Clark <connor.clark@coursehero.com>",
   "license": "MIT",
   "dependencies": {
+    "@slack/client": "^3.16.0",
     "asciidoctor.js": "^1.5.6-preview.4",
     "aws-sdk": "^2.177.0",
     "bluebird": "^3.5.1",
