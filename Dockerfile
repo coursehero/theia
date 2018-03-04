@@ -8,7 +8,7 @@ COPY ./theia.config.json ./
 COPY ./public ./public
 COPY ./views ./views
 
-RUN apk update && apk --no-cache add python make g++ git
+RUN apk update && apk --no-cache add python make g++ git bash openssh
 RUN yarn install
 COPY ./tsconfig.json ./
 COPY ./tslint.json ./
@@ -19,7 +19,6 @@ RUN yarn run build
 # this prunes dev deps
 RUN yarn install --production
 
-RUN apk update && apk --no-cache add bash openssh
 COPY ./deploy/secrets.sh ./secrets.sh
 ARG theia_env=development
 ENV THEIA_ENV=$theia_env
@@ -28,6 +27,7 @@ CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn run start" ]
 # Use the following when docker on Jenkins has been upgraded.
 
 # FROM scratch as base
+# RUN mkdir ./var
 # COPY ./package.json ./
 # COPY ./yarn.lock ./
 # COPY ./theia.config.json ./

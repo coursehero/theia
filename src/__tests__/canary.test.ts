@@ -8,8 +8,8 @@ test('adds 1 + 2 to equal 3', () => {
 test('builds mythos', () => {
   const config: Theia.Configuration = {
     libs: {
-      "@coursehero-components/mythos": {
-          "source": "git@git.coursehero.com:coursehero/components/mythos.git",
+      "mythos": {
+          "source": "https://github.com/theiajs/mythos.git",
           "branches": {
               "development": "dev",
               "production": "master"
