@@ -1,5 +1,5 @@
 import * as path from 'path'
-import Theia from './core'
+import Core from './core'
 import LocalStorage from './local-storage'
 import S3Storage from './s3-storage'
 import AuthPlugin from './plugins/auth-plugin'
@@ -75,12 +75,10 @@ console.log(JSON.stringify(config, null, 2))
 console.log(plugins.map(p => p.constructor.name).join(' '))
 console.log(storage.constructor.name)
 
-const theia = new Theia(
-  {
-    config,
-    plugins,
-    storage
-  }
-)
+const theia = new Core({
+  config,
+  plugins,
+  storage
+})
 
 export default theia

@@ -8,7 +8,7 @@ COPY ./theia.config.json ./
 COPY ./public ./public
 COPY ./views ./views
 
-RUN apk update && apk --no-cache add python make g++
+RUN apk update && apk --no-cache add python make g++ git
 RUN yarn install
 COPY ./tsconfig.json ./
 COPY ./tslint.json ./
@@ -19,7 +19,7 @@ RUN yarn run build
 # this prunes dev deps
 RUN yarn install --production
 
-RUN apk update && apk --no-cache add bash git openssh
+RUN apk update && apk --no-cache add bash openssh
 COPY ./deploy/secrets.sh ./secrets.sh
 ARG theia_env=development
 ENV THEIA_ENV=$theia_env
@@ -36,7 +36,7 @@ CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn run start" ]
 
 # FROM node:8.9-alpine as build
 # WORKDIR /var/www/current
-# RUN apk update && apk --no-cache add python make g++
+# RUN apk update && apk --no-cache add python make g++ git
 # COPY --from=base / ./
 # RUN yarn install
 # COPY ./tsconfig.json ./

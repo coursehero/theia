@@ -54,7 +54,7 @@
   "pre-commit": "lint",
   "scripts": {
     "lint": "tslint --fix --project .",
-    "build": "rimraf dist && tsc",
+    "build": "rimraf dist var && tsc",
     "start": "node ./dist/index.js",
     "start-build": "node ./dist/build.js",
     "start-dev": "THEIA_LOCAL=${THEIA_LOCAL:-1} nodemon",
@@ -64,7 +64,7 @@
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "testRegex": "(/__tests__/.*\\.(test|spec))\\.(jsx?|tsx?)$",
     "moduleFileExtensions": [
       "ts",
       "tsx",

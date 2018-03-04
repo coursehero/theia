@@ -1,5 +1,6 @@
 /* tslint:disable:no-eval */
 
+import * as bluebird from 'bluebird'
 import * as path from 'path'
 import * as rp from 'request-promise'
 import { SyncHook } from 'tapable'
@@ -10,7 +11,7 @@ interface CtorParams {
   builder?: Theia.Builder
   config: Theia.Configuration
   environment?: Theia.Environment
-  plugins: Theia.Plugin[]
+  plugins?: Theia.Plugin[]
   storage?: Theia.Storage
 }
 
@@ -91,8 +92,14 @@ class Core {
     this.environment = environment || process.env.THEIA_ENV as Theia.Environment || 'development'
     this.storage = storage || new LocalStorage(path.resolve(__dirname, '..', 'libs'))
 
-    for (const plugin of plugins) {
-      plugin.apply(this)
+    for (const [componentLibraryName, componentLibraryConfig] of Object.entries(config.libs)) {
+      componentLibraryConfig.name = componentLibraryName
+    }
+
+    if (plugins) {
+      for (const plugin of plugins) {
+        plugin.apply(this)
+      }
     }
   }
 
@@ -224,6 +231,24 @@ class Core {
       javascripts: manifestAssets.filter((asset: string) => asset.endsWith('.js')),
       stylesheets: manifestAssets.filter((asset: string) => asset.endsWith('.css'))
     }
+  }
+
+  async buildAll (): Promise<void> {
+    console.log('building component libraries ...')
+
+    const libs = this.config.libs
+
+    // purposefully serial - yarn has trouble running multiple processes
+    return bluebird.each(Object.keys(libs), componentLibrary => {
+      const componentLibraryConfig = libs[componentLibrary]
+      return this.builder.build(this, componentLibraryConfig)
+    }).then(() => {
+      // ...
+    }).catch(error => {
+      console.error(error)
+      this.hooks.error.call(this, error)
+      throw error
+    })
   }
 
   clearCache () {

@@ -30,11 +30,12 @@ declare namespace Theia {
     getComponentLibrary (reactVersion: string, componentLibrary: string): Promise<ComponentLibrary>
     getComponent (reactVersion: string, componentLibrary: string, component: string): Promise<ReactComponentClass>
     getAssets (componentLibrary: string): Promise<RenderResultAssets>
+    buildAll (): Promise<void>
     clearCache(): void
   }
 
   interface Builder {
-    buildAll (theia: Core): void
+    build (theia: Core, componentLibraryConfig: ComponentLibraryConfiguration): Promise<void>
   }
 
   interface Storage {
@@ -45,14 +46,15 @@ declare namespace Theia {
   }
 
   interface Plugin {
-    apply (theia: any): void // TODO: type this as Theia
+    apply (theia: Core): void
   }
 
   interface Configuration {
-    libs: { [key: string]: ConfigurationComponentLibrary }
+    libs: { [key: string]: ComponentLibraryConfiguration }
   }
 
-  interface ConfigurationComponentLibrary {
+  interface ComponentLibraryConfiguration {
+    name: string
     source: string
     branches: {
       development: string

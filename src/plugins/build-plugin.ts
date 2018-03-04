@@ -10,8 +10,16 @@ class BuildPlugin implements Theia.Plugin {
   }
 
   onStart (core: Theia.Core) {
-    core.builder.buildAll(core)
-    setInterval(() => core.builder.buildAll(core), this.buildInterval)
+    const action = () => {
+      core.buildAll().then(() => {
+        console.log('finished building component libraries')
+      }).catch(() => {
+        console.error('error while building component libraries')
+      })
+    }
+
+    action()
+    setInterval(action, this.buildInterval)
   }
 }
 
