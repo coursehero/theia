@@ -43,7 +43,6 @@ class Builder implements Theia.Builder {
 
     console.log(`${componentLibrary}: building ${tag} ...`)
 
-    const statsFilename = `stats.${tag}.json`
     const workingDistDir = path.resolve(workingDir, 'dist')
 
     // if THEIA_LOCAL=1, node_modules for a CL could have been volume mapped into the container. Those modules would have been installed
@@ -55,10 +54,16 @@ class Builder implements Theia.Builder {
     await promiseExec('yarn install --production=false --non-interactive', { cwd: workingDir })
     await promiseExec('rm -rf dist && mkdir dist', { cwd: workingDir })
 
-    await promiseExec(`./node_modules/.bin/webpack --json > dist/${statsFilename}`, { cwd: workingDir }).catch(err => {
+    const componentLibraryPackage = require(path.resolve(workingDir, 'package.json'))
+
+    // If build command exists, use it. It is assumed that it pipes the webpack stats file to "dist/stats.json"
+    const buildCommand = componentLibraryPackage.scripts.build ?
+                          'yarn run build' :
+                          `./node_modules/.bin/webpack --json > dist/stats.json`
+    await promiseExec(buildCommand, { cwd: workingDir }).catch(err => {
       // webpack does not send error to stdout when using "--json"
       // instead, it puts it in the json output
-      const statsPath = path.join(workingDir, 'dist', statsFilename)
+      const statsPath = path.join(workingDir, 'dist', 'stats.json')
       if (fs.pathExistsSync(statsPath)) {
         const stats = require(statsPath)
         if (stats.errors && stats.errors.length) {
@@ -68,6 +73,13 @@ class Builder implements Theia.Builder {
 
       throw err
     })
+
+    const statsFilename = `stats.${tag}.json`
+    fs.renameSync(path.join(workingDir, 'dist', 'stats.json'), path.join(workingDir, 'dist', statsFilename))
+
+    if (componentLibraryPackage.scripts.test) {
+      await promiseExec('yarn run test', { cwd: workingDir })
+    }
 
     return fs.readdir(workingDistDir).then(buildAssetBasenames => {
       return buildAssetBasenames.map(basename => path.join(workingDir, 'dist', basename))
