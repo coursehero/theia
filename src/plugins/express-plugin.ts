@@ -14,10 +14,11 @@ class ExpressPlugin implements Theia.Plugin {
 
   onStart (core: Theia.Core) {
     const app = createExpressApp(core)
-    app.set('port', this.port)
+    const port = this.port
+    app.set('port', port)
 
     const server = http.createServer(app)
-    server.listen(this.port)
+    server.listen(port)
     server.on('error', onError)
     server.on('listening', onListening)
 
@@ -29,11 +30,11 @@ class ExpressPlugin implements Theia.Plugin {
       // handle specific listen errors with friendly messages
       switch (error.code) {
         case 'EACCES':
-          console.error('Port ${bind} requires elevated privileges')
+          console.error(`Port ${port} requires elevated privileges`)
           process.exit(1)
           break
         case 'EADDRINUSE':
-          console.error('Port ${bind} is already in use')
+          console.error(`Port ${port} is already in use`)
           process.exit(1)
           break
         default:

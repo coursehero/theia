@@ -188,12 +188,9 @@ class Core {
       throw new Error(`${componentLibrary} is not a registered component library`)
     }
 
-    const buildManifest = await this.getBuildManifest(componentLibrary)
-    const latest = buildManifest[buildManifest.length - 1]
-    const statsContents = await this.storage.load(componentLibrary, latest.stats)
-    const stats = JSON.parse(statsContents)
+    const stats = await this.getLatestStatsContents(componentLibrary)
     const componentManifestBasename = stats.assetsByChunkName.manifest.find((asset: string) => asset.startsWith('manifest') && asset.endsWith('.js'))
-    const source = await this.storage.load(componentLibrary, componentManifestBasename)
+    const source = await this.storage.load(componentLibrary, componentManifestBasename!)
     const { React } = await getReact(reactVersion)
     const window = { React } // tslint:disable-line
     const evaluated = eval(source)
@@ -226,10 +223,16 @@ class Core {
     }
   }
 
-  clearCache () {
-    this.libCache = {}
-    this.buildManifestCache = {}
-    this.statsContentsCache = {}
+  clearCache (componentLibrary?: string) {
+    if (componentLibrary) {
+      delete this.libCache[componentLibrary]
+      delete this.buildManifestCache[componentLibrary]
+      delete this.statsContentsCache[componentLibrary]
+    } else {
+      this.libCache = {}
+      this.buildManifestCache = {}
+      this.statsContentsCache = {}
+    }
   }
 }
 

@@ -30,7 +30,7 @@ declare namespace Theia {
     getComponentLibrary (reactVersion: string, componentLibrary: string): Promise<ComponentLibrary>
     getComponent (reactVersion: string, componentLibrary: string, component: string): Promise<ReactComponentClass>
     getAssets (componentLibrary: string): Promise<RenderResultAssets>
-    clearCache(): void
+    clearCache(componentLibrary?: string): void
   }
 
   interface Builder {
