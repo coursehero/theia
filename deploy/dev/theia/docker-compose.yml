@@ -5,6 +5,8 @@ services:
     environment:
       NR_APP_NAME: dev-theia
       ROLLBAR_ENV: development
+      THEIA_SQS_QUEUE: TheiaReheatJobs_dev
+      THEIA_S3_BUCKET: coursehero_dev
     stdin_open: true
     volumes:
       - /run/secrets/theia.id_rsa:/root/.ssh/id_rsa
