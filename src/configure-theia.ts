@@ -11,7 +11,6 @@ import ReheatCachePlugin from './plugins/reheat-cache-plugin'
 import RollbarPlugin from './plugins/rollbar-plugin'
 import UsagePlugin from './plugins/usage-plugin'
 
-const ONE_MINUTE = 1000 * 60
 const FIVE_MINUTES = 1000 * 60 * 5
 const useLocalStorage = process.env.THEIA_LOCAL === '1' || process.env.THEIA_LOCAL_STORAGE === '1'
 const useLocalConfig = process.env.THEIA_LOCAL === '1' || process.env.THEIA_LOCAL_CONFIG === '1'
@@ -58,7 +57,7 @@ if (useLocalStorage) {
 const plugins = nn<Theia.Plugin>([
   process.env.THEIA_ROLLBAR_TOKEN ? new RollbarPlugin(process.env.THEIA_ROLLBAR_TOKEN!, process.env.ROLLBAR_ENV!) : null,
   enablePeriodicBuilding ? new BuildPlugin(FIVE_MINUTES) : null,
-  new InvalidateBuildManifestCachePlugin(ONE_MINUTE), // temporary. TODO: remove. see impl. file
+  new InvalidateBuildManifestCachePlugin(5000), // the DelaySeconds param on 'new-build-job' should compensate for this
   new ReheatCachePlugin(process.env.THEIA_SQS_QUEUE_URL!),
   new ExpressPlugin(process.env.PORT ? parseInt(process.env.PORT!, 10) : 3000),
   new HeartbeatPlugin(),
