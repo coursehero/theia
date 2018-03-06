@@ -52,7 +52,7 @@ class RollbarPlugin implements Theia.Plugin {
       this.hashCache[hash].push(Date.now())
 
       if (this.hashCache[hash].length > REPEAT_RENDER_REQUEST_ERROR_THRESHOLD) {
-        this.rollbar.error(`Potential cache failure: seeing many render requests for ${data}`)
+        this.rollbar.error(`Wendigo - Excessive consumption noticed. Received many render requests for ${data}. Verify requests are being cached correctly.`)
       }
     }
   }
