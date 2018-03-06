@@ -2,12 +2,8 @@
 
 export THEIA_AUTH_SECRET=$(cat /run/secrets/api.authKey)
 export THEIA_ROLLBAR_TOKEN=$(cat /run/secrets/theia.rollbar.token)
-<<<<<<< Updated upstream
-export NR_LICENSE_KEY=$(cat /run/secrets/newrelic.license)
-=======
 export SLACK_TOKEN=$(cat /run/secrets/slack.token)
 export NEW_RELIC_LICENSE_KEY=$(cat /run/secrets/newrelic.license)
->>>>>>> Stashed changes
 
 if [ ! -f /root/.aws/credentials ]; then
   mkdir -p /root/.aws
