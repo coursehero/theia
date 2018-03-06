@@ -5,7 +5,7 @@ services:
     environment:
       NEW_RELIC_APP_NAME: dev-theia
       ROLLBAR_ENV: development
-      THEIA_SQS_QUEUE: https://sqs.us-east-1.amazonaws.com/315915642113/TheiaReheatJobs_dev
+      THEIA_SQS_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/315915642113/TheiaReheatJobs_dev
       THEIA_S3_BUCKET: coursehero_dev
     stdin_open: true
     volumes:
@@ -42,7 +42,7 @@ services:
     environment:
       NEW_RELIC_APP_NAME: theia-build
       ROLLBAR_ENV: development
-      THEIA_SQS_QUEUE: https://sqs.us-east-1.amazonaws.com/315915642113/TheiaReheatJobs_dev
+      THEIA_SQS_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/315915642113/TheiaReheatJobs_dev
       THEIA_S3_BUCKET: coursehero_dev
     stdin_open: true
     volumes:
