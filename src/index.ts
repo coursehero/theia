@@ -1,5 +1,6 @@
-import theia from './configure-theia'
-require('events').EventEmitter.defaultMaxListeners = 0
-require('newrelic')
+import 'newrelic'
 
-theia.start()
+{
+  const theia = require('./configure-theia').default
+  theia.start()
+}

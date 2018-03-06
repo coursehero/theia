@@ -5,7 +5,6 @@ import * as favicon from 'serve-favicon'
 import * as logger from 'morgan'
 import * as cookieParser from 'cookie-parser'
 import * as bodyParser from 'body-parser'
-import AsciidoctorEngine from './asciidoctor-engine'
 import theia from './configure-theia'
 
 interface ResponseError extends Error {
@@ -15,8 +14,8 @@ interface ResponseError extends Error {
 export default (core: Theia.Core): express.Application => {
   const app: express.Application = express()
 
-  app.engine('adoc', AsciidoctorEngine)
-  app.set('view engine', 'adoc')
+  // app.engine('adoc', AsciidoctorEngine)
+  // app.set('view engine', 'adoc')
   app.set('views', path.join(__dirname, '..', 'views'))
 
   app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')))
