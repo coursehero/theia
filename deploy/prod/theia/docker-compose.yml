@@ -40,7 +40,7 @@ services:
   build:
     image: 315915642113.dkr.ecr.us-east-1.amazonaws.com/theia
     environment:
-      NEW_RELIC_APP_NAME: theia
+      NEW_RELIC_APP_NAME: theia-build
       ROLLBAR_ENV: production
       THEIA_SQS_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/315915642113/TheiaReheatJobs
       THEIA_S3_BUCKET: coursehero
