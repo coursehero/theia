@@ -23,7 +23,7 @@ declare namespace Theia {
 
     start(): void
     render (componentLibrary: string, componentName: string, props: object): Promise<RenderResult>
-    registerComponentLibrary (componentLibrary: string, buildAssets: string[], commitHash: string): Promise<void>
+    registerComponentLibrary (componentLibrary: string, buildAssets: string[], buildManifestEntry: Theia.BuildManifestEntry): Promise<void>
     hasBuildManifest (componentLibrary: string): Promise<boolean>
     getBuildManifest (componentLibrary: string): Promise<BuildManifest>
     getLatestStatsContents (componentLibrary: string): Promise<Stats>
@@ -31,10 +31,11 @@ declare namespace Theia {
     getComponent (reactVersion: string, componentLibrary: string, component: string): Promise<ReactComponentClass>
     getAssets (componentLibrary: string): Promise<RenderResultAssets>
     clearCache(componentLibrary?: string): void
+    buildAll (): Promise<void>
   }
 
   interface Builder {
-    buildAll (theia: Core): void
+    build (theia: Core, componentLibraryConfig: ComponentLibraryConfiguration): Promise<void>
   }
 
   interface Storage {
@@ -45,14 +46,15 @@ declare namespace Theia {
   }
 
   interface Plugin {
-    apply (theia: any): void // TODO: type this as Theia
+    apply (theia: Core): void
   }
 
   interface Configuration {
-    libs: { [key: string]: ConfigurationComponentLibrary }
+    libs: { [key: string]: ComponentLibraryConfiguration }
   }
 
-  interface ConfigurationComponentLibrary {
+  interface ComponentLibraryConfiguration {
+    name: string
     source: string
     branches: {
       development: string
@@ -62,6 +64,11 @@ declare namespace Theia {
 
   interface BuildManifestEntry {
     commitHash: string
+    commitMessage: string
+    author: {
+      name: string
+      email: string
+    }
     stats: string
     createdAt: string
   }

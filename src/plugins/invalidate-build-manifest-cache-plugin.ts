@@ -1,8 +1,7 @@
 // when the build service runs, it updates the build-manifest in storage (S3)
-// the other instances of Theia (the ones that actuall render requests) won't get the new manifest b/c of internal caching
-// for now, just clear the cache periodically when the build-manifest in storage (S3) changes
-
-// a real solution is to have the build service alert the render services when a build has occured
+// the other instances of Theia (the ones that actualy render requests) won't get the new manifest b/c of internal caching
+// for now, just clear the cache periodically
+// a real solution is to have the build service alert the render services when a build has occurred
 
 function buildManifestsAreSame (bm1: Theia.BuildManifest, bm2: Theia.BuildManifest) {
   if (!bm1.length && !bm2.length) return true

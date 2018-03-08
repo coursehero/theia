@@ -1,12 +1,5 @@
 {
     "libs": {
-        "@coursehero-components/mythos": {
-            "source": "git@git.coursehero.com:coursehero/components/mythos.git",
-            "branches": {
-                "development": "dev",
-                "production": "master"
-            }
-        },
         "@coursehero-components/study-guides": {
             "source": "git@git.coursehero.com:coursehero/components/study-guides.git",
             "branches": {
