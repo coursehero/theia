@@ -6,6 +6,7 @@
   "author": "Connor Clark <connor.clark@coursehero.com>",
   "license": "MIT",
   "dependencies": {
+    "@slack/client": "^3.16.0",
     "asciidoctor.js": "^1.5.6-preview.4",
     "aws-sdk": "^2.177.0",
     "bluebird": "^3.5.1",
@@ -34,6 +35,7 @@
     "@types/escape-html": "^0.0.20",
     "@types/express": "^4.11.0",
     "@types/fs-extra": "^5.0.0",
+    "@types/jest": "^22.1.4",
     "@types/mime-types": "^2.1.0",
     "@types/morgan": "^1.7.35",
     "@types/node": "^8.5.2",
@@ -41,9 +43,11 @@
     "@types/react-dom": "^16.0.3",
     "@types/request-promise": "^4.1.39",
     "@types/serve-favicon": "^2.2.30",
+    "jest": "^22.4.2",
     "nodemon": "^1.13.3",
     "pre-commit": "^1.2.2",
     "rimraf": "^2.6.2",
+    "ts-jest": "^22.4.1",
     "ts-node": "^4.0.2",
     "tslint": "^5.8.0",
     "tslint-config-standard": "^7.0.0",
@@ -52,10 +56,24 @@
   "pre-commit": "lint",
   "scripts": {
     "lint": "tslint --fix --project .",
-    "build": "rimraf dist && tsc",
+    "build": "rimraf dist var && tsc",
     "start": "node ./dist/index.js",
     "start-build": "node ./dist/build.js",
     "start-dev": "THEIA_LOCAL=${THEIA_LOCAL:-1} nodemon",
-    "test": "echo 'TODO: write tests'"
+    "test": "jest"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*\\.(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
   }
 }

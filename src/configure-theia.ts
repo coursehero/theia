@@ -1,5 +1,5 @@
 import * as path from 'path'
-import Theia from './core'
+import Core from './core'
 import LocalStorage from './local-storage'
 import S3Storage from './s3-storage'
 import AuthPlugin from './plugins/auth-plugin'
@@ -9,9 +9,9 @@ import HeartbeatPlugin from './plugins/heartbeat-plugin'
 import InvalidateBuildManifestCachePlugin from './plugins/invalidate-build-manifest-cache-plugin'
 import ReheatCachePlugin from './plugins/reheat-cache-plugin'
 import RollbarPlugin from './plugins/rollbar-plugin'
+import SlackPlugin from './plugins/slack-plugin'
 import UsagePlugin from './plugins/usage-plugin'
 
-const ONE_MINUTE = 1000 * 60
 const FIVE_MINUTES = 1000 * 60 * 5
 const useLocalStorage = process.env.THEIA_LOCAL === '1' || process.env.THEIA_LOCAL_STORAGE === '1'
 const useLocalConfig = process.env.THEIA_LOCAL === '1' || process.env.THEIA_LOCAL_CONFIG === '1'
@@ -57,8 +57,14 @@ if (useLocalStorage) {
 
 const plugins = nn<Theia.Plugin>([
   process.env.THEIA_ROLLBAR_TOKEN ? new RollbarPlugin(process.env.THEIA_ROLLBAR_TOKEN!, process.env.ROLLBAR_ENV!) : null,
+  process.env.SLACK_TOKEN ? new SlackPlugin({
+    channel: {
+      development: '#theia-errors-dev',
+      production: '#theia-errors-prod'
+    }[process.env.THEIA_ENV as Theia.Environment]
+  }) : null,
   enablePeriodicBuilding ? new BuildPlugin(FIVE_MINUTES) : null,
-  new InvalidateBuildManifestCachePlugin(ONE_MINUTE), // temporary. TODO: remove. see impl. file
+  new InvalidateBuildManifestCachePlugin(5000), // the DelaySeconds param on 'new-build-job' should compensate for this
   new ReheatCachePlugin(process.env.THEIA_SQS_QUEUE_URL!),
   new ExpressPlugin(process.env.PORT ? parseInt(process.env.PORT!, 10) : 3000),
   new HeartbeatPlugin(),
@@ -75,12 +81,10 @@ console.log(JSON.stringify(config, null, 2))
 console.log(plugins.map(p => p.constructor.name).join(' '))
 console.log(storage.constructor.name)
 
-const theia = new Theia(
-  {
-    config,
-    plugins,
-    storage
-  }
-)
+const theia = new Core({
+  config,
+  plugins,
+  storage
+})
 
 export default theia

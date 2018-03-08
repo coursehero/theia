@@ -32,7 +32,8 @@ class ReheatCachePlugin implements Theia.Plugin {
     const params: SQS.Types.SendMessageRequest = {
       MessageAttributes: messageAttributes,
       MessageBody: JSON.stringify(messageBody),
-      QueueUrl: this.queueUrl
+      QueueUrl: this.queueUrl,
+      DelaySeconds: 10
     }
     this.sqs.sendMessage(params, (err, data) => {
       if (err) {

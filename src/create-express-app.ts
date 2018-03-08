@@ -28,8 +28,14 @@ export default (core: Theia.Core): express.Application => {
 
   theia.hooks.express.call(theia, app)
 
-  app.post('/render', async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    theia.render(req.query.componentLibrary, req.query.component, req.body)
+  app.post('/render', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const { componentLibrary, component } = req.query
+
+    if (!theia.config.libs[componentLibrary]) {
+      return res.status(HttpStatus.BAD_REQUEST).send({ error: `Invalid component library: ${componentLibrary}` })
+    }
+
+    theia.render(componentLibrary, component, req.body)
       .then(result => {
         res.set('Theia-Assets', JSON.stringify(result.assets))
         res.send(result.html)

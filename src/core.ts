@@ -1,5 +1,6 @@
 /* tslint:disable:no-eval */
 
+import * as bluebird from 'bluebird'
 import * as path from 'path'
 import * as rp from 'request-promise'
 import { SyncHook } from 'tapable'
@@ -8,9 +9,9 @@ import LocalStorage from './local-storage'
 
 interface CtorParams {
   builder?: Theia.Builder
-  config: Theia.Configuration
+  config?: Theia.Configuration
   environment?: Theia.Environment
-  plugins: Theia.Plugin[]
+  plugins?: Theia.Plugin[]
   storage?: Theia.Storage
 }
 
@@ -87,12 +88,18 @@ class Core {
 
   constructor ({ builder, config, environment, plugins, storage }: CtorParams) {
     this.builder = builder || new Builder()
-    this.config = config
+    this.config = config || { libs: {} }
     this.environment = environment || process.env.THEIA_ENV as Theia.Environment || 'development'
     this.storage = storage || new LocalStorage(path.resolve(__dirname, '..', 'libs'))
 
-    for (const plugin of plugins) {
-      plugin.apply(this)
+    for (const [componentLibraryName, componentLibraryConfig] of Object.entries(this.config.libs)) {
+      componentLibraryConfig.name = componentLibraryName
+    }
+
+    if (plugins) {
+      for (const plugin of plugins) {
+        plugin.apply(this)
+      }
     }
   }
 
@@ -124,7 +131,7 @@ class Core {
     }
   }
 
-  async registerComponentLibrary (componentLibrary: string, buildAssets: string[], commitHash: string): Promise<void> {
+  async registerComponentLibrary (componentLibrary: string, buildAssets: string[], buildManifestEntry: Theia.BuildManifestEntry): Promise<void> {
     for (const asset of buildAssets) {
       await this.storage.copy(componentLibrary, asset)
     }
@@ -134,18 +141,8 @@ class Core {
       manifest = await this.getBuildManifest(componentLibrary)
     }
 
-    const statsBasename = path.basename(buildAssets.find(asset => path.basename(asset).startsWith('stats')) as string)
-    if (!statsBasename) {
-      throw new Error(`Building ${componentLibrary} did not emit a stats file`)
-    }
-
-    const manifestEntry = {
-      commitHash,
-      stats: statsBasename,
-      createdAt: new Date().toString()
-    }
-    manifest.push(manifestEntry)
-    this.hooks.componentLibraryUpdate.call(this, componentLibrary, manifestEntry)
+    manifest.push(buildManifestEntry)
+    this.hooks.componentLibraryUpdate.call(this, componentLibrary, buildManifestEntry)
 
     const manifestJson = JSON.stringify(manifest, null, 2)
     await this.storage.write(componentLibrary, 'build-manifest.json', manifestJson)
@@ -188,12 +185,9 @@ class Core {
       throw new Error(`${componentLibrary} is not a registered component library`)
     }
 
-    const buildManifest = await this.getBuildManifest(componentLibrary)
-    const latest = buildManifest[buildManifest.length - 1]
-    const statsContents = await this.storage.load(componentLibrary, latest.stats)
-    const stats = JSON.parse(statsContents)
+    const stats = await this.getLatestStatsContents(componentLibrary)
     const componentManifestBasename = stats.assetsByChunkName.manifest.find((asset: string) => asset.startsWith('manifest') && asset.endsWith('.js'))
-    const source = await this.storage.load(componentLibrary, componentManifestBasename)
+    const source = await this.storage.load(componentLibrary, componentManifestBasename!)
     const { React } = await getReact(reactVersion)
     const window = { React } // tslint:disable-line
     const evaluated = eval(source)
@@ -226,10 +220,34 @@ class Core {
     }
   }
 
-  clearCache () {
-    this.libCache = {}
-    this.buildManifestCache = {}
-    this.statsContentsCache = {}
+  async buildAll (): Promise<void> {
+    console.log('building component libraries ...')
+
+    const libs = this.config.libs
+
+    // purposefully serial - yarn has trouble running multiple processes
+    return bluebird.each(Object.keys(libs), componentLibrary => {
+      const componentLibraryConfig = libs[componentLibrary]
+      return this.builder.build(this, componentLibraryConfig)
+    }).then(() => {
+      // ...
+    }).catch(error => {
+      console.error(error)
+      this.hooks.error.call(this, error)
+      throw error
+    })
+  }
+
+  clearCache (componentLibrary?: string) {
+    if (componentLibrary) {
+      delete this.libCache[componentLibrary]
+      delete this.buildManifestCache[componentLibrary]
+      delete this.statsContentsCache[componentLibrary]
+    } else {
+      this.libCache = {}
+      this.buildManifestCache = {}
+      this.statsContentsCache = {}
+    }
   }
 }
 
