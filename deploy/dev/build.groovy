@@ -1,4 +1,5 @@
 def silent_sh(cmd) {
+    println "running silent sh: $cmd"
     sh('#!/bin/sh -e\n' + cmd)
 }
 
