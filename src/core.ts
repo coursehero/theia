@@ -208,11 +208,9 @@ class Core {
   async buildAll (): Promise<void> {
     console.log('building component libraries ...')
 
-    const libs = this.libs
-
     // purposefully serial - yarn has trouble running multiple processes
-    return bluebird.each(Object.keys(libs), componentLibrary => {
-      const componentLibraryConfig = libs[componentLibrary]
+    return bluebird.each(Object.keys(this.libs), componentLibrary => {
+      const componentLibraryConfig = this.libs[componentLibrary]
       return this.builder.build(this, componentLibrary, componentLibraryConfig)
     }).then(() => {
       // ...

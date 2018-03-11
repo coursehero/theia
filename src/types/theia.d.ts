@@ -47,7 +47,7 @@ declare namespace Theia {
   interface Configuration {
     builder?: Builder
     environment?: Environment
-    libs: ComponentLibraryConfigurations
+    libs?: ComponentLibraryConfigurations
     plugins?: Plugin[]
     storage?: Storage
     verbose?: boolean
@@ -71,7 +71,6 @@ declare namespace Theia {
       development: string
       production: string
     }
-    // name: string
     source: string
   }
 
@@ -111,7 +110,7 @@ declare namespace Theia {
 
   interface Stats {
     assetsByChunkName: {
-      manifest: Array<string>
+      manifest: string[]
     }
   }
 

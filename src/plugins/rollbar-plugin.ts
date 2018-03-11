@@ -2,7 +2,7 @@ import * as Rollbar from 'rollbar'
 import * as XXHash from 'xxhash'
 
 export interface HashCache {
-  [key: string]: Array<number>
+  [key: string]: number[]
 }
 
 const FIVE_MINUTES = 1000 * 60 * 5

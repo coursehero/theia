@@ -14,7 +14,7 @@ import SlackPlugin from './plugins/slack-plugin'
 import UsagePlugin from './plugins/usage-plugin'
 
 export interface TheiaExport {
-  (optionsFromParams?: Theia.Configuration): Theia.Core
+  (configFromParams?: Theia.Configuration): Theia.Core
   AuthPlugin: typeof AuthPlugin
   Builder: typeof Builder
   BuildPlugin: typeof BuildPlugin
@@ -50,6 +50,10 @@ function configDefaulter (options: Theia.Configuration): Theia.CompleteConfigura
     opts.environment = process.env.THEIA_ENV as Theia.Environment || 'development'
   }
 
+  if (opts.libs === undefined) {
+    throw new Error('must supply libs config')
+  }
+
   if (opts.storage === undefined) {
     opts.storage = new LocalStorage(path.resolve(__dirname, '..', 'libs'))
   }
@@ -61,7 +65,7 @@ function configDefaulter (options: Theia.Configuration): Theia.CompleteConfigura
   return opts as Theia.CompleteConfiguration
 }
 
-const theia = function theia (optionsFromParams?: Theia.Configuration): Theia.Core {
+const theia = function theia (configFromParams?: Theia.Configuration): Theia.Core {
   const configPaths = [
     path.resolve('theia.config'),
     path.resolve('dist/theia.config'),
@@ -76,11 +80,17 @@ const theia = function theia (optionsFromParams?: Theia.Configuration): Theia.Co
     }
   })
 
-  if (!configPath) {
+  let config
+  if (configPath) {
+    config = getConfig(configPath)
+    // TODO merge configFromParams
+  } else if (configFromParams) {
+    config = configFromParams
+  } else {
     throw new Error('could not find theia config')
   }
 
-  const config = configDefaulter(getConfig(configPath))
+  config = configDefaulter(config)
 
   if (config.verbose) {
     console.log('Libs:', JSON.stringify(config.libs, null, 2))
