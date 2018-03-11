@@ -1,0 +1,28 @@
+<h2>Theia</h2>
+
+<h2>How To Use</h2>
+
+Payload schema:
+
+<pre class="prettyprint">
+POST /render?componentLibrary=mythos&component=Greeting
+Content-Type: application/json
+{
+  "name": "World"
+}
+</pre>
+
+Response (raw):
+<pre class="prettyprint lang-html">
+{{helloWorldResultHtml}}
+</pre>
+
+Response (assets):
+<pre class="prettyprint lang-js">
+{{helloWorldResultAssets}}
+</pre>
+
+Response (rendered):
+{{{helloWorldResultHtml}}}
+
+<script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
