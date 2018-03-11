@@ -4,7 +4,6 @@ FROM node:8.9-alpine
 WORKDIR /var/www/current
 COPY ./package.json ./
 COPY ./yarn.lock ./
-COPY ./theia.config.json ./
 COPY ./public ./public
 COPY ./views ./views
 
@@ -31,7 +30,6 @@ CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn run start" ]
 # RUN mkdir ./var
 # COPY ./package.json ./
 # COPY ./yarn.lock ./
-# COPY ./theia.config.json ./
 # COPY ./public ./public
 # COPY ./views ./views
 

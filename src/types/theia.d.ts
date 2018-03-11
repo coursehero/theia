@@ -4,45 +4,40 @@ declare namespace Theia {
   type Environment = 'development' | 'production'
 
   interface Core {
-    builder: Builder
-
-    config: Configuration
-
-    environment: Environment
-    
-    hooks: {
-      start: Tapable.SyncHook
-      beforeRender: Tapable.SyncHook
-      render: Tapable.SyncHook
-      componentLibraryUpdate: Tapable.SyncHook
-      express: Tapable.SyncHook
-      error: Tapable.SyncHook
-    }
-
-    storage: Storage
-
-    start(): void
-    render (componentLibrary: string, componentName: string, props: object): Promise<RenderResult>
-    registerComponentLibrary (componentLibrary: string, buildAssets: string[], buildManifestEntry: Theia.BuildManifestEntry): Promise<void>
-    hasBuildManifest (componentLibrary: string): Promise<boolean>
-    getBuildManifest (componentLibrary: string): Promise<BuildManifest>
-    getLatestStatsContents (componentLibrary: string): Promise<Stats>
-    getComponentLibrary (reactVersion: string, componentLibrary: string): Promise<ComponentLibrary>
-    getComponent (reactVersion: string, componentLibrary: string, component: string): Promise<ReactComponentClass>
-    getAssets (componentLibrary: string): Promise<RenderResultAssets>
-    clearCache(componentLibrary?: string): void
     buildAll (): Promise<void>
+    builder: Builder
+    clearCache(componentLibrary?: string): void
+    libs: ComponentLibraryConfigurations
+    environment: Environment
+    getAssets (componentLibrary: string): Promise<RenderResultAssets>
+    getBuildManifest (componentLibrary: string): Promise<BuildManifest>
+    getComponent (reactVersion: string, componentLibrary: string, component: string): Promise<ReactComponentClass>
+    getComponentLibrary (reactVersion: string, componentLibrary: string): Promise<ComponentLibrary>
+    getLatestStatsContents (componentLibrary: string): Promise<Stats>
+    hasBuildManifest (componentLibrary: string): Promise<boolean>
+    hooks: {
+      beforeRender: Tapable.SyncHook
+      componentLibraryUpdate: Tapable.SyncHook
+      error: Tapable.SyncHook
+      express: Tapable.SyncHook
+      render: Tapable.SyncHook
+      start: Tapable.SyncHook
+    }
+    registerComponentLibrary (componentLibrary: string, buildAssets: string[], buildManifestEntry: Theia.BuildManifestEntry): Promise<void>
+    render (componentLibrary: string, componentName: string, props: object): Promise<RenderResult>
+    start(): void
+    storage: Storage
   }
 
   interface Builder {
-    build (theia: Core, componentLibraryConfig: ComponentLibraryConfiguration): Promise<void>
+    build (theia: Core, componentLibrary: string, componentLibraryConfig: ComponentLibraryConfiguration): Promise<void>
   }
 
   interface Storage {
-    write (componentLibrary: string, basename: string, contents: string): Promise<void>
-    exists (componentLibrary: string, basename: string): Promise<boolean>
     copy (componentLibrary: string, file: string): Promise<void>
+    exists (componentLibrary: string, basename: string): Promise<boolean>
     load (componentLibrary: string, basename: string): Promise<string>
+    write (componentLibrary: string, basename: string, contents: string): Promise<void>
   }
 
   interface Plugin {
@@ -50,27 +45,45 @@ declare namespace Theia {
   }
 
   interface Configuration {
-    libs: { [key: string]: ComponentLibraryConfiguration }
+    builder?: Builder
+    environment?: Environment
+    libs: ComponentLibraryConfigurations
+    plugins?: Plugin[]
+    storage?: Storage
+    verbose?: boolean
+  }
+
+  interface CompleteConfiguration {
+    builder: Builder
+    environment: Environment
+    libs: ComponentLibraryConfigurations
+    plugins: Plugin[]
+    storage: Storage
+    verbose: boolean
+  }
+
+  interface ComponentLibraryConfigurations {
+    [key: string]: ComponentLibraryConfiguration
   }
 
   interface ComponentLibraryConfiguration {
-    name: string
-    source: string
     branches: {
       development: string
       production: string
     }
+    // name: string
+    source: string
   }
 
   interface BuildManifestEntry {
-    commitHash: string
-    commitMessage: string
     author: {
       name: string
       email: string
     }
-    stats: string
+    commitHash: string
+    commitMessage: string
     createdAt: string
+    stats: string
   }
 
   interface BuildManifest extends Array<BuildManifestEntry> {}
@@ -100,5 +113,9 @@ declare namespace Theia {
     assetsByChunkName: {
       manifest: Array<string>
     }
+  }
+
+  interface ResponseError extends Error {
+    status?: number
   }
 }

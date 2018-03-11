@@ -1,11 +1,7 @@
 import * as Rollbar from 'rollbar'
 import * as XXHash from 'xxhash'
 
-interface ResponseError extends Error {
-  status?: number
-}
-
-interface HashCache {
+export interface HashCache {
   [key: string]: Array<number>
 }
 
@@ -57,7 +53,7 @@ class RollbarPlugin implements Theia.Plugin {
     }
   }
 
-  onError (core: Theia.Core, error: ResponseError) {
+  onError (core: Theia.Core, error: Theia.ResponseError) {
     this.rollbar.error(error)
   }
 

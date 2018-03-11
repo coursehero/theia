@@ -1,6 +1,6 @@
 import { WebClient } from '@slack/client'
 
-interface CtorParams {
+export interface CtorParams {
   channel: string
   token?: string
 }
@@ -25,7 +25,7 @@ class SlackPlugin implements Theia.Plugin {
   }
 
   onComponentLibraryUpdate (core: Theia.Core, componentLibrary: string, manifestEntry: Theia.BuildManifestEntry) {
-    const gitSource = core.config.libs[componentLibrary].source // ex: git@git.coursehero.com:coursehero/components/study-guides.git
+    const gitSource = core.libs[componentLibrary].source // ex: git@git.coursehero.com:coursehero/components/study-guides.git
     const commitUrl = getCommitUrl(core, gitSource, manifestEntry.commitHash)
 
     const message = `\`\`\`

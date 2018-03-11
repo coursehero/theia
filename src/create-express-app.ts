@@ -6,7 +6,6 @@ import * as logger from 'morgan'
 import * as cookieParser from 'cookie-parser'
 import * as bodyParser from 'body-parser'
 import * as cons from 'consolidate'
-import theia from './configure-theia'
 
 interface ResponseError extends Error {
   status?: number
@@ -27,16 +26,16 @@ export default (core: Theia.Core): express.Application => {
 
   app.use(express.static(path.join(__dirname, '..', 'public')))
 
-  theia.hooks.express.call(theia, app)
+  core.hooks.express.call(core, app)
 
   app.post('/render', (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const { componentLibrary, component } = req.query
 
-    if (!theia.config.libs[componentLibrary]) {
+    if (!core.libs[componentLibrary]) {
       return res.status(HttpStatus.BAD_REQUEST).send({ error: `Invalid component library: ${componentLibrary}` })
     }
 
-    theia.render(componentLibrary, component, req.body)
+    core.render(componentLibrary, component, req.body)
       .then(result => {
         res.set('Theia-Assets', JSON.stringify(result.assets))
         res.send(result.html)
@@ -58,7 +57,7 @@ export default (core: Theia.Core): express.Application => {
     const componentLibrary = split.slice(1, split.length - 1).join('/')
     const asset = split[split.length - 1]
 
-    theia.storage.load(componentLibrary, asset)
+    core.storage.load(componentLibrary, asset)
       .then(content => {
         res.contentType(asset)
         res.send(content)
@@ -78,7 +77,7 @@ export default (core: Theia.Core): express.Application => {
   app.use((err: ResponseError, req: express.Request, res: express.Response, next: express.NextFunction) => {
     err.status = err.status || HttpStatus.INTERNAL_SERVER_ERROR
 
-    theia.hooks.error.call(theia, err)
+    core.hooks.error.call(core, err)
 
     if (err.status >= 400 && err.status < 500) {
       console.trace(err.stack)
