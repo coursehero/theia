@@ -12,9 +12,9 @@ RUN yarn install
 COPY ./tsconfig.json ./
 COPY ./tslint.json ./
 COPY ./src ./src
-RUN yarn run lint
-RUN yarn run test
-RUN yarn run build
+RUN yarn lint
+RUN yarn test
+RUN yarn build
 # this prunes dev deps
 RUN yarn install --production
 
@@ -22,7 +22,7 @@ COPY ./deploy/secrets.sh ./secrets.sh
 ARG theia_env=development
 ENV THEIA_ENV=$theia_env
 ENV AWS_SDK_LOAD_CONFIG=true
-CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn run start" ]
+CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn start" ]
 
 # Use the following when docker on Jenkins has been upgraded.
 
@@ -41,9 +41,9 @@ CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn run start" ]
 # COPY ./tsconfig.json ./
 # COPY ./tslint.json ./
 # COPY ./src ./src
-# RUN yarn run lint
-# RUN yarn run test
-# RUN yarn run build
+# RUN yarn lint
+# RUN yarn test
+# RUN yarn build
 # # this prunes dev deps
 # RUN yarn install --production
 
@@ -56,4 +56,4 @@ CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn run start" ]
 # COPY ./deploy/secrets.sh ./secrets.sh
 # ARG theia_env=development
 # ENV THEIA_ENV=$theia_env
-# CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn run start" ]
+# CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn start" ]
