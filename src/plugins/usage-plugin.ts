@@ -8,7 +8,7 @@ class UsagePlugin implements Theia.Plugin {
 
   onExpress (theia: Theia, app: express.Application) {
     app.get('/', async (req, res) => {
-      const helloWorldResult = await theia.render('@coursehero-components/mythos', 'Greeting', {
+      const helloWorldResult = await theia.render('mythos', 'Greeting', {
         name: 'World'
       })
 

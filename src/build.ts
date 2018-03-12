@@ -1,5 +1,6 @@
-import theia from './configure-theia'
+import 'newrelic'
 
+const theia = require('./configure-theia').default
 theia.buildAll().then(() => {
   console.log('finished building component libraries')
 }).catch(() => {

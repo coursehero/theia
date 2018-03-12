@@ -3,8 +3,10 @@ services:
   web-api:
     image: 315915642113.dkr.ecr.us-east-1.amazonaws.com/dev-theia
     environment:
-      NR_APP_NAME: dev-theia
+      NEW_RELIC_APP_NAME: dev-theia
       ROLLBAR_ENV: development
+      THEIA_SQS_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/315915642113/TheiaReheatJobs_dev
+      THEIA_S3_BUCKET: coursehero_dev
     stdin_open: true
     volumes:
       - /run/secrets/theia.id_rsa:/root/.ssh/id_rsa
@@ -39,8 +41,10 @@ services:
   build:
     image: 315915642113.dkr.ecr.us-east-1.amazonaws.com/dev-theia
     environment:
-      NR_APP_NAME: theia-build
+      NEW_RELIC_APP_NAME: dev-theia
       ROLLBAR_ENV: development
+      THEIA_SQS_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/315915642113/TheiaReheatJobs_dev
+      THEIA_S3_BUCKET: coursehero_dev
     stdin_open: true
     volumes:
       - /run/secrets/theia.id_rsa:/root/.ssh/id_rsa

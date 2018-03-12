@@ -1,3 +1,6 @@
-import theia from './configure-theia'
+import 'newrelic'
 
-theia.start()
+{
+  const theia = require('./configure-theia').default
+  theia.start()
+}
