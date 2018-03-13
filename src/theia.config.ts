@@ -3,7 +3,7 @@ import theia from './theia'
 
 const FIVE_MINUTES = 1000 * 60 * 5
 const useLocalStorage = process.env.THEIA_LOCAL === '1' || process.env.THEIA_LOCAL_STORAGE === '1'
-const enablePeriodicBuilding = process.env.THEIA_LOCAL === '1' || process.env.THEIA_BUILD === '1'
+const enablePeriodicBuilding = process.env.THEIA_LOCAL === '1' || process.env.THEIA_LOCAL_BUILD === '1'
 
 let storage: Theia.Storage
 if (useLocalStorage) {
