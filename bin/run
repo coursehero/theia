@@ -1,10 +1,11 @@
-#!/bin/bash
+#!/bin/bash -e
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 "$DIR"/build
 
 docker run --rm -it -p 3000:80 \
+  -v yarn-cache-theia:/usr/local/share/.cache/yarn/v1 \
   -v ~/.ssh:/root/.ssh \
   -v ~/.aws:/root/.aws \
   -v "$DIR"/../libs:/var/www/current/libs \
