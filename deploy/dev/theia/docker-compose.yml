@@ -35,7 +35,7 @@ services:
       options:
         awslogs-group: dev-theia
         awslogs-region: us-east-1
-        awslogs-stream: aracely-test
+        awslogs-stream: "{{'dev-theia-logs-' + .ImageName + '-' + .Name + '-' + .ID}}"
     labels:
       io.rancher.container.pull_image: always
       traefik.enable: 'true'
