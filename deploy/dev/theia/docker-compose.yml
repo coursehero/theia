@@ -26,8 +26,12 @@ services:
 #    external_links:
 #      - external-service-name/container-name:how-i-want-to-talk-to-it.dev-internal.coursehero.com
     #commenting out logging so we can see logs right in Rancher
-#   logging:
-#     driver: syslog
+   logging:
+     driver: awslogs
+      options:
+        awslogs-region: "us-east-1"
+        awslogs-group: "dev-theia"
+        awslogs-stream: "aracely-test"
 #     options:
 #       syslog-facility: local0
 #       tag: '{"docker_image":"{{.ImageName}}", "docker_name":"{{.Name}}", "docker_id":"{{.ID}}",
