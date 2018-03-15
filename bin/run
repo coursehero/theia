@@ -16,8 +16,8 @@ docker run --rm -it -p 3000:80 \
   $( if [ ! -z ${THEIA_LOCAL_STORAGE+x} ]; then
     echo "-e THEIA_LOCAL_STORAGE=$THEIA_LOCAL_STORAGE"
   fi ) \
-  $( if [ ! -z ${THEIA_LOCAL_CONFIG+x} ]; then
-    echo "-e THEIA_LOCAL_CONFIG=$THEIA_LOCAL_CONFIG"
+  $( if [ ! -z ${THEIA_LOCAL_BUILD+x} ]; then
+    echo "-e THEIA_LOCAL_BUILD=$THEIA_LOCAL_BUILD"
   fi ) \
   $( if [ -f theia.local.config.json ]; then
     echo "-v ${DIR}/../theia.local.config.json:/var/www/current/theia.local.config.json"

@@ -1,12 +1,8 @@
 import * as Rollbar from 'rollbar'
 import * as XXHash from 'xxhash'
 
-interface ResponseError extends Error {
-  status?: number
-}
-
-interface HashCache {
-  [key: string]: Array<number>
+export interface HashCache {
+  [key: string]: number[]
 }
 
 const FIVE_MINUTES = 1000 * 60 * 5
@@ -33,31 +29,24 @@ class RollbarPlugin implements Theia.Plugin {
     core.hooks.start.tap('RollbarPlugin', this.onStart.bind(this))
   }
 
+  // create errors if the same component/props is rendered repeatedly, which suggests a cache failure
   // before render, because props can possibly be modified during render
   onBeforeRender (core: Theia.Core, componentLibrary: string, component: string, props: object) {
-    // create errors if the same component/props is rendered repeatedly, which suggests a cache failure
+    const data = componentLibrary + component + JSON.stringify(props)
+    const hash = XXHash.hash(Buffer.from(data, 'utf-8'), 0)
 
-    // TODO: maybe only enable in production ?
-    // const enabled = process.env.THEIA_ENV === 'production'
-    const enabled = true
+    if (!(hash in this.hashCache)) {
+      this.hashCache[hash] = []
+    }
 
-    if (enabled) {
-      const data = componentLibrary + component + JSON.stringify(props)
-      const hash = XXHash.hash(Buffer.from(data, 'utf-8'), 0)
+    this.hashCache[hash].push(Date.now())
 
-      if (!(hash in this.hashCache)) {
-        this.hashCache[hash] = []
-      }
-
-      this.hashCache[hash].push(Date.now())
-
-      if (this.hashCache[hash].length > REPEAT_RENDER_REQUEST_ERROR_THRESHOLD) {
-        this.rollbar.error(`Wendigo - Excessive consumption noticed. Received many render requests for ${data}. Verify requests are being cached correctly.`)
-      }
+    if (this.hashCache[hash].length > REPEAT_RENDER_REQUEST_ERROR_THRESHOLD) {
+      this.rollbar.error(`Wendigo - Excessive consumption noticed. Received many render requests for ${data}. Verify requests are being cached correctly.`)
     }
   }
 
-  onError (core: Theia.Core, error: ResponseError) {
+  onError (core: Theia.Core, error: Theia.ResponseError) {
     this.rollbar.error(error)
   }
 

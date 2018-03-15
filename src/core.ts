@@ -1,19 +1,8 @@
 /* tslint:disable:no-eval */
 
 import * as bluebird from 'bluebird'
-import * as path from 'path'
 import * as rp from 'request-promise'
 import { SyncHook } from 'tapable'
-import Builder from './builder'
-import LocalStorage from './local-storage'
-
-interface CtorParams {
-  builder?: Theia.Builder
-  config?: Theia.Configuration
-  environment?: Theia.Environment
-  plugins?: Theia.Plugin[]
-  storage?: Theia.Storage
-}
 
 /*
   This loads the production bundle of React for a specified version, evaluates the code,
@@ -66,7 +55,7 @@ async function getUMD (url: string, thisContext: object): Promise<void> {
 class Core {
   builder: Theia.Builder
 
-  config: Theia.Configuration
+  libs: Theia.ComponentLibraryConfigurations
 
   environment: Theia.Environment
 
@@ -86,18 +75,14 @@ class Core {
   buildManifestCache: { [key: string]: Theia.BuildManifest } = {}
   statsContentsCache: { [key: string]: Theia.Stats } = {}
 
-  constructor ({ builder, config, environment, plugins, storage }: CtorParams) {
-    this.builder = builder || new Builder()
-    this.config = config || { libs: {} }
-    this.environment = environment || process.env.THEIA_ENV as Theia.Environment || 'development'
-    this.storage = storage || new LocalStorage(path.resolve(__dirname, '..', 'libs'))
+  constructor (config: Theia.CompleteConfiguration) {
+    this.builder = config.builder
+    this.libs = config.libs
+    this.environment = config.environment
+    this.storage = config.storage
 
-    for (const [componentLibraryName, componentLibraryConfig] of Object.entries(this.config.libs)) {
-      componentLibraryConfig.name = componentLibraryName
-    }
-
-    if (plugins) {
-      for (const plugin of plugins) {
+    if (config.plugins) {
+      for (const plugin of config.plugins) {
         plugin.apply(this)
       }
     }
@@ -223,12 +208,10 @@ class Core {
   async buildAll (): Promise<void> {
     console.log('building component libraries ...')
 
-    const libs = this.config.libs
-
     // purposefully serial - yarn has trouble running multiple processes
-    return bluebird.each(Object.keys(libs), componentLibrary => {
-      const componentLibraryConfig = libs[componentLibrary]
-      return this.builder.build(this, componentLibraryConfig)
+    return bluebird.each(Object.keys(this.libs), componentLibrary => {
+      const componentLibraryConfig = this.libs[componentLibrary]
+      return this.builder.build(this, componentLibrary, componentLibraryConfig)
     }).then(() => {
       // ...
     }).catch(error => {

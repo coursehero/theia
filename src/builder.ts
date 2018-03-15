@@ -31,9 +31,8 @@ function promiseExec (cmd: string, opts = {}): Promise<string> {
 }
 
 class Builder implements Theia.Builder {
-  async build (core: Theia.Core, componentLibraryConfig: Theia.ComponentLibraryConfiguration) {
+  async build (core: Theia.Core, componentLibrary: string, componentLibraryConfig: Theia.ComponentLibraryConfiguration) {
     // the latest commit in the tracked branch will be persisted
-    const componentLibrary = componentLibraryConfig.name
     const branch = componentLibraryConfig.branches[core.environment]
     const workingDir = await this.ensureRepoIsClonedAndUpdated(componentLibrary, componentLibraryConfig.source, branch)
 
