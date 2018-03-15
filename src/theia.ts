@@ -85,7 +85,8 @@ const theia = function theia (configFromParams?: Theia.Configuration): Theia.Cor
   })
 
   let config
-  if (configFromParams && configFromParams.loadFromDisk && configPath) {
+  const readFromDisk = !configFromParams || (configFromParams && configFromParams.loadFromDisk)
+  if (readFromDisk && configPath) {
     config = getConfig(configPath)
     // TODO merge configFromParams
   } else if (configFromParams) {
