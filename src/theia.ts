@@ -54,6 +54,10 @@ function configDefaulter (options: Theia.Configuration): Theia.CompleteConfigura
     throw new Error('must supply libs config')
   }
 
+  if (opts.plugins === undefined) {
+    opts.plugins = []
+  }
+
   if (opts.storage === undefined) {
     opts.storage = new LocalStorage(path.resolve(__dirname, '..', 'libs'))
   }
@@ -81,7 +85,7 @@ const theia = function theia (configFromParams?: Theia.Configuration): Theia.Cor
   })
 
   let config
-  if (configPath) {
+  if (configFromParams && configFromParams.loadFromDisk && configPath) {
     config = getConfig(configPath)
     // TODO merge configFromParams
   } else if (configFromParams) {

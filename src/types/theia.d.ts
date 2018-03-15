@@ -51,6 +51,7 @@ declare namespace Theia {
     plugins?: Plugin[]
     storage?: Storage
     verbose?: boolean
+    loadFromDisk?: boolean
   }
 
   interface CompleteConfiguration {
