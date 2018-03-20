@@ -1,3 +1,8 @@
+def silent_sh(cmd) {
+    println "running silent sh: $cmd"
+    sh('#!/bin/sh -e\n' + cmd)
+}
+
 try{
     node {
         stage 'Checkout'
@@ -9,7 +14,7 @@ try{
                   -t 315915642113.dkr.ecr.us-east-1.amazonaws.com/dev-theia .'
 
         stage 'Push'
-            sh "eval \$(aws ecr get-login)"
+            silent_sh "eval \$(aws ecr get-login)"
             sh "docker push 315915642113.dkr.ecr.us-east-1.amazonaws.com/dev-theia:latest"
 
         stage 'Release'
