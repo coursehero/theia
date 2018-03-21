@@ -32,10 +32,14 @@ services:
 #         "service_name":"dev-theia"}'
     logging:
       driver: awslogs
+      driver: syslog
       options:
+        syslog-facility: local0
+        tag: '{"docker_image":"{{.ImageName}}", "docker_name":"{{.Name}}", "docker_id":"{{.ID}}",
+          "service_name":"dev-theia-service"}'
         awslogs-group: dev-theia
         awslogs-region: us-east-1
-        awslogs-stream: "{{'dev-theia-logs-' + .ImageName + '-' + .Name + '-' + .ID}}"
+        awslogs-stream: "aracely-test"
     labels:
       io.rancher.container.pull_image: always
       traefik.enable: 'true'
