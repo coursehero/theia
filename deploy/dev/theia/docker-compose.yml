@@ -25,21 +25,14 @@ services:
     #provide external links to services directly
 #    external_links:
 #      - external-service-name/container-name:how-i-want-to-talk-to-it.dev-internal.coursehero.com
-    #commenting out logging so we can see logs right in Rancher
-#     options:
-#       syslog-facility: local0
-#       tag: '{"docker_image":"{{.ImageName}}", "docker_name":"{{.Name}}", "docker_id":"{{.ID}}",
-#         "service_name":"dev-theia"}'
     logging:
       driver: awslogs
       driver: syslog
       options:
         syslog-facility: local0
-        tag: '{"docker_image":"{{.ImageName}}", "docker_name":"{{.Name}}", "docker_id":"{{.ID}}",
-          "service_name":"dev-theia-service"}'
         awslogs-group: dev-theia
         awslogs-region: us-east-1
-        awslogs-stream: "aracely-test"
+        tag: 'dev-theia{{ with split .ImageName ":" }}{{join . "_"}}{{end}}-{{.ID}}'
     labels:
       io.rancher.container.pull_image: always
       traefik.enable: 'true'
