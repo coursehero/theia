@@ -30,7 +30,7 @@ services:
       options:
         awslogs-group: dev-theia
         awslogs-region: us-east-1
-        tag: 'dev-theia{{ with split .ImageName ":" }}{{join . "_"}}{{end}}-{{.ID}}'
+        tag: 'dev-theia-{{ with split .ImageName ":" }}{{join . "_"}}{{end}}-{{.ID}}'
     labels:
       io.rancher.container.pull_image: always
       traefik.enable: 'true'
