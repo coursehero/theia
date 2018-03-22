@@ -10,3 +10,4 @@ theia.local.config.json
 .idea
 newrelic_agent.log
 jest-libs
+theia.config.js

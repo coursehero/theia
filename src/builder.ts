@@ -6,13 +6,15 @@ function promiseExec (cmd: string, opts = {}): Promise<string> {
   console.log(`running '${cmd}' with options ${JSON.stringify(opts)}`)
   const child = __exec(cmd, opts)
 
-  let result = ''
+  let stdOutResult = ''
   child.stdout.on('data', function (data: string) {
-    result += data
+    stdOutResult += data
     console.log(data.trim())
   })
 
+  let stdErrResult = ''
   child.stderr.on('data', function (data: string) {
+    stdErrResult += data
     console.log(data.trim())
   })
 
@@ -20,18 +22,17 @@ function promiseExec (cmd: string, opts = {}): Promise<string> {
     child.addListener('error', reject)
     child.addListener('exit', (code: number) => {
       if (code === 0) {
-        resolve(result.trim())
+        resolve(stdOutResult.trim())
       } else {
-        reject(code)
+        reject(stdErrResult.trim())
       }
     })
   })
 }
 
 class Builder implements Theia.Builder {
-  async build (core: Theia.Core, componentLibraryConfig: Theia.ComponentLibraryConfiguration) {
+  async build (core: Theia.Core, componentLibrary: string, componentLibraryConfig: Theia.ComponentLibraryConfiguration) {
     // the latest commit in the tracked branch will be persisted
-    const componentLibrary = componentLibraryConfig.name
     const branch = componentLibraryConfig.branches[core.environment]
     const workingDir = await this.ensureRepoIsClonedAndUpdated(componentLibrary, componentLibraryConfig.source, branch)
 

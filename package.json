@@ -1,7 +1,11 @@
 {
   "name": "theia",
   "version": "0.0.0",
-  "main": "dist/index.js",
+  "main": "dist/theia.js",
+  "types": "dist/theia.d.ts",
+  "files": [
+    "dist/"
+  ],
   "repository": "https://git.coursehero.com/coursehero/theia.git",
   "author": "Connor Clark <connor.clark@coursehero.com>",
   "license": "MIT",
@@ -59,8 +63,8 @@
   "pre-commit": "lint",
   "scripts": {
     "lint": "tslint --fix --project .",
-    "build": "rimraf dist var && tsc",
-    "start": "node ./dist/index.js",
+    "build": "rimraf dist var theia.config.js && mkdir dist && cp -r src/types dist/types && tsc",
+    "start": "node ./dist/start.js",
     "start-build": "node ./dist/build.js",
     "start-dev": "THEIA_LOCAL=${THEIA_LOCAL:-1} nodemon",
     "test": "jest"
