@@ -27,9 +27,7 @@ services:
 #      - external-service-name/container-name:how-i-want-to-talk-to-it.dev-internal.coursehero.com
     logging:
       driver: awslogs
-      driver: syslog
       options:
-        syslog-facility: local0
         awslogs-group: dev-theia
         awslogs-region: us-east-1
         tag: 'dev-theia{{ with split .ImageName ":" }}{{join . "_"}}{{end}}-{{.ID}}'
