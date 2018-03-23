@@ -28,7 +28,7 @@ services:
     logging:
       driver: awslogs
       options:
-        awslogs-group: dev-theia
+        awslogs-group: theia
         awslogs-region: us-east-1
         tag: 'theia-web-api-{{ with split .Name ":" }}{{join . "_"}}{{end}}-{{.ID}}'
     labels:
@@ -62,7 +62,7 @@ services:
     logging:
       driver: awslogs
       options:
-        awslogs-group: dev-theia
+        awslogs-group: theia
         awslogs-region: us-east-1
         tag: 'theia-build-{{ with split .Name ":" }}{{join . "_"}}{{end}}-{{.ID}}'
     labels:
