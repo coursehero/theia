@@ -30,7 +30,7 @@ services:
       options:
         awslogs-group: dev-theia
         awslogs-region: us-east-1
-        tag: 'dev-theia-{{ with split .ImageName ":" }}{{join . "_"}}{{end}}-{{.ID}}'
+        tag: 'dev-theia-web-api-{{ with split .Name ":" }}{{join . "_"}}{{end}}-{{.ID}}'
     labels:
       io.rancher.container.pull_image: always
       traefik.enable: 'true'
@@ -59,6 +59,12 @@ services:
       - /run/secrets/newrelic.license:/run/secrets/newrelic.license
       - /var/rollbar:/var/rollbar
     tty: true
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: dev-theia
+        awslogs-region: us-east-1
+        tag: 'dev-theia-build-{{ with split .Name ":" }}{{join . "_"}}{{end}}-{{.ID}}'
     labels:
       io.rancher.container.pull_image: always
       io.rancher.container.start_once: 'true'
