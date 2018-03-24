@@ -11,7 +11,6 @@
   "license": "MIT",
   "dependencies": {
     "@slack/client": "^3.16.0",
-    "asciidoctor.js": "^1.5.6-preview.4",
     "aws-sdk": "^2.177.0",
     "bluebird": "^3.5.1",
     "body-parser": "~1.18.2",
@@ -35,7 +34,6 @@
     "xxhash": "^0.2.4"
   },
   "devDependencies": {
-    "@types/aws-sdk": "^2.7.0",
     "@types/bluebird": "^3.5.20",
     "@types/consolidate": "^0.0.33",
     "@types/cookie-parser": "^1.4.1",
