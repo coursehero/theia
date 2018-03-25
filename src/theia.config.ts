@@ -39,6 +39,13 @@ const libs: Theia.ComponentLibraryConfigurations = {
       development: 'dev',
       production: 'master'
     }
+  },
+  mythos: {
+    source: 'https://github.com/theiajs/mythos.git',
+    branches: {
+      development: 'dev',
+      production: 'master'
+    }
   }
 }
 
