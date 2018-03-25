@@ -3,7 +3,7 @@
 import * as bluebird from 'bluebird'
 import * as rp from 'request-promise'
 import { AsyncParallelHook } from 'tapable'
-import { log, logError } from './logger'
+import { log as _log, logError as _logError } from './logger'
 
 /*
   This loads the production bundle of React for a specified version, evaluates the code,
@@ -99,7 +99,7 @@ class Core {
     return this.hooks.start.promise(this).catch(err => {
       // TODO: find out how to get which plugin threw the error
       const plugin = 'plugin'
-      this.error(`theia:${plugin}:start`, err)
+      this.logError(`theia:${plugin}:start`, err)
     })
   }
 
@@ -110,7 +110,7 @@ class Core {
     this.hooks.beforeRender.promise(this, componentLibrary, componentName, props).catch(err => {
       // TODO: find out how to get which plugin threw the error
       const plugin = 'plugin'
-      this.error(`theia:${plugin}:beforeRender`, err)
+      this.logError(`theia:${plugin}:beforeRender`, err)
     })
 
     // TODO: this version should come from the CL's yarn.lock. at build time, the react version should be
@@ -128,7 +128,7 @@ class Core {
     this.hooks.render.promise(this, componentLibrary, componentName, props).catch(err => {
       // TODO: find out how to get which plugin threw the error
       const plugin = 'plugin'
-      this.error(`theia:${plugin}:render`, err)
+      this.logError(`theia:${plugin}:render`, err)
     })
 
     return {
@@ -151,7 +151,7 @@ class Core {
     await this.hooks.componentLibraryUpdate.promise(this, componentLibrary, buildManifestEntry).catch(err => {
       // TODO: find out how to get which plugin threw the error
       const plugin = 'plugin'
-      this.error(`theia:${plugin}:componentLibraryUpdate`, err)
+      this.logError(`theia:${plugin}:componentLibraryUpdate`, err)
     })
 
     const manifestJson = JSON.stringify(manifest, null, 2)
@@ -231,17 +231,17 @@ class Core {
   }
 
   async buildAll (): Promise<void> {
-    log('theia:build-all', 'building component libraries ...')
+    this.log('theia:build-all', 'building component libraries ...')
 
     // purposefully serial - yarn has trouble running multiple processes
     return bluebird.each(Object.keys(this.libs), componentLibrary => {
       const componentLibraryConfig = this.libs[componentLibrary]
       return this.builder.build(this, componentLibrary, componentLibraryConfig)
     }).then(() => {
-      log('theia:build-all', 'finished building component libraries')
+      this.log('theia:build-all', 'finished building component libraries')
     }).catch(err => {
-      log('theia:build-all', 'error while building component libraries')
-      this.error('theia:build-all', err)
+      this.logError('theia:build-all', 'error while building component libraries')
+      this.logError('theia:build-all', err)
     })
   }
 
@@ -257,10 +257,14 @@ class Core {
     }
   }
 
-  error (namespace: string, error: any) {
-    logError(namespace, error)
+  log (namespace: string, error: any) {
+    _log(namespace, error)
+  }
+
+  logError (namespace: string, error: any) {
+    _logError(namespace, error)
     this.hooks.error.promise(this, error).catch(err => {
-      logError(namespace, `there was an error in the error handling hooks: ${err}`)
+      _logError(namespace, `there was an error in the error handling hooks: ${err}`)
     })
   }
 }

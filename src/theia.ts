@@ -96,14 +96,14 @@ const theia = function theia (configFromParams?: Theia.Configuration): Theia.Cor
   }
 
   config = configDefaulter(config)
+  const core = new Core(config)
 
   if (config.verbose) {
-    console.log('Libs:', JSON.stringify(config.libs, null, 2))
-    console.log('Plugins:', config.plugins.map(p => p.constructor.name).join(' '))
-    console.log('Storage:', config.storage.constructor.name)
+    core.log('theia', 'Libs: ' + JSON.stringify(config.libs, null, 2))
+    core.log('theia', 'Plugins: ' + config.plugins.map(p => p.constructor.name).join(' '))
+    core.log('theia', 'Storage: ' + config.storage.constructor.name)
   }
 
-  const core = new Core(config)
   return core
 } as TheiaExport
 

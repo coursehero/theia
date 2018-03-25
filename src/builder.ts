@@ -49,11 +49,11 @@ class Builder implements Theia.Builder {
     const logNamespace = `theia:builder ${componentLibrary}`
     const doPromiseExec = wrapPromiseExecLogNamespace(logNamespace)
 
-    log(logNamespace, `checking for updates in ${workingDir} ...`)
+    core.log(logNamespace, `checking for updates in ${workingDir} ...`)
 
     const commitHash = await doPromiseExec(`git rev-parse HEAD`, { cwd: workingDir })
     if (commitHash && await this.hasBuilt(core, componentLibrary, commitHash)) {
-      log(logNamespace, `no updates found`)
+      core.log(logNamespace, `no updates found`)
       return
     }
 
@@ -63,7 +63,7 @@ class Builder implements Theia.Builder {
       email: (await doPromiseExec(`git log -1 ${commitHash} --pretty=format:%ae`, { cwd: workingDir }))
     }
 
-    log(logNamespace, `building ${commitHash} ...`)
+    core.log(logNamespace, `building ${commitHash} ...`)
 
     const workingDistDir = path.resolve(workingDir, 'dist')
 
@@ -98,9 +98,9 @@ class Builder implements Theia.Builder {
     fs.renameSync(path.join(workingDir, 'dist', 'stats.json'), path.join(workingDir, 'dist', statsFilename))
 
     if (componentLibraryPackage.scripts.test) {
-      log(logNamespace, `running tests`)
+      core.log(logNamespace, `running tests`)
       await doPromiseExec('yarn test', { cwd: workingDir })
-      log(logNamespace, `finished tests`)
+      core.log(logNamespace, `finished tests`)
     }
 
     return fs.readdir(workingDistDir).then(buildAssetBasenames => {
@@ -116,7 +116,7 @@ class Builder implements Theia.Builder {
 
       return core.registerComponentLibrary(componentLibrary, buildAssets, buildManifestEntry)
     }).then(() => {
-      log(logNamespace, `built ${commitHash}`)
+      core.log(logNamespace, `built ${commitHash}`)
     })
   }
 

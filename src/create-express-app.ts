@@ -7,7 +7,6 @@ import * as HttpStatus from 'http-status-codes'
 import * as logger from 'morgan'
 import * as path from 'path'
 import * as Stream from 'stream'
-import { log } from './logger'
 
 interface ResponseError extends Error {
   status?: number
@@ -27,7 +26,7 @@ export default (core: Theia.Core): express.Application => {
     stream: new Stream.Writable({
       write: function (chunk: any, encoding: any, next: any) {
         const str = chunk.toString().trim()
-        if (str.length) log('theia:express', str)
+        if (str.length) core.log('theia:express', str)
         next()
       }
     })
@@ -42,7 +41,7 @@ export default (core: Theia.Core): express.Application => {
   core.hooks.express.promise(core, app).catch(err => {
     // TODO: find out how to get which plugin threw the error
     const plugin = 'plugin'
-    core.error(`theia:${plugin}:express`, err)
+    core.logError(`theia:${plugin}:express`, err)
   })
 
   app.post('/render', (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -94,12 +93,10 @@ export default (core: Theia.Core): express.Application => {
   app.use((err: ResponseError, req: express.Request, res: express.Response, next: express.NextFunction) => {
     err.status = err.status || HttpStatus.INTERNAL_SERVER_ERROR
 
-    core.error(`theia:express`, err)
-
     if (err.status >= 400 && err.status < 500) {
-      console.trace(err.stack)
+      core.log('theia:express', err)
     } else {
-      console.error(err.stack)
+      core.logError('theia:express', err)
     }
 
     res.status(err.status)

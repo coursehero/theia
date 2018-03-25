@@ -20,7 +20,7 @@ class InvalidateBuildManifestCachePlugin implements Theia.Plugin {
 
   onStart = (core: Theia.Core) => {
     this.checkForUpdates(core, this.invalidationInterval).catch(err => {
-      core.error(`theia:InvalidateBuildManifestCachePlugin`, err)
+      core.logError('theia:InvalidateBuildManifestCachePlugin', err)
     })
 
     return Promise.resolve()
@@ -41,7 +41,7 @@ class InvalidateBuildManifestCachePlugin implements Theia.Plugin {
           const cachedBuildManifest = await core.getBuildManifest(componentLibrary)
           const actualBuildManifest = JSON.parse(await core.storage.load(componentLibrary, 'build-manifest.json'))
           if (!buildManifestsAreSame(cachedBuildManifest, actualBuildManifest)) {
-            console.log(`clearing cache for ${componentLibrary} ...`)
+            core.log('theia:InvalidateBuildManifestCachePlugin', `clearing cache for ${componentLibrary} ...`)
             core.clearCache(componentLibrary)
 
             // fill cache
