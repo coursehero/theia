@@ -49,12 +49,13 @@ class RollbarPlugin implements Theia.Plugin {
   }
 
   onError = (core: Theia.Core, error: Theia.ResponseError) => {
+    // tslint:disable-next-line
     return new Promise((resolve, reject) => {
       this.rollbar.error(error, err => {
         if (err) reject(err)
         resolve()
       })
-    }) // TODO: why is this type cast necessary?
+    }) as Promise<void> // TODO: why is this type cast necessary?
   }
 
   onStart = (core: Theia.Core) => {
