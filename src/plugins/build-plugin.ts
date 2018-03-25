@@ -8,11 +8,7 @@ class BuildPlugin implements Theia.Plugin {
 
   onStart = (core: Theia.Core) => {
     const action = () => {
-      core.buildAll().then(() => {
-        console.log('finished building component libraries')
-      }).catch(() => {
-        console.error('error while building component libraries')
-      })
+      core.buildAll()
     }
 
     action()

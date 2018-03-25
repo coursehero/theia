@@ -33,6 +33,11 @@ class InvalidateBuildManifestCachePlugin implements Theia.Plugin {
       }))
       .then(async () => {
         for (const componentLibrary in core.libs) {
+          const hasBuildManifest = await core.hasBuildManifest(componentLibrary)
+          if (!hasBuildManifest) {
+            return
+          }
+          
           const cachedBuildManifest = await core.getBuildManifest(componentLibrary)
           const actualBuildManifest = JSON.parse(await core.storage.load(componentLibrary, 'build-manifest.json'))
           if (!buildManifestsAreSame(cachedBuildManifest, actualBuildManifest)) {

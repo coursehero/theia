@@ -229,8 +229,9 @@ class Core {
       const componentLibraryConfig = this.libs[componentLibrary]
       return this.builder.build(this, componentLibrary, componentLibraryConfig)
     }).then(() => {
-      // ...
+      console.log('finished building component libraries')
     }).catch(err => {
+      console.error('error while building component libraries')
       this.error(err)
     })
   }

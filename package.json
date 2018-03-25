@@ -37,6 +37,7 @@
     "@types/bluebird": "^3.5.20",
     "@types/consolidate": "^0.0.33",
     "@types/cookie-parser": "^1.4.1",
+    "@types/debug": "^0.0.30",
     "@types/escape-html": "^0.0.20",
     "@types/express": "^4.11.0",
     "@types/fs-extra": "^5.0.0",
@@ -62,10 +63,10 @@
   "scripts": {
     "lint": "tslint --fix --project .",
     "build": "rimraf dist var theia.config.js && mkdir dist && cp -r src/types dist/types && tsc",
-    "start": "node ./dist/start.js",
-    "start-build": "node ./dist/build.js",
-    "start-dev": "THEIA_LOCAL=${THEIA_LOCAL:-1} nodemon",
-    "test": "jest"
+    "start": "DEBUG=theia:* node ./dist/start.js",
+    "start-build": "DEBUG=theia:* node ./dist/build.js",
+    "start-dev": "DEBUG=theia:* THEIA_LOCAL=${THEIA_LOCAL:-1} nodemon",
+    "test": "DEBUG=theia:* jest"
   },
   "jest": {
     "transform": {
