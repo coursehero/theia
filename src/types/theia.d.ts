@@ -19,7 +19,7 @@ declare namespace Theia {
     
     buildAll (): Promise<void>
     clearCache(componentLibrary?: string): void
-    error (error: any): void
+    error (namespace: string, error: any): void
     getAssets (componentLibrary: string): Promise<RenderResultAssets>
     getBuildManifest (componentLibrary: string): Promise<BuildManifest>
     getComponent (reactVersion: string, componentLibrary: string, component: string): Promise<ReactComponentClass>

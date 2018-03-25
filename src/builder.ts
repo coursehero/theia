@@ -1,27 +1,22 @@
-import * as debug from 'debug'
 import * as fs from 'fs-extra'
 import * as path from 'path'
 import { exec as __exec } from 'child_process'
+import { log, logError } from './logger'
 
-// const logger = debug('theia:builder')
-// logger.log = console.log.bind(console)
-
-// const loggerErr = debug('theia:builder')
-
-function promiseExec (cmd: string, opts = {}, logger: debug.IDebugger, loggerErr: debug.IDebugger): Promise<string> {
-  logger(`running '${cmd}' with options ${JSON.stringify(opts)}`)
+function promiseExec (cmd: string, opts = {}, logNamespace: string): Promise<string> {
+  log(logNamespace, `running '${cmd}' with options ${JSON.stringify(opts)}`)
   const child = __exec(cmd, opts)
 
   let stdOutResult = ''
   child.stdout.on('data', function (data: string) {
     stdOutResult += data
-    logger(data.trim())
+    log(logNamespace, data.trim())
   })
 
   let stdErrResult = ''
   child.stderr.on('data', function (data: string) {
     stdErrResult += data
-    loggerErr(data.trim())
+    logError(logNamespace, data.trim())
   })
 
   return new Promise(function (resolve, reject) {
@@ -37,8 +32,8 @@ function promiseExec (cmd: string, opts = {}, logger: debug.IDebugger, loggerErr
 }
 
 type WrapPromiseExecLoggersReturn = (cmd: string, opts?: {}) => Promise<string>
-function wrapPromiseExecLoggers(logger: debug.IDebugger, loggerErr: debug.IDebugger): WrapPromiseExecLoggersReturn {
-  return (cmd: string, opts = {}) => promiseExec(cmd, opts, logger, loggerErr)
+function wrapPromiseExecLogNamespace (namespace: string): WrapPromiseExecLoggersReturn {
+  return (cmd: string, opts = {}) => promiseExec(cmd, opts, namespace)
 }
 
 class Builder implements Theia.Builder {
@@ -51,16 +46,14 @@ class Builder implements Theia.Builder {
   }
 
   async buildFromDir (core: Theia.Core, componentLibrary: string, workingDir: string): Promise<void> {
-    const loggerErr = debug(`theia:builder ${componentLibrary}`)
-    const logger = debug(`theia:builder ${componentLibrary}`)
-    logger.log = console.log.bind(console)
-    const doPromiseExec = wrapPromiseExecLoggers(logger, loggerErr)
+    const logNamespace = `theia:builder ${componentLibrary}`
+    const doPromiseExec = wrapPromiseExecLogNamespace(logNamespace)
 
-    logger(`checking for updates in ${workingDir} ...`)
+    log(logNamespace, `checking for updates in ${workingDir} ...`)
 
     const commitHash = await doPromiseExec(`git rev-parse HEAD`, { cwd: workingDir })
     if (commitHash && await this.hasBuilt(core, componentLibrary, commitHash)) {
-      logger(`no updates found`)
+      log(logNamespace, `no updates found`)
       return
     }
 
@@ -70,7 +63,7 @@ class Builder implements Theia.Builder {
       email: (await doPromiseExec(`git log -1 ${commitHash} --pretty=format:%ae`, { cwd: workingDir }))
     }
 
-    logger(`building ${commitHash} ...`)
+    log(logNamespace, `building ${commitHash} ...`)
 
     const workingDistDir = path.resolve(workingDir, 'dist')
 
@@ -105,9 +98,9 @@ class Builder implements Theia.Builder {
     fs.renameSync(path.join(workingDir, 'dist', 'stats.json'), path.join(workingDir, 'dist', statsFilename))
 
     if (componentLibraryPackage.scripts.test) {
-      logger(`running tests`)
-      await promiseExec('yarn test', { cwd: workingDir }, logger, loggerErr)
-      logger(`finished tests`)
+      log(logNamespace, `running tests`)
+      await doPromiseExec('yarn test', { cwd: workingDir })
+      log(logNamespace, `finished tests`)
     }
 
     return fs.readdir(workingDistDir).then(buildAssetBasenames => {
@@ -123,15 +116,12 @@ class Builder implements Theia.Builder {
 
       return core.registerComponentLibrary(componentLibrary, buildAssets, buildManifestEntry)
     }).then(() => {
-      logger(`built ${commitHash}`)
+      log(logNamespace, `built ${commitHash}`)
     })
   }
 
   async ensureRepoIsClonedAndUpdated (componentLibrary: string, repoSource: string, branch: string): Promise<string> {
-    const loggerErr = debug(`theia:builder ${componentLibrary}`)
-    const logger = debug(`theia:builder ${componentLibrary}`)
-    logger.log = console.log.bind(console)
-    const doPromiseExec = wrapPromiseExecLoggers(logger, loggerErr)
+    const doPromiseExec = wrapPromiseExecLogNamespace(`theia:builder ${componentLibrary}`)
 
     const projectRootDir = path.resolve(__dirname, '..')
     const workingDir = path.resolve(projectRootDir, 'var', componentLibrary)

@@ -7,13 +7,8 @@ class BuildPlugin implements Theia.Plugin {
   }
 
   onStart = (core: Theia.Core) => {
-    const action = () => {
-      core.buildAll()
-    }
-
-    action()
-    setInterval(action, this.buildInterval)
-
+    void core.buildAll() // do it once, supress lint error
+    setInterval(core.buildAll.bind(core), this.buildInterval) // do it in interval
     return Promise.resolve()
   }
 }
