@@ -2,7 +2,7 @@
 
 import * as bluebird from 'bluebird'
 import * as rp from 'request-promise'
-import { SyncHook } from 'tapable'
+import { AsyncParallelHook } from 'tapable'
 
 /*
   This loads the production bundle of React for a specified version, evaluates the code,
@@ -61,14 +61,20 @@ class Core {
 
   storage: Theia.Storage
 
-  hooks = {
-    // TODO: make all hooks async
-    start: new SyncHook(['theia']),
-    beforeRender: new SyncHook(['theia', 'componentLibrary', 'component', 'props']),
-    render: new SyncHook(['theia', 'componentLibrary', 'component', 'props']),
-    componentLibraryUpdate: new SyncHook(['theia', 'componentLibrary', 'manifestEntry']),
-    express: new SyncHook(['theia', 'app']),
-    error: new SyncHook(['theia', 'error'])
+  hooks: {
+    beforeRender: Tapable.AsyncParallelHook
+    componentLibraryUpdate: Tapable.AsyncParallelHook
+    error: Tapable.AsyncParallelHook
+    express: Tapable.AsyncParallelHook
+    render: Tapable.AsyncParallelHook
+    start: Tapable.AsyncParallelHook
+  } = {
+    beforeRender: new AsyncParallelHook(['theia', 'componentLibrary', 'component', 'props']),
+    componentLibraryUpdate: new AsyncParallelHook(['theia', 'componentLibrary', 'manifestEntry']),
+    error: new AsyncParallelHook(['theia', 'error']),
+    express: new AsyncParallelHook(['theia', 'app']),
+    render: new AsyncParallelHook(['theia', 'componentLibrary', 'component', 'props']),
+    start: new AsyncParallelHook(['theia'])
   }
 
   libCache: { [key: string]: Theia.ComponentLibrary } = {}
@@ -88,14 +94,19 @@ class Core {
     }
   }
 
-  start (): void {
-    this.hooks.start.call(this)
+  start (): Promise<void> {
+    return this.hooks.start.promise(this).catch(err => {
+      this.error(err)
+    })
   }
 
   // TODO: should only hit storage if build files are not in cache/memory.
   // need to cache stats/build-manifest.json files just like source is being cached
   async render (componentLibrary: string, componentName: string, props: object): Promise<Theia.RenderResult> {
-    this.hooks.beforeRender.call(this, componentLibrary, componentName, props)
+    // don't wait for completion
+    this.hooks.beforeRender.promise(this, componentLibrary, componentName, props).catch(err => {
+      this.error(err)
+    })
 
     // TODO: this version should come from the CL's yarn.lock. at build time, the react version should be
     // saved in build-manifest.json for that CL
@@ -108,7 +119,10 @@ class Core {
     // TODO: code splitting w/ universal components
     const assets = await this.getAssets(componentLibrary)
 
-    this.hooks.render.call(this, componentLibrary, componentName, props)
+    // don't wait for completion
+    this.hooks.render.promise(this, componentLibrary, componentName, props).catch(err => {
+      this.error(err)
+    })
 
     return {
       html,
@@ -127,7 +141,9 @@ class Core {
     }
 
     manifest.push(buildManifestEntry)
-    this.hooks.componentLibraryUpdate.call(this, componentLibrary, buildManifestEntry)
+    await this.hooks.componentLibraryUpdate.promise(this, componentLibrary, buildManifestEntry).catch(err => {
+      this.error(err)
+    })
 
     const manifestJson = JSON.stringify(manifest, null, 2)
     await this.storage.write(componentLibrary, 'build-manifest.json', manifestJson)
@@ -214,10 +230,8 @@ class Core {
       return this.builder.build(this, componentLibrary, componentLibraryConfig)
     }).then(() => {
       // ...
-    }).catch(error => {
-      console.error(error)
-      this.hooks.error.call(this, error)
-      throw error
+    }).catch(err => {
+      this.error(err)
     })
   }
 
@@ -231,6 +245,13 @@ class Core {
       this.buildManifestCache = {}
       this.statsContentsCache = {}
     }
+  }
+
+  error (error: any) {
+    console.error(error)
+    this.hooks.error.promise(this, error).catch(err => {
+      console.error(`there was an error in the error handling hooks: ${err}`)
+    })
   }
 }
 

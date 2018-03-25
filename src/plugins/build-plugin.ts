@@ -1,15 +1,12 @@
 class BuildPlugin implements Theia.Plugin {
-  buildInterval: number
 
-  constructor (buildInterval: number) {
-    this.buildInterval = buildInterval
-  }
+  constructor (public buildInterval: number) {}
 
   apply (core: Theia.Core) {
-    core.hooks.start.tap('BuildPlugin', this.onStart.bind(this))
+    core.hooks.start.tapPromise('BuildPlugin', this.onStart)
   }
 
-  onStart (core: Theia.Core) {
+  onStart = (core: Theia.Core) => {
     const action = () => {
       core.buildAll().then(() => {
         console.log('finished building component libraries')
@@ -20,6 +17,8 @@ class BuildPlugin implements Theia.Plugin {
 
     action()
     setInterval(action, this.buildInterval)
+
+    return Promise.resolve()
   }
 }
 

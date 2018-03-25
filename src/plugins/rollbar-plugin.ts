@@ -13,7 +13,7 @@ const PRUNE_INTERVAL = FIVE_MINUTES
 const CACHE_TTL = ONE_HOUR
 
 class RollbarPlugin implements Theia.Plugin {
-  rollbar: any
+  rollbar: Rollbar
   hashCache: HashCache = {}
 
   constructor (accessToken: string, environment: string) {
@@ -24,14 +24,14 @@ class RollbarPlugin implements Theia.Plugin {
   }
 
   apply (core: Theia.Core) {
-    core.hooks.beforeRender.tap('RollbarPlugin', this.onBeforeRender.bind(this))
-    core.hooks.error.tap('RollbarPlugin', this.onError.bind(this))
-    core.hooks.start.tap('RollbarPlugin', this.onStart.bind(this))
+    core.hooks.beforeRender.tapPromise('RollbarPlugin', this.onBeforeRender)
+    core.hooks.error.tapPromise('RollbarPlugin', this.onError)
+    core.hooks.start.tapPromise('RollbarPlugin', this.onStart)
   }
 
   // create errors if the same component/props is rendered repeatedly, which suggests a cache failure
   // before render, because props can possibly be modified during render
-  onBeforeRender (core: Theia.Core, componentLibrary: string, component: string, props: object) {
+  onBeforeRender = (core: Theia.Core, componentLibrary: string, component: string, props: object) => {
     const data = componentLibrary + component + JSON.stringify(props)
     const hash = XXHash.hash(Buffer.from(data, 'utf-8'), 0)
 
@@ -44,14 +44,23 @@ class RollbarPlugin implements Theia.Plugin {
     if (this.hashCache[hash].length > REPEAT_RENDER_REQUEST_ERROR_THRESHOLD) {
       this.rollbar.error(`Wendigo - Excessive consumption noticed. Received many render requests for ${data}. Verify requests are being cached correctly.`)
     }
+
+    return Promise.resolve()
   }
 
-  onError (core: Theia.Core, error: Theia.ResponseError) {
-    this.rollbar.error(error)
+  onError = (core: Theia.Core, error: Theia.ResponseError) => {
+    return new Promise((resolve, reject) => {
+      this.rollbar.error(error, err => {
+        if (err) reject(err)
+        resolve()
+      })
+    }) as Promise<void> // TODO: why is this type cast necessary?
   }
 
-  onStart (core: Theia.Core) {
+  onStart = (core: Theia.Core) => {
     setInterval(() => this.pruneHashCache(), PRUNE_INTERVAL)
+
+    return Promise.resolve()
   }
 
   pruneHashCache () {

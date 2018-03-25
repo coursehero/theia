@@ -26,7 +26,9 @@ export default (core: Theia.Core): express.Application => {
 
   app.use(express.static(path.join(__dirname, '..', 'public')))
 
-  core.hooks.express.call(core, app)
+  core.hooks.express.promise(core, app).catch(err => {
+    core.error(err)
+  })
 
   app.post('/render', (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const { componentLibrary, component } = req.query
@@ -77,7 +79,7 @@ export default (core: Theia.Core): express.Application => {
   app.use((err: ResponseError, req: express.Request, res: express.Response, next: express.NextFunction) => {
     err.status = err.status || HttpStatus.INTERNAL_SERVER_ERROR
 
-    core.hooks.error.call(core, err)
+    core.error(err)
 
     if (err.status >= 400 && err.status < 500) {
       console.trace(err.stack)

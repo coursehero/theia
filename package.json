@@ -11,7 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "@slack/client": "^3.16.0",
-    "aws-sdk": "^2.177.0",
+    "aws-sdk": "^2.213.1",
     "bluebird": "^3.5.1",
     "body-parser": "~1.18.2",
     "consolidate": "^0.15.0",

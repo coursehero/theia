@@ -12,20 +12,18 @@ function buildManifestsAreSame (bm1: Theia.BuildManifest, bm2: Theia.BuildManife
 }
 
 class InvalidateBuildManifestCachePlugin implements Theia.Plugin {
-  invalidationInterval: number
-
-  constructor (invalidationInterval: number) {
-    this.invalidationInterval = invalidationInterval
-  }
+  constructor (public invalidationInterval: number) {}
 
   apply (core: Theia.Core) {
-    core.hooks.start.tap('BuildPlugin', this.onStart.bind(this))
+    core.hooks.start.tapPromise('BuildPlugin', this.onStart)
   }
 
-  onStart (core: Theia.Core) {
+  onStart = (core: Theia.Core) => {
     this.checkForUpdates(core, this.invalidationInterval).catch(err => {
-      core.hooks.error.call(core, err)
+      core.error(err)
     })
+
+    return Promise.resolve()
   }
 
   checkForUpdates (core: Theia.Core, delay: number): Promise<void> {

@@ -2,17 +2,13 @@ import * as http from 'http'
 import createExpressApp from '../create-express-app'
 
 class ExpressPlugin implements Theia.Plugin {
-  port: number
-
-  constructor (port: number) {
-    this.port = port
-  }
+  constructor (public port: number) {}
 
   apply (core: Theia.Core) {
-    core.hooks.start.tap('ExpressPlugin', this.onStart.bind(this))
+    core.hooks.start.tapPromise('ExpressPlugin', this.onStart)
   }
 
-  onStart (core: Theia.Core) {
+  onStart = (core: Theia.Core) => {
     const app = createExpressApp(core)
     const port = this.port
     app.set('port', port)
@@ -46,6 +42,8 @@ class ExpressPlugin implements Theia.Plugin {
       const addr = server.address()
       console.log('Listening on port ' + addr.port)
     }
+
+    return Promise.resolve()
   }
 }
 

@@ -21,10 +21,10 @@ class SlackPlugin implements Theia.Plugin {
   }
 
   apply (core: Theia.Core) {
-    core.hooks.componentLibraryUpdate.tap('SlackPlugin', this.onComponentLibraryUpdate.bind(this))
+    core.hooks.componentLibraryUpdate.tapPromise('SlackPlugin', this.onComponentLibraryUpdate)
   }
 
-  onComponentLibraryUpdate (core: Theia.Core, componentLibrary: string, manifestEntry: Theia.BuildManifestEntry) {
+  onComponentLibraryUpdate = (core: Theia.Core, componentLibrary: string, manifestEntry: Theia.BuildManifestEntry) => {
     const gitSource = core.libs[componentLibrary].source // ex: git@git.coursehero.com:coursehero/components/study-guides.git
     const commitUrl = getCommitUrl(core, gitSource, manifestEntry.commitHash)
 
@@ -42,11 +42,8 @@ ${manifestEntry.commitMessage}
       icon_emoji: ':baby:'
     }
 
-    this.client.chat.postMessage(this.channel, message, opts).then((res) => {
+    return this.client.chat.postMessage(this.channel, message, opts).then(res => {
       console.log('Message sent: ', res.ts)
-    }).catch(err => {
-      console.log(err)
-      core.hooks.error.call(core, err)
     })
   }
 }
