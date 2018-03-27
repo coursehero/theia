@@ -19,8 +19,8 @@ const plugins: Theia.Plugin[] = theia.nn([
   process.env.THEIA_ROLLBAR_TOKEN ? new theia.RollbarPlugin(process.env.THEIA_ROLLBAR_TOKEN!, process.env.ROLLBAR_ENV!) : null,
   process.env.SLACK_TOKEN ? new theia.SlackPlugin({
     channel: {
-      development: '#theia-errors-dev',
-      production: '#theia-errors-prod'
+      development: '#theia-dev',
+      production: '#theia-prod'
     }[process.env.THEIA_ENV as Theia.Environment]
   }) : null,
   enablePeriodicBuilding ? new theia.BuildPlugin(FIVE_MINUTES) : null,
