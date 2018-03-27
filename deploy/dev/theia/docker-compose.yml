@@ -21,17 +21,16 @@ services:
       - /run/secrets/slack.token:/run/secrets/slack.token
       - /run/secrets/newrelic.license:/run/secrets/newrelic.license
       - /var/rollbar:/var/rollbar
-    tty: true
+    tty: false
     #provide external links to services directly
 #    external_links:
 #      - external-service-name/container-name:how-i-want-to-talk-to-it.dev-internal.coursehero.com
-    #commenting out logging so we can see logs right in Rancher
-#   logging:
-#     driver: syslog
-#     options:
-#       syslog-facility: local0
-#       tag: '{"docker_image":"{{.ImageName}}", "docker_name":"{{.Name}}", "docker_id":"{{.ID}}",
-#         "service_name":"dev-theia"}'
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: dev-theia
+        awslogs-region: us-east-1
+        tag: 'dev-theia-web-api-{{ with split .Name ":" }}{{join . "_"}}{{end}}-{{.ID}}'
     labels:
       io.rancher.container.pull_image: always
       traefik.enable: 'true'
@@ -59,7 +58,13 @@ services:
       - /run/secrets/slack.token:/run/secrets/slack.token
       - /run/secrets/newrelic.license:/run/secrets/newrelic.license
       - /var/rollbar:/var/rollbar
-    tty: true
+    tty: false
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: dev-theia
+        awslogs-region: us-east-1
+        tag: 'dev-theia-build-{{ with split .Name ":" }}{{join . "_"}}{{end}}-{{.ID}}'
     labels:
       io.rancher.container.pull_image: always
       io.rancher.container.start_once: 'true'
