@@ -21,7 +21,7 @@ services:
       - /run/secrets/slack.token:/run/secrets/slack.token
       - /run/secrets/newrelic.license:/run/secrets/newrelic.license
       - /var/rollbar:/var/rollbar
-    tty: true
+    tty: false
     #provide external links to services directly
 #    external_links:
 #      - external-service-name/container-name:how-i-want-to-talk-to-it.internal.coursehero.com
@@ -58,7 +58,7 @@ services:
       - /run/secrets/slack.token:/run/secrets/slack.token
       - /run/secrets/newrelic.license:/run/secrets/newrelic.license
       - /var/rollbar:/var/rollbar
-    tty: true
+    tty: false
     logging:
       driver: awslogs
       options:
