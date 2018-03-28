@@ -1,5 +1,4 @@
 import * as AWS from 'aws-sdk'
-import { promisify } from 'util'
 
 class ReheatCachePlugin implements Theia.Plugin {
   sqs = new AWS.SQS()
@@ -33,10 +32,12 @@ class ReheatCachePlugin implements Theia.Plugin {
       DelaySeconds: 10
     }
 
-    // TS was choosing the wrong method overload. help it out a bit
-    type X = (params: AWS.SQS.Types.SendMessageRequest, callback?: (err: AWS.AWSError, data: AWS.SQS.Types.SendMessageResult) => void) => AWS.Request<AWS.SQS.Types.SendMessageResult, AWS.AWSError>
-    const sendMessagePromise = promisify(this.sqs.sendMessage.bind(this.sqs) as X)
-    return sendMessagePromise(params).then(() => Promise.resolve()) // discard return value
+    return new Promise((resolve, reject) => {
+      this.sqs.sendMessage(params, (err) => {
+        if (err) reject(err)
+        resolve()
+      })
+    }) as Promise<void>
   }
 }
 
