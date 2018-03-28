@@ -41,10 +41,15 @@ ${manifestEntry.commitMessage}
       username: 'EILEITHYIA',
       icon_emoji: ':baby:'
     }
+    
+    return new Promise((resolve, reject) => {
+      this.client.chat.postMessage(this.channel, message, opts, (err, res) => {
+        if (err) reject(err)
 
-    return this.client.chat.postMessage(this.channel, message, opts).then(res => {
-      console.log('Message sent: ', res.ts)
-    })
+        console.log('Message sent: ', res.ts)
+        resolve()
+      })
+    }) as Promise<void>
   }
 }
 
