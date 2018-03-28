@@ -71,7 +71,7 @@ class RollbarPlugin implements Theia.Plugin {
         if (err) reject(err)
         resolve()
       })
-    }) as Promise<void> // TODO: why is this type cast necessary?
+    })
   }
 
   onStart = ({ core }: OnStartArgs) => {
