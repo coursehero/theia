@@ -5,6 +5,22 @@ export interface HashCache {
   [key: string]: number[]
 }
 
+type OnBeforeRenderArgs = {
+  core: Theia.Core
+  componentLibrary: string
+  component: string
+  props: object
+}
+
+type OnErrorArgs = {
+  core: Theia.Core
+  error: Theia.ResponseError
+}
+
+type OnStartArgs = {
+  core: Theia.Core
+}
+
 const FIVE_MINUTES = 1000 * 60 * 5
 const ONE_HOUR = 1000 * 60 * 60
 
@@ -31,7 +47,7 @@ class RollbarPlugin implements Theia.Plugin {
 
   // create errors if the same component/props is rendered repeatedly, which suggests a cache failure
   // before render, because props can possibly be modified during render
-  onBeforeRender = (core: Theia.Core, componentLibrary: string, component: string, props: object) => {
+  onBeforeRender = ({ core, componentLibrary, component, props }: OnBeforeRenderArgs) => {
     const data = componentLibrary + component + JSON.stringify(props)
     const hash = XXHash.hash(Buffer.from(data, 'utf-8'), 0)
 
@@ -48,7 +64,7 @@ class RollbarPlugin implements Theia.Plugin {
     return Promise.resolve()
   }
 
-  onError = (core: Theia.Core, error: Theia.ResponseError) => {
+  onError = ({ core, error }: OnErrorArgs) => {
     // tslint:disable-next-line
     return new Promise((resolve, reject) => {
       this.rollbar.error(error, err => {
@@ -58,7 +74,7 @@ class RollbarPlugin implements Theia.Plugin {
     }) as Promise<void> // TODO: why is this type cast necessary?
   }
 
-  onStart = (core: Theia.Core) => {
+  onStart = ({ core }: OnStartArgs) => {
     setInterval(() => this.pruneHashCache(), PRUNE_INTERVAL)
 
     return Promise.resolve()

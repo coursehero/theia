@@ -3,17 +3,24 @@
 declare namespace Theia {
   type Environment = 'development' | 'production'
 
+  type BeforeRenderHook = Tapable.ITypedAsyncParallelHook<{core: Core, componentLibrary: string, component: string, props: object}>
+  type ComponentLibraryUpdateHook = Tapable.ITypedAsyncParallelHook<{core: Core, componentLibrary: string, manifestEntry: BuildManifestEntry}>
+  type ErrorHook = Tapable.ITypedAsyncParallelHook<{core: Core, error: any}>
+  type ExpressHook = Tapable.ITypedAsyncParallelHook<{core: Core, app: any}>
+  type RenderHook = Tapable.ITypedAsyncParallelHook<{core: Core, componentLibrary: string, component: string, props: object}>
+  type StartHook = Tapable.ITypedAsyncParallelHook<{core: Core}>
+
   interface Core {
     builder: Builder
     libs: ComponentLibraryConfigurations
     environment: Environment
     hooks: {
-      beforeRender: Tapable.AsyncParallelHook
-      componentLibraryUpdate: Tapable.AsyncParallelHook
-      error: Tapable.AsyncParallelHook
-      express: Tapable.AsyncParallelHook
-      render: Tapable.AsyncParallelHook
-      start: Tapable.AsyncParallelHook
+      beforeRender: BeforeRenderHook
+      componentLibraryUpdate: ComponentLibraryUpdateHook
+      error: ErrorHook
+      express: ExpressHook
+      render: RenderHook
+      start: StartHook
     }
     storage: Storage
     

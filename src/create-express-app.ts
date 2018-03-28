@@ -38,7 +38,7 @@ export default (core: Theia.Core): express.Application => {
 
   app.use(express.static(path.join(__dirname, '..', 'public')))
 
-  core.hooks.express.promise(core, app).catch(err => {
+  core.hooks.express.promise({ core, app }).catch(err => {
     // TODO: find out how to get which plugin threw the error
     const plugin = 'plugin'
     core.logError(`theia:${plugin}:express`, err)

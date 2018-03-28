@@ -3,6 +3,10 @@
 // for now, just clear the cache periodically
 // a real solution is to have the build service alert the render services when a build has occurred
 
+type OnStartArgs = {
+  core: Theia.Core
+}
+
 function buildManifestsAreSame (bm1: Theia.BuildManifest, bm2: Theia.BuildManifest) {
   if (!bm1.length && !bm2.length) return true
   if (bm1.length !== bm2.length) return false
@@ -18,7 +22,7 @@ class InvalidateBuildManifestCachePlugin implements Theia.Plugin {
     core.hooks.start.tapPromise('BuildPlugin', this.onStart)
   }
 
-  onStart = (core: Theia.Core) => {
+  onStart = ({ core }: OnStartArgs) => {
     this.checkForUpdates(core, this.invalidationInterval).catch(err => {
       core.logError('theia:InvalidateBuildManifestCachePlugin', err)
     })

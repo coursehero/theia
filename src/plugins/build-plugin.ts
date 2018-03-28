@@ -1,12 +1,15 @@
-class BuildPlugin implements Theia.Plugin {
+type OnStartArgs = {
+  core: Theia.Core
+}
 
+class BuildPlugin implements Theia.Plugin {
   constructor (public buildInterval: number) {}
 
   apply (core: Theia.Core) {
     core.hooks.start.tapPromise('BuildPlugin', this.onStart)
   }
 
-  onStart = (core: Theia.Core) => {
+  onStart = ({ core }: OnStartArgs) => {
     void core.buildAll() // do it once, supress lint error
     setInterval(core.buildAll.bind(core), this.buildInterval) // do it in interval
     return Promise.resolve()
