@@ -48,13 +48,8 @@ ${manifestEntry.commitMessage}
       icon_emoji: ':baby:'
     }
 
-    return new Promise((resolve, reject) => {
-      this.client.chat.postMessage(this.channel, message, opts, (err, res) => {
-        if (err) reject(err)
-
-        console.log('Message sent: ', res.ts)
-        resolve()
-      })
+    return this.client.chat.postMessage(this.channel, message, opts).then(res => {
+      console.log('Message sent: ', res.ts)
     })
   }
 }
