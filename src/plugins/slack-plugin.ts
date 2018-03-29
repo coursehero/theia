@@ -34,7 +34,7 @@ class SlackPlugin implements Theia.Plugin {
     const gitSource = core.libs[componentLibrary].source // ex: git@git.coursehero.com:coursehero/components/study-guides.git
     const commitUrl = getCommitUrl(core, gitSource, manifestEntry.commitHash)
 
-    const message = `\`\`\`
+    const text = `\`\`\`
 New component library build
 ${commitUrl}
 Commit hash: ${manifestEntry.commitHash}
@@ -45,11 +45,13 @@ ${manifestEntry.commitMessage}
 `
     const opts = {
       username: 'EILEITHYIA',
-      icon_emoji: ':baby:'
+      icon_emoji: ':baby:',
+      channel: this.channel,
+      text
     }
 
-    return this.client.chat.postMessage(this.channel, message, opts).then(res => {
-      console.log('Message sent: ', res.ts)
+    return this.client.chat.postMessage(opts).then(res => {
+      console.log('Message sent: ', res.ok)
     })
   }
 }
