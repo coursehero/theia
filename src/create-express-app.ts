@@ -1,11 +1,12 @@
-import * as express from 'express'
-import * as HttpStatus from 'http-status-codes'
-import * as path from 'path'
-import * as favicon from 'serve-favicon'
-import * as logger from 'morgan'
-import * as cookieParser from 'cookie-parser'
 import * as bodyParser from 'body-parser'
 import * as cons from 'consolidate'
+import * as cookieParser from 'cookie-parser'
+import * as express from 'express'
+import * as favicon from 'serve-favicon'
+import * as HttpStatus from 'http-status-codes'
+import * as logger from 'morgan'
+import * as path from 'path'
+import * as Stream from 'stream'
 
 interface ResponseError extends Error {
   status?: number
@@ -19,14 +20,29 @@ export default (core: Theia.Core): express.Application => {
   app.set('views', path.join(__dirname, '..', 'views'))
 
   app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')))
-  app.use(logger('dev'))
+
+  // pipe morgan logging to custom logger
+  app.use(logger('dev', {
+    stream: new Stream.Writable({
+      write: function (chunk: any, encoding: any, next: any) {
+        const str = chunk.toString().trim()
+        if (str.length) core.log('theia:express', str)
+        next()
+      }
+    })
+  }))
+
   app.use(bodyParser.json({ limit: '50mb' }))
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: false }))
   app.use(cookieParser())
 
   app.use(express.static(path.join(__dirname, '..', 'public')))
 
-  core.hooks.express.call(core, app)
+  core.hooks.express.promise({ core, app }).catch(err => {
+    // TODO: find out how to get which plugin threw the error
+    const plugin = 'plugin'
+    core.logError(`theia:${plugin}:express`, err)
+  })
 
   app.post('/render', (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const { componentLibrary, component } = req.query
@@ -77,12 +93,10 @@ export default (core: Theia.Core): express.Application => {
   app.use((err: ResponseError, req: express.Request, res: express.Response, next: express.NextFunction) => {
     err.status = err.status || HttpStatus.INTERNAL_SERVER_ERROR
 
-    core.hooks.error.call(core, err)
-
     if (err.status >= 400 && err.status < 500) {
-      console.trace(err.stack)
+      core.log('theia:express', err)
     } else {
-      console.error(err.stack)
+      core.logError('theia:express', err)
     }
 
     res.status(err.status)

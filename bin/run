@@ -10,9 +10,8 @@ docker run --rm -it -p 3000:80 \
   -v ~/.aws:/root/.aws \
   -v "$DIR"/../libs:/var/www/current/libs \
   -v "$DIR"/../var:/var/www/current/var \
-  $( if [ ! -z ${THEIA_LOCAL+x} ]; then
-    echo "-e THEIA_LOCAL=$THEIA_LOCAL"
-  fi ) \
+  -e DEBUG=${DEBUG:-theia*} \
+  -e THEIA_LOCAL=${THEIA_LOCAL:-1} \
   $( if [ ! -z ${THEIA_LOCAL_STORAGE+x} ]; then
     echo "-e THEIA_LOCAL_STORAGE=$THEIA_LOCAL_STORAGE"
   fi ) \

@@ -1,18 +1,18 @@
 import * as http from 'http'
 import createExpressApp from '../create-express-app'
 
-class ExpressPlugin implements Theia.Plugin {
-  port: number
+type OnStartArgs = {
+  core: Theia.Core
+}
 
-  constructor (port: number) {
-    this.port = port
-  }
+class ExpressPlugin implements Theia.Plugin {
+  constructor (public port: number) {}
 
   apply (core: Theia.Core) {
-    core.hooks.start.tap('ExpressPlugin', this.onStart.bind(this))
+    core.hooks.start.tapPromise('ExpressPlugin', this.onStart)
   }
 
-  onStart (core: Theia.Core) {
+  onStart = ({ core }: OnStartArgs) => {
     const app = createExpressApp(core)
     const port = this.port
     app.set('port', port)
@@ -30,11 +30,11 @@ class ExpressPlugin implements Theia.Plugin {
       // handle specific listen errors with friendly messages
       switch (error.code) {
         case 'EACCES':
-          console.error(`Port ${port} requires elevated privileges`)
+          core.logError('theia:ExpressPlugin', `Port ${port} requires elevated privileges`)
           process.exit(1)
           break
         case 'EADDRINUSE':
-          console.error(`Port ${port} is already in use`)
+          core.logError('theia:ExpressPlugin', `Port ${port} is already in use`)
           process.exit(1)
           break
         default:
@@ -44,8 +44,10 @@ class ExpressPlugin implements Theia.Plugin {
 
     function onListening () {
       const addr = server.address()
-      console.log('Listening on port ' + addr.port)
+      core.log('theia:ExpressPlugin', 'Listening on port ' + addr.port)
     }
+
+    return Promise.resolve()
   }
 }
 

@@ -4,15 +4,9 @@ import * as AWS from 'aws-sdk'
 import * as mime from 'mime-types'
 
 class S3Storage implements Theia.Storage {
-  bucket: string
-  rootDir: string
-  client: AWS.S3
+  client: AWS.S3 = new AWS.S3()
 
-  constructor (bucket: string, rootDir: string) {
-    this.bucket = bucket
-    this.rootDir = rootDir
-    this.client = new AWS.S3()
-
+  constructor (public bucket: string, public rootDir: string) {
     this.write = this.write.bind(this)
     this.exists = this.exists.bind(this)
     this.copy = this.copy.bind(this)

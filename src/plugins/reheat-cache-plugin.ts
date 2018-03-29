@@ -1,21 +1,23 @@
-import { SQS } from 'aws-sdk'
+import * as AWS from 'aws-sdk'
+
+type OnComponentLibraryUpdateArgs = {
+  core: Theia.Core
+  componentLibrary: string
+  manifestEntry: Theia.BuildManifestEntry
+}
 
 class ReheatCachePlugin implements Theia.Plugin {
-  sqs: SQS
-  queueUrl: string
+  sqs = new AWS.SQS()
 
-  constructor (queueUrl: string) {
-    this.sqs = new SQS()
-    this.queueUrl = queueUrl
-  }
+  constructor (public queueUrl: string) {}
 
   apply (core: Theia.Core) {
-    core.hooks.componentLibraryUpdate.tap('ReheatCachePlugin', this.onComponentLibraryUpdate.bind(this))
+    core.hooks.componentLibraryUpdate.tapPromise('ReheatCachePlugin', this.onComponentLibraryUpdate)
   }
 
-  onComponentLibraryUpdate (core: Theia.Core, componentLibrary: string, manifestEntry: Theia.BuildManifestEntry) {
+  onComponentLibraryUpdate = ({ core, componentLibrary, manifestEntry }: OnComponentLibraryUpdateArgs) => {
     console.log(`reheating cache for ${componentLibrary} ...`)
-    const messageAttributes: SQS.Types.MessageBodyAttributeMap = {
+    const messageAttributes: AWS.SQS.Types.MessageBodyAttributeMap = {
       Type: {
         DataType: 'String',
         StringValue: 'new-build-job'
@@ -29,16 +31,18 @@ class ReheatCachePlugin implements Theia.Plugin {
       builtAt: manifestEntry.createdAt,
       commitHash: manifestEntry.commitHash
     }
-    const params: SQS.Types.SendMessageRequest = {
+    const params: AWS.SQS.Types.SendMessageRequest = {
       MessageAttributes: messageAttributes,
       MessageBody: JSON.stringify(messageBody),
       QueueUrl: this.queueUrl,
       DelaySeconds: 10
     }
-    this.sqs.sendMessage(params, (err, data) => {
-      if (err) {
-        core.hooks.error.call(core, err)
-      }
+
+    return new Promise((resolve, reject) => {
+      this.sqs.sendMessage(params, (err) => {
+        if (err) reject(err)
+        resolve()
+      })
     })
   }
 }

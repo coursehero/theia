@@ -2,7 +2,8 @@
 
 import * as bluebird from 'bluebird'
 import * as rp from 'request-promise'
-import { SyncHook } from 'tapable'
+import { TypedAsyncParallelHook } from './typed-tapable'
+import { log as _log, logError as _logError } from './logger'
 
 /*
   This loads the production bundle of React for a specified version, evaluates the code,
@@ -52,7 +53,7 @@ async function getUMD (url: string, thisContext: object): Promise<void> {
   fn.call(thisContext)
 }
 
-class Core {
+class Core implements Theia.Core {
   builder: Theia.Builder
 
   libs: Theia.ComponentLibraryConfigurations
@@ -61,14 +62,20 @@ class Core {
 
   storage: Theia.Storage
 
-  hooks = {
-    // TODO: make all hooks async
-    start: new SyncHook(['theia']),
-    beforeRender: new SyncHook(['theia', 'componentLibrary', 'component', 'props']),
-    render: new SyncHook(['theia', 'componentLibrary', 'component', 'props']),
-    componentLibraryUpdate: new SyncHook(['theia', 'componentLibrary', 'manifestEntry']),
-    express: new SyncHook(['theia', 'app']),
-    error: new SyncHook(['theia', 'error'])
+  hooks: {
+    beforeRender: Theia.BeforeRenderHook
+    componentLibraryUpdate: Theia.ComponentLibraryUpdateHook
+    error: Theia.ErrorHook
+    express: Theia.ExpressHook
+    render: Theia.RenderHook
+    start: Theia.StartHook
+  } = {
+    beforeRender: new TypedAsyncParallelHook(['core', 'componentLibrary', 'component', 'props']),
+    componentLibraryUpdate: new TypedAsyncParallelHook(['core', 'componentLibrary', 'manifestEntry']),
+    error: new TypedAsyncParallelHook(['core', 'error']),
+    express: new TypedAsyncParallelHook(['core', 'app']),
+    render: new TypedAsyncParallelHook(['core', 'componentLibrary', 'component', 'props']),
+    start: new TypedAsyncParallelHook(['core'])
   }
 
   libCache: { [key: string]: Theia.ComponentLibrary } = {}
@@ -88,14 +95,23 @@ class Core {
     }
   }
 
-  start (): void {
-    this.hooks.start.call(this)
+  start (): Promise<void> {
+    return this.hooks.start.promise({ core: this }).catch(err => {
+      // TODO: find out how to get which plugin threw the error
+      const plugin = 'plugin'
+      this.logError(`theia:${plugin}:start`, err)
+    })
   }
 
   // TODO: should only hit storage if build files are not in cache/memory.
   // need to cache stats/build-manifest.json files just like source is being cached
   async render (componentLibrary: string, componentName: string, props: object): Promise<Theia.RenderResult> {
-    this.hooks.beforeRender.call(this, componentLibrary, componentName, props)
+    // don't wait for completion
+    this.hooks.beforeRender.promise({ core: this, componentLibrary, component: componentName, props }).catch(err => {
+      // TODO: find out how to get which plugin threw the error
+      const plugin = 'plugin'
+      this.logError(`theia:${plugin}:beforeRender`, err)
+    })
 
     // TODO: this version should come from the CL's yarn.lock. at build time, the react version should be
     // saved in build-manifest.json for that CL
@@ -108,7 +124,12 @@ class Core {
     // TODO: code splitting w/ universal components
     const assets = await this.getAssets(componentLibrary)
 
-    this.hooks.render.call(this, componentLibrary, componentName, props)
+    // don't wait for completion
+    this.hooks.render.promise({ core: this, componentLibrary, component: componentName, props }).catch(err => {
+      // TODO: find out how to get which plugin threw the error
+      const plugin = 'plugin'
+      this.logError(`theia:${plugin}:render`, err)
+    })
 
     return {
       html,
@@ -116,7 +137,7 @@ class Core {
     }
   }
 
-  async registerComponentLibrary (componentLibrary: string, buildAssets: string[], buildManifestEntry: Theia.BuildManifestEntry): Promise<void> {
+  async registerComponentLibrary (componentLibrary: string, buildAssets: string[], manifestEntry: Theia.BuildManifestEntry): Promise<void> {
     for (const asset of buildAssets) {
       await this.storage.copy(componentLibrary, asset)
     }
@@ -126,8 +147,12 @@ class Core {
       manifest = await this.getBuildManifest(componentLibrary)
     }
 
-    manifest.push(buildManifestEntry)
-    this.hooks.componentLibraryUpdate.call(this, componentLibrary, buildManifestEntry)
+    manifest.push(manifestEntry)
+    await this.hooks.componentLibraryUpdate.promise({ core: this, componentLibrary, manifestEntry }).catch(err => {
+      // TODO: find out how to get which plugin threw the error
+      const plugin = 'plugin'
+      this.logError(`theia:${plugin}:componentLibraryUpdate`, err)
+    })
 
     const manifestJson = JSON.stringify(manifest, null, 2)
     await this.storage.write(componentLibrary, 'build-manifest.json', manifestJson)
@@ -206,18 +231,17 @@ class Core {
   }
 
   async buildAll (): Promise<void> {
-    console.log('building component libraries ...')
+    this.log('theia:build-all', 'building component libraries ...')
 
     // purposefully serial - yarn has trouble running multiple processes
     return bluebird.each(Object.keys(this.libs), componentLibrary => {
       const componentLibraryConfig = this.libs[componentLibrary]
       return this.builder.build(this, componentLibrary, componentLibraryConfig)
     }).then(() => {
-      // ...
-    }).catch(error => {
-      console.error(error)
-      this.hooks.error.call(this, error)
-      throw error
+      this.log('theia:build-all', 'finished building component libraries')
+    }).catch(err => {
+      this.logError('theia:build-all', 'error while building component libraries')
+      this.logError('theia:build-all', err)
     })
   }
 
@@ -231,6 +255,17 @@ class Core {
       this.buildManifestCache = {}
       this.statsContentsCache = {}
     }
+  }
+
+  log (namespace: string, error: any) {
+    _log(namespace, error)
+  }
+
+  logError (namespace: string, error: any) {
+    _logError(namespace, error)
+    this.hooks.error.promise({ core: this, error }).catch(err => {
+      _logError(namespace, `there was an error in the error handling hooks: ${err}`)
+    })
   }
 }
 

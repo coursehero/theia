@@ -5,6 +5,12 @@ export interface CtorParams {
   token?: string
 }
 
+type OnComponentLibraryUpdateArgs = {
+  core: Theia.Core
+  componentLibrary: string
+  manifestEntry: Theia.BuildManifestEntry
+}
+
 // goal: https://git.coursehero.com/coursehero/components/study-guides/commit/19a8435a97787d8a1849a63f5dbb739281ce977f
 function getCommitUrl (core: Theia.Core, gitSource: string, commitHash: string) {
   const [host, repoPath] = gitSource.replace('git@', '').replace('.git', '').split(':', 2)
@@ -21,14 +27,14 @@ class SlackPlugin implements Theia.Plugin {
   }
 
   apply (core: Theia.Core) {
-    core.hooks.componentLibraryUpdate.tap('SlackPlugin', this.onComponentLibraryUpdate.bind(this))
+    core.hooks.componentLibraryUpdate.tapPromise('SlackPlugin', this.onComponentLibraryUpdate)
   }
 
-  onComponentLibraryUpdate (core: Theia.Core, componentLibrary: string, manifestEntry: Theia.BuildManifestEntry) {
+  onComponentLibraryUpdate = ({ core, componentLibrary, manifestEntry }: OnComponentLibraryUpdateArgs) => {
     const gitSource = core.libs[componentLibrary].source // ex: git@git.coursehero.com:coursehero/components/study-guides.git
     const commitUrl = getCommitUrl(core, gitSource, manifestEntry.commitHash)
 
-    const message = `\`\`\`
+    const text = `\`\`\`
 New component library build
 ${commitUrl}
 Commit hash: ${manifestEntry.commitHash}
@@ -39,14 +45,13 @@ ${manifestEntry.commitMessage}
 `
     const opts = {
       username: 'EILEITHYIA',
-      icon_emoji: ':baby:'
+      icon_emoji: ':baby:',
+      channel: this.channel,
+      text
     }
 
-    this.client.chat.postMessage(this.channel, message, opts).then((res) => {
-      console.log('Message sent: ', res.ts)
-    }).catch(err => {
-      console.log(err)
-      core.hooks.error.call(core, err)
+    return this.client.chat.postMessage(opts).then(res => {
+      console.log('Message sent: ', res.ok)
     })
   }
 }

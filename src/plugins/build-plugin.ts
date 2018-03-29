@@ -1,25 +1,18 @@
-class BuildPlugin implements Theia.Plugin {
-  buildInterval: number
+type OnStartArgs = {
+  core: Theia.Core
+}
 
-  constructor (buildInterval: number) {
-    this.buildInterval = buildInterval
-  }
+class BuildPlugin implements Theia.Plugin {
+  constructor (public buildInterval: number) {}
 
   apply (core: Theia.Core) {
-    core.hooks.start.tap('BuildPlugin', this.onStart.bind(this))
+    core.hooks.start.tapPromise('BuildPlugin', this.onStart)
   }
 
-  onStart (core: Theia.Core) {
-    const action = () => {
-      core.buildAll().then(() => {
-        console.log('finished building component libraries')
-      }).catch(() => {
-        console.error('error while building component libraries')
-      })
-    }
-
-    action()
-    setInterval(action, this.buildInterval)
+  onStart = ({ core }: OnStartArgs) => {
+    void core.buildAll() // do it once, supress lint error
+    setInterval(core.buildAll.bind(core), this.buildInterval) // do it in interval
+    return Promise.resolve()
   }
 }
 

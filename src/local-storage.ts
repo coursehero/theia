@@ -2,11 +2,7 @@ import * as path from 'path'
 import * as fs from 'fs-extra'
 
 class LocalStorage implements Theia.Storage {
-  rootStorageDir: string
-
-  constructor (rootStorageDir: string) {
-    this.rootStorageDir = rootStorageDir
-
+  constructor (public rootStorageDir: string) {
     this.write = this.write.bind(this)
     this.exists = this.exists.bind(this)
     this.copy = this.copy.bind(this)

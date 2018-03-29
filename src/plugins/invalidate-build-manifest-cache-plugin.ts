@@ -3,6 +3,10 @@
 // for now, just clear the cache periodically
 // a real solution is to have the build service alert the render services when a build has occurred
 
+type OnStartArgs = {
+  core: Theia.Core
+}
+
 function buildManifestsAreSame (bm1: Theia.BuildManifest, bm2: Theia.BuildManifest) {
   if (!bm1.length && !bm2.length) return true
   if (bm1.length !== bm2.length) return false
@@ -12,20 +16,18 @@ function buildManifestsAreSame (bm1: Theia.BuildManifest, bm2: Theia.BuildManife
 }
 
 class InvalidateBuildManifestCachePlugin implements Theia.Plugin {
-  invalidationInterval: number
-
-  constructor (invalidationInterval: number) {
-    this.invalidationInterval = invalidationInterval
-  }
+  constructor (public invalidationInterval: number) {}
 
   apply (core: Theia.Core) {
-    core.hooks.start.tap('BuildPlugin', this.onStart.bind(this))
+    core.hooks.start.tapPromise('BuildPlugin', this.onStart)
   }
 
-  onStart (core: Theia.Core) {
+  onStart = ({ core }: OnStartArgs) => {
     this.checkForUpdates(core, this.invalidationInterval).catch(err => {
-      core.hooks.error.call(core, err)
+      core.logError('theia:InvalidateBuildManifestCachePlugin', err)
     })
+
+    return Promise.resolve()
   }
 
   checkForUpdates (core: Theia.Core, delay: number): Promise<void> {
@@ -35,10 +37,15 @@ class InvalidateBuildManifestCachePlugin implements Theia.Plugin {
       }))
       .then(async () => {
         for (const componentLibrary in core.libs) {
+          const hasBuildManifest = await core.hasBuildManifest(componentLibrary)
+          if (!hasBuildManifest) {
+            return
+          }
+
           const cachedBuildManifest = await core.getBuildManifest(componentLibrary)
           const actualBuildManifest = JSON.parse(await core.storage.load(componentLibrary, 'build-manifest.json'))
           if (!buildManifestsAreSame(cachedBuildManifest, actualBuildManifest)) {
-            console.log(`clearing cache for ${componentLibrary} ...`)
+            core.log('theia:InvalidateBuildManifestCachePlugin', `clearing cache for ${componentLibrary} ...`)
             core.clearCache(componentLibrary)
 
             // fill cache

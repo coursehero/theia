@@ -5,6 +5,22 @@ export interface HashCache {
   [key: string]: number[]
 }
 
+type OnBeforeRenderArgs = {
+  core: Theia.Core
+  componentLibrary: string
+  component: string
+  props: object
+}
+
+type OnErrorArgs = {
+  core: Theia.Core
+  error: Theia.ResponseError
+}
+
+type OnStartArgs = {
+  core: Theia.Core
+}
+
 const FIVE_MINUTES = 1000 * 60 * 5
 const ONE_HOUR = 1000 * 60 * 60
 
@@ -13,7 +29,7 @@ const PRUNE_INTERVAL = FIVE_MINUTES
 const CACHE_TTL = ONE_HOUR
 
 class RollbarPlugin implements Theia.Plugin {
-  rollbar: any
+  rollbar: Rollbar
   hashCache: HashCache = {}
 
   constructor (accessToken: string, environment: string) {
@@ -24,14 +40,14 @@ class RollbarPlugin implements Theia.Plugin {
   }
 
   apply (core: Theia.Core) {
-    core.hooks.beforeRender.tap('RollbarPlugin', this.onBeforeRender.bind(this))
-    core.hooks.error.tap('RollbarPlugin', this.onError.bind(this))
-    core.hooks.start.tap('RollbarPlugin', this.onStart.bind(this))
+    core.hooks.beforeRender.tapPromise('RollbarPlugin', this.onBeforeRender)
+    core.hooks.error.tapPromise('RollbarPlugin', this.onError)
+    core.hooks.start.tapPromise('RollbarPlugin', this.onStart)
   }
 
   // create errors if the same component/props is rendered repeatedly, which suggests a cache failure
   // before render, because props can possibly be modified during render
-  onBeforeRender (core: Theia.Core, componentLibrary: string, component: string, props: object) {
+  onBeforeRender = ({ core, componentLibrary, component, props }: OnBeforeRenderArgs) => {
     const data = componentLibrary + component + JSON.stringify(props)
     const hash = XXHash.hash(Buffer.from(data, 'utf-8'), 0)
 
@@ -44,14 +60,24 @@ class RollbarPlugin implements Theia.Plugin {
     if (this.hashCache[hash].length > REPEAT_RENDER_REQUEST_ERROR_THRESHOLD) {
       this.rollbar.error(`Wendigo - Excessive consumption noticed. Received many render requests for ${data}. Verify requests are being cached correctly.`)
     }
+
+    return Promise.resolve()
   }
 
-  onError (core: Theia.Core, error: Theia.ResponseError) {
-    this.rollbar.error(error)
+  onError = ({ core, error }: OnErrorArgs) => {
+    // tslint:disable-next-line
+    return new Promise((resolve, reject) => {
+      this.rollbar.error(error, err => {
+        if (err) reject(err)
+        resolve()
+      })
+    })
   }
 
-  onStart (core: Theia.Core) {
+  onStart = ({ core }: OnStartArgs) => {
     setInterval(() => this.pruneHashCache(), PRUNE_INTERVAL)
+
+    return Promise.resolve()
   }
 
   pruneHashCache () {

@@ -3,30 +3,40 @@
 declare namespace Theia {
   type Environment = 'development' | 'production'
 
+  type BeforeRenderHook = Tapable.ITypedAsyncParallelHook<{core: Core, componentLibrary: string, component: string, props: object}>
+  type ComponentLibraryUpdateHook = Tapable.ITypedAsyncParallelHook<{core: Core, componentLibrary: string, manifestEntry: BuildManifestEntry}>
+  type ErrorHook = Tapable.ITypedAsyncParallelHook<{core: Core, error: any}>
+  type ExpressHook = Tapable.ITypedAsyncParallelHook<{core: Core, app: any}>
+  type RenderHook = Tapable.ITypedAsyncParallelHook<{core: Core, componentLibrary: string, component: string, props: object}>
+  type StartHook = Tapable.ITypedAsyncParallelHook<{core: Core}>
+
   interface Core {
-    buildAll (): Promise<void>
     builder: Builder
-    clearCache(componentLibrary?: string): void
     libs: ComponentLibraryConfigurations
     environment: Environment
+    hooks: {
+      beforeRender: BeforeRenderHook
+      componentLibraryUpdate: ComponentLibraryUpdateHook
+      error: ErrorHook
+      express: ExpressHook
+      render: RenderHook
+      start: StartHook
+    }
+    storage: Storage
+    
+    buildAll (): Promise<void>
+    clearCache(componentLibrary?: string): void
     getAssets (componentLibrary: string): Promise<RenderResultAssets>
     getBuildManifest (componentLibrary: string): Promise<BuildManifest>
     getComponent (reactVersion: string, componentLibrary: string, component: string): Promise<ReactComponentClass>
     getComponentLibrary (reactVersion: string, componentLibrary: string): Promise<ComponentLibrary>
     getLatestStatsContents (componentLibrary: string): Promise<Stats>
     hasBuildManifest (componentLibrary: string): Promise<boolean>
-    hooks: {
-      beforeRender: Tapable.SyncHook
-      componentLibraryUpdate: Tapable.SyncHook
-      error: Tapable.SyncHook
-      express: Tapable.SyncHook
-      render: Tapable.SyncHook
-      start: Tapable.SyncHook
-    }
+    log (namespace: string, error: any): void
+    logError (namespace: string, error: any): void
     registerComponentLibrary (componentLibrary: string, buildAssets: string[], buildManifestEntry: Theia.BuildManifestEntry): Promise<void>
     render (componentLibrary: string, componentName: string, props: object): Promise<RenderResult>
-    start(): void
-    storage: Storage
+    start(): Promise<void>
   }
 
   interface Builder {

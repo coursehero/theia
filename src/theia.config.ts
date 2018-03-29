@@ -16,7 +16,7 @@ if (useLocalStorage) {
 }
 
 const plugins: Theia.Plugin[] = theia.nn([
-  process.env.THEIA_ROLLBAR_TOKEN ? new theia.RollbarPlugin(process.env.THEIA_ROLLBAR_TOKEN!, process.env.ROLLBAR_ENV!) : null,
+  process.env.THEIA_ROLLBAR_TOKEN ? new theia.RollbarPlugin(process.env.THEIA_ROLLBAR_TOKEN, process.env.ROLLBAR_ENV!) : null,
   process.env.SLACK_TOKEN ? new theia.SlackPlugin({
     channel: {
       development: '#theia-dev',
@@ -25,16 +25,23 @@ const plugins: Theia.Plugin[] = theia.nn([
   }) : null,
   enablePeriodicBuilding ? new theia.BuildPlugin(FIVE_MINUTES) : null,
   new theia.InvalidateBuildManifestCachePlugin(5000), // the DelaySeconds param on 'new-build-job' should compensate for this
-  new theia.ReheatCachePlugin(process.env.THEIA_SQS_QUEUE_URL!),
-  new theia.ExpressPlugin(process.env.PORT ? parseInt(process.env.PORT!, 10) : 3000),
+  process.env.THEIA_SQS_QUEUE_URL ? new theia.ReheatCachePlugin(process.env.THEIA_SQS_QUEUE_URL) : null,
+  new theia.ExpressPlugin(process.env.PORT ? parseInt(process.env.PORT, 10) : 3000),
   new theia.HeartbeatPlugin(),
-  process.env.THEIA_AUTH_SECRET ? new theia.AuthPlugin('CH-Auth', process.env.THEIA_AUTH_SECRET!) : null,
+  process.env.THEIA_AUTH_SECRET ? new theia.AuthPlugin('CH-Auth', process.env.THEIA_AUTH_SECRET) : null,
   new theia.UsagePlugin()
 ])
 
 const libs: Theia.ComponentLibraryConfigurations = {
   '@coursehero-components/study-guides': {
     source: 'git@git.coursehero.com:coursehero/components/study-guides.git',
+    branches: {
+      development: 'dev',
+      production: 'master'
+    }
+  },
+  mythos: {
+    source: 'https://github.com/theiajs/mythos.git',
     branches: {
       development: 'dev',
       production: 'master'

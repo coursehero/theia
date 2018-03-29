@@ -1,14 +1,18 @@
-import Theia from '../core'
 import * as express from 'express'
 
+type OnExpressArgs = {
+  core: Theia.Core
+  app: express.Application
+}
+
 class UsagePlugin implements Theia.Plugin {
-  apply (theia: Theia) {
-    theia.hooks.express.tap('UsagePlugin', this.onExpress.bind(this))
+  apply (core: Theia.Core) {
+    core.hooks.express.tapPromise('UsagePlugin', this.onExpress)
   }
 
-  onExpress (theia: Theia, app: express.Application) {
+  onExpress = ({ core, app }: OnExpressArgs) => {
     app.get('/', async (req, res) => {
-      const helloWorldResult = await theia.render('mythos', 'Greeting', {
+      const helloWorldResult = await core.render('mythos', 'Greeting', {
         name: 'World'
       })
 
@@ -17,6 +21,8 @@ class UsagePlugin implements Theia.Plugin {
         helloWorldResultAssets: JSON.stringify(helloWorldResult.assets, null, 2)
       })
     })
+
+    return Promise.resolve()
   }
 }
 

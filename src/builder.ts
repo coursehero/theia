@@ -1,21 +1,22 @@
 import * as fs from 'fs-extra'
 import * as path from 'path'
 import { exec as __exec } from 'child_process'
+import { log, logError } from './logger'
 
-function promiseExec (cmd: string, opts = {}): Promise<string> {
-  console.log(`running '${cmd}' with options ${JSON.stringify(opts)}`)
+function promiseExec (cmd: string, opts = {}, logNamespace: string): Promise<string> {
+  log(logNamespace, `running '${cmd}' with options ${JSON.stringify(opts)}`)
   const child = __exec(cmd, opts)
 
   let stdOutResult = ''
   child.stdout.on('data', function (data: string) {
     stdOutResult += data
-    console.log(data.trim())
+    log(logNamespace, data.trim())
   })
 
   let stdErrResult = ''
   child.stderr.on('data', function (data: string) {
     stdErrResult += data
-    console.log(data.trim())
+    logError(logNamespace, data.trim())
   })
 
   return new Promise(function (resolve, reject) {
@@ -30,6 +31,11 @@ function promiseExec (cmd: string, opts = {}): Promise<string> {
   })
 }
 
+type WrapPromiseExecLoggersReturn = (cmd: string, opts?: {}) => Promise<string>
+function wrapPromiseExecLogNamespace (namespace: string): WrapPromiseExecLoggersReturn {
+  return (cmd: string, opts = {}) => promiseExec(cmd, opts, namespace)
+}
+
 class Builder implements Theia.Builder {
   async build (core: Theia.Core, componentLibrary: string, componentLibraryConfig: Theia.ComponentLibraryConfiguration) {
     // the latest commit in the tracked branch will be persisted
@@ -40,26 +46,29 @@ class Builder implements Theia.Builder {
   }
 
   async buildFromDir (core: Theia.Core, componentLibrary: string, workingDir: string): Promise<void> {
-    console.log(`${componentLibrary}: checking for updates in ${workingDir} ...`)
+    const logNamespace = `theia:builder ${componentLibrary}`
+    const doPromiseExec = wrapPromiseExecLogNamespace(logNamespace)
 
-    const commitHash = await promiseExec(`git rev-parse HEAD`, { cwd: workingDir })
+    core.log(logNamespace, `checking for updates in ${workingDir} ...`)
+
+    const commitHash = await doPromiseExec(`git rev-parse HEAD`, { cwd: workingDir })
     if (commitHash && await this.hasBuilt(core, componentLibrary, commitHash)) {
-      console.log(`${componentLibrary}: no updates found`)
+      core.log(logNamespace, `no updates found`)
       return
     }
 
-    const commitMessage = (await promiseExec(`git log -1 ${commitHash} --pretty=format:%s`, { cwd: workingDir }))
+    const commitMessage = (await doPromiseExec(`git log -1 ${commitHash} --pretty=format:%s`, { cwd: workingDir }))
     const author = {
-      name: (await promiseExec(`git log -1 ${commitHash} --pretty=format:%aN`, { cwd: workingDir })),
-      email: (await promiseExec(`git log -1 ${commitHash} --pretty=format:%ae`, { cwd: workingDir }))
+      name: (await doPromiseExec(`git log -1 ${commitHash} --pretty=format:%aN`, { cwd: workingDir })),
+      email: (await doPromiseExec(`git log -1 ${commitHash} --pretty=format:%ae`, { cwd: workingDir }))
     }
 
-    console.log(`${componentLibrary}: building ${commitHash} ...`)
+    core.log(logNamespace, `building ${commitHash} ...`)
 
     const workingDistDir = path.resolve(workingDir, 'dist')
 
-    await promiseExec('yarn install --production=false --non-interactive', { cwd: workingDir })
-    await promiseExec('rm -rf dist && mkdir dist', { cwd: workingDir })
+    await doPromiseExec('yarn install --production=false --non-interactive', { cwd: workingDir })
+    await doPromiseExec('rm -rf dist && mkdir dist', { cwd: workingDir })
 
     const componentLibraryPackage = require(path.resolve(workingDir, 'package.json'))
 
@@ -67,8 +76,8 @@ class Builder implements Theia.Builder {
     const buildCommand = componentLibraryPackage.scripts.build ?
                           'yarn build' :
                           `./node_modules/.bin/webpack --json > dist/stats.json`
-    await promiseExec(buildCommand, { cwd: workingDir }).catch(err => {
-      // webpack does not send error to stdout when using "--json"
+    await doPromiseExec(buildCommand, { cwd: workingDir }).catch(err => {
+      // webpack does not send errors to stdout when using "--json"
       // instead, it puts it in the json output
       const statsPath = path.join(workingDir, 'dist', 'stats.json')
       if (fs.pathExistsSync(statsPath)) {
@@ -89,9 +98,9 @@ class Builder implements Theia.Builder {
     fs.renameSync(path.join(workingDir, 'dist', 'stats.json'), path.join(workingDir, 'dist', statsFilename))
 
     if (componentLibraryPackage.scripts.test) {
-      console.log(`${componentLibrary}: running tests`)
-      await promiseExec('yarn test', { cwd: workingDir })
-      console.log(`${componentLibrary}: finished tests`)
+      core.log(logNamespace, `running tests`)
+      await doPromiseExec('yarn test', { cwd: workingDir })
+      core.log(logNamespace, `finished tests`)
     }
 
     return fs.readdir(workingDistDir).then(buildAssetBasenames => {
@@ -107,20 +116,22 @@ class Builder implements Theia.Builder {
 
       return core.registerComponentLibrary(componentLibrary, buildAssets, buildManifestEntry)
     }).then(() => {
-      console.log(`${componentLibrary}: built ${commitHash}`)
+      core.log(logNamespace, `built ${commitHash}`)
     })
   }
 
   async ensureRepoIsClonedAndUpdated (componentLibrary: string, repoSource: string, branch: string): Promise<string> {
+    const doPromiseExec = wrapPromiseExecLogNamespace(`theia:builder ${componentLibrary}`)
+
     const projectRootDir = path.resolve(__dirname, '..')
     const workingDir = path.resolve(projectRootDir, 'var', componentLibrary)
 
     const exists = await fs.pathExists(workingDir)
     if (!exists) {
-      await promiseExec(`git clone ${repoSource} ${workingDir}`)
+      await doPromiseExec(`git clone ${repoSource} ${workingDir}`)
     }
 
-    await promiseExec(`git checkout --quiet ${branch} && git pull`, { cwd: workingDir })
+    await doPromiseExec(`git checkout --quiet ${branch} && git pull`, { cwd: workingDir })
 
     return workingDir
   }
