@@ -13,7 +13,7 @@ type OnComponentLibraryUpdateArgs = {
 
 // goal: https://git.coursehero.com/coursehero/components/study-guides/commit/19a8435a97787d8a1849a63f5dbb739281ce977f
 function getCommitUrl (core: Theia.Core, gitSource: string, commitHash: string) {
-  const [host, repoPath] = gitSource.replace('git@', '').replace('.git', '').split(':', 2)
+  const [host, repoPath] = gitSource.replace('git@', '').replace('https://', '').replace('.git', '').split(':', 2)
   return `${host}/${repoPath}/commit/${commitHash}`
 }
 
