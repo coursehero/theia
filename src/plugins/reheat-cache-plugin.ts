@@ -1,5 +1,5 @@
 import * as AWS from 'aws-sdk'
-import { Core, CoreHooks, Plugin, BuildManifestEntry } from '../theia'
+import { BuildManifestEntry, Core, CoreHooks, Plugin } from '../theia'
 
 class ReheatCachePlugin implements Plugin {
   sqs = new AWS.SQS()

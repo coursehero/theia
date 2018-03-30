@@ -4,7 +4,7 @@ import * as bluebird from 'bluebird'
 import * as express from 'express'
 import * as rp from 'request-promise'
 import { log as _log, logError as _logError } from './logger'
-import { Storage, ReactComponentClass, BuildManifestEntry, RenderResult, RenderResultAssets, Stats, ComponentLibrary, BuildManifest, Builder, Environment, ReactCacheEntry, ComponentLibraryConfigurations, Configuration } from './theia'
+import { Builder, BuildManifest, BuildManifestEntry, ComponentLibrary, ComponentLibraryConfigurations, Configuration, Environment, ReactCacheEntry, ReactComponentClass, RenderResult, RenderResultAssets, Stats, Storage } from './theia'
 import { TypedAsyncParallelHook } from './typed-tapable'
 
 /*

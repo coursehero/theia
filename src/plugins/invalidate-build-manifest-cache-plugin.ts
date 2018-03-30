@@ -1,4 +1,4 @@
-import { Core, CoreHooks, Plugin, BuildManifest } from '../theia'
+import { BuildManifest, Core, CoreHooks, Plugin } from '../theia'
 
 // when the build service runs, it updates the build-manifest in storage (S3)
 // the other instances of Theia (the ones that actualy render requests) won't get the new manifest b/c of internal caching

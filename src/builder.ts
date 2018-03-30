@@ -1,4 +1,4 @@
-import { Core, ComponentLibraryConfiguration } from './theia'
+import { ComponentLibraryConfiguration, Core } from './theia'
 
 abstract class Builder {
   abstract build (theia: Core, componentLibrary: string, componentLibraryConfig: ComponentLibraryConfiguration): Promise<void>
