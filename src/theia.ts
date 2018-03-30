@@ -2,7 +2,7 @@ import * as path from 'path'
 import AuthPlugin from './plugins/auth-plugin'
 import Builder from './builder'
 import BuildPlugin from './plugins/build-plugin'
-import Core from './core'
+import Core, * as CoreHooks from './core'
 import DefaultBuilder from './default-builder'
 import ExpressPlugin from './plugins/express-plugin'
 import HeartbeatPlugin from './plugins/heartbeat-plugin'
@@ -98,6 +98,7 @@ export {
   Builder,
   BuildPlugin,
   Core,
+  CoreHooks,
   ExpressPlugin,
   HeartbeatPlugin,
   InvalidateBuildManifestCachePlugin,

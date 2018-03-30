@@ -1,15 +1,9 @@
 import { WebClient } from '@slack/client'
-import { BuildManifestEntry, Core, Plugin } from '../theia'
+import { BuildManifestEntry, Core, CoreHooks, Plugin } from '../theia'
 
 export interface CtorParams {
   channel: string
   token?: string
-}
-
-type OnComponentLibraryUpdateArgs = {
-  core: Core
-  componentLibrary: string
-  manifestEntry: BuildManifestEntry
 }
 
 // goal: https://git.coursehero.com/coursehero/components/study-guides/commit/19a8435a97787d8a1849a63f5dbb739281ce977f
@@ -31,7 +25,7 @@ class SlackPlugin implements Plugin {
     core.hooks.componentLibraryUpdate.tapPromise('SlackPlugin', this.onComponentLibraryUpdate)
   }
 
-  onComponentLibraryUpdate = ({ core, componentLibrary, manifestEntry }: OnComponentLibraryUpdateArgs) => {
+  onComponentLibraryUpdate = ({ core, componentLibrary, manifestEntry }: CoreHooks.OnComponentLibraryUpdateArgs) => {
     const gitSource = core.libs[componentLibrary].source // ex: git@git.coursehero.com:coursehero/components/study-guides.git
     const commitUrl = getCommitUrl(core, gitSource, manifestEntry.commitHash)
 

@@ -55,12 +55,41 @@ async function getUMD (url: string, thisContext: object): Promise<void> {
   fn.call(thisContext)
 }
 
+export type OnBeforeRenderArgs = {
+  core: Core
+  componentLibrary: string
+  component: string
+  props: object
+}
+
+export type OnComponentLibraryUpdateArgs = {
+  core: Core
+  componentLibrary: string
+  manifestEntry: BuildManifestEntry
+}
+
+export type OnErrorArgs = {
+  core: Core
+  error: Error | string
+}
+
+export type OnExpressArgs = {
+  core: Core
+  app: express.Application
+}
+
+export type OnRenderArgs = OnBeforeRenderArgs
+
+export type OnStartArgs = {
+  core: Core
+}
+
 export type BeforeRenderHook = Tapable.ITypedAsyncParallelHook<{core: Core, componentLibrary: string, component: string, props: object}>
-export type ComponentLibraryUpdateHook = Tapable.ITypedAsyncParallelHook<{core: Core, componentLibrary: string, manifestEntry: BuildManifestEntry}>
-export type ErrorHook = Tapable.ITypedAsyncParallelHook<{core: Core, error: Error | string}>
-export type ExpressHook = Tapable.ITypedAsyncParallelHook<{core: Core, app: express.Application}>
-export type RenderHook = Tapable.ITypedAsyncParallelHook<{core: Core, componentLibrary: string, component: string, props: object}>
-export type StartHook = Tapable.ITypedAsyncParallelHook<{core: Core}>
+export type ComponentLibraryUpdateHook = Tapable.ITypedAsyncParallelHook<OnComponentLibraryUpdateArgs>
+export type ErrorHook = Tapable.ITypedAsyncParallelHook<OnErrorArgs>
+export type ExpressHook = Tapable.ITypedAsyncParallelHook<OnExpressArgs>
+export type RenderHook = Tapable.ITypedAsyncParallelHook<OnRenderArgs>
+export type StartHook = Tapable.ITypedAsyncParallelHook<OnStartArgs>
 
 class Core {
   builder: Builder

@@ -1,25 +1,9 @@
 import * as Rollbar from 'rollbar'
 import * as XXHash from 'xxhash'
-import { Core, Plugin } from '../theia'
+import { Core, CoreHooks, Plugin } from '../theia'
 
 export interface HashCache {
   [key: string]: number[]
-}
-
-type OnBeforeRenderArgs = {
-  core: Core
-  componentLibrary: string
-  component: string
-  props: object
-}
-
-type OnErrorArgs = {
-  core: Core
-  error: Error | string
-}
-
-type OnStartArgs = {
-  core: Core
 }
 
 const FIVE_MINUTES = 1000 * 60 * 5
@@ -48,7 +32,7 @@ class RollbarPlugin implements Plugin {
 
   // create errors if the same component/props is rendered repeatedly, which suggests a cache failure
   // before render, because props can possibly be modified during render
-  onBeforeRender = ({ core, componentLibrary, component, props }: OnBeforeRenderArgs) => {
+  onBeforeRender = ({ core, componentLibrary, component, props }: CoreHooks.OnBeforeRenderArgs) => {
     const data = componentLibrary + component + JSON.stringify(props)
     const hash = XXHash.hash(Buffer.from(data, 'utf-8'), 0)
 
@@ -65,7 +49,7 @@ class RollbarPlugin implements Plugin {
     return Promise.resolve()
   }
 
-  onError = ({ core, error }: OnErrorArgs) => {
+  onError = ({ core, error }: CoreHooks.OnErrorArgs) => {
     // tslint:disable-next-line
     return new Promise((resolve, reject) => {
       this.rollbar.error(error, err => {
@@ -75,7 +59,7 @@ class RollbarPlugin implements Plugin {
     })
   }
 
-  onStart = ({ core }: OnStartArgs) => {
+  onStart = ({ core }: CoreHooks.OnStartArgs) => {
     setInterval(() => this.pruneHashCache(), PRUNE_INTERVAL)
 
     return Promise.resolve()

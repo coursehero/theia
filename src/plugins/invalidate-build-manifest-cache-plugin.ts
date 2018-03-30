@@ -1,13 +1,9 @@
-import { Core, Plugin, BuildManifest } from '../theia'
+import { Core, CoreHooks, Plugin, BuildManifest } from '../theia'
 
 // when the build service runs, it updates the build-manifest in storage (S3)
 // the other instances of Theia (the ones that actualy render requests) won't get the new manifest b/c of internal caching
 // for now, just clear the cache periodically
 // a real solution is to have the build service alert the render services when a build has occurred
-
-type OnStartArgs = {
-  core: Core
-}
 
 function buildManifestsAreSame (bm1: BuildManifest, bm2: BuildManifest) {
   if (!bm1.length && !bm2.length) return true
@@ -24,7 +20,7 @@ class InvalidateBuildManifestCachePlugin implements Plugin {
     core.hooks.start.tapPromise('BuildPlugin', this.onStart)
   }
 
-  onStart = ({ core }: OnStartArgs) => {
+  onStart = ({ core }: CoreHooks.OnStartArgs) => {
     this.checkForUpdates(core, this.invalidationInterval).catch(err => {
       core.logError('theia:InvalidateBuildManifestCachePlugin', err)
     })

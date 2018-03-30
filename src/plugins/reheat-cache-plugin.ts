@@ -1,11 +1,5 @@
 import * as AWS from 'aws-sdk'
-import { Core, Plugin, BuildManifestEntry } from '../theia'
-
-type OnComponentLibraryUpdateArgs = {
-  core: Core
-  componentLibrary: string
-  manifestEntry: BuildManifestEntry
-}
+import { Core, CoreHooks, Plugin, BuildManifestEntry } from '../theia'
 
 class ReheatCachePlugin implements Plugin {
   sqs = new AWS.SQS()
@@ -16,7 +10,7 @@ class ReheatCachePlugin implements Plugin {
     core.hooks.componentLibraryUpdate.tapPromise('ReheatCachePlugin', this.onComponentLibraryUpdate)
   }
 
-  onComponentLibraryUpdate = ({ core, componentLibrary, manifestEntry }: OnComponentLibraryUpdateArgs) => {
+  onComponentLibraryUpdate = ({ core, componentLibrary, manifestEntry }: CoreHooks.OnComponentLibraryUpdateArgs) => {
     console.log(`reheating cache for ${componentLibrary} ...`)
     const messageAttributes: AWS.SQS.Types.MessageBodyAttributeMap = {
       Type: {
