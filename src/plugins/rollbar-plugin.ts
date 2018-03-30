@@ -1,6 +1,6 @@
 import * as Rollbar from 'rollbar'
 import * as XXHash from 'xxhash'
-import { Core, Plugin, ResponseError } from '../theia'
+import { Core, Plugin } from '../theia'
 
 export interface HashCache {
   [key: string]: number[]
@@ -15,7 +15,7 @@ type OnBeforeRenderArgs = {
 
 type OnErrorArgs = {
   core: Core
-  error: ResponseError
+  error: Error | string
 }
 
 type OnStartArgs = {

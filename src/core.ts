@@ -1,10 +1,11 @@
 /* tslint:disable:no-eval */
 
 import * as bluebird from 'bluebird'
+import * as express from 'express'
 import * as rp from 'request-promise'
-import { TypedAsyncParallelHook } from './typed-tapable'
 import { log as _log, logError as _logError } from './logger'
 import { Storage, ReactComponentClass, BuildManifestEntry, RenderResult, RenderResultAssets, Stats, ComponentLibrary, BuildManifest, Builder, Environment, ReactCacheEntry, ComponentLibraryConfigurations, Configuration } from './theia'
+import { TypedAsyncParallelHook } from './typed-tapable'
 
 /*
   This loads the production bundle of React for a specified version, evaluates the code,
@@ -56,8 +57,8 @@ async function getUMD (url: string, thisContext: object): Promise<void> {
 
 export type BeforeRenderHook = Tapable.ITypedAsyncParallelHook<{core: Core, componentLibrary: string, component: string, props: object}>
 export type ComponentLibraryUpdateHook = Tapable.ITypedAsyncParallelHook<{core: Core, componentLibrary: string, manifestEntry: BuildManifestEntry}>
-export type ErrorHook = Tapable.ITypedAsyncParallelHook<{core: Core, error: any}>
-export type ExpressHook = Tapable.ITypedAsyncParallelHook<{core: Core, app: any}>
+export type ErrorHook = Tapable.ITypedAsyncParallelHook<{core: Core, error: Error | string}>
+export type ExpressHook = Tapable.ITypedAsyncParallelHook<{core: Core, app: express.Application}>
 export type RenderHook = Tapable.ITypedAsyncParallelHook<{core: Core, componentLibrary: string, component: string, props: object}>
 export type StartHook = Tapable.ITypedAsyncParallelHook<{core: Core}>
 
@@ -269,7 +270,7 @@ class Core {
     _log(namespace, error)
   }
 
-  logError (namespace: string, error: any) {
+  logError (namespace: string, error: Error | string) {
     _logError(namespace, error)
     this.hooks.error.promise({ core: this, error }).catch(err => {
       _logError(namespace, `there was an error in the error handling hooks: ${err}`)
