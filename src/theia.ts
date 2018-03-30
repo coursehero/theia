@@ -3,51 +3,37 @@ import AuthPlugin from './plugins/auth-plugin'
 import Builder from './builder'
 import BuildPlugin from './plugins/build-plugin'
 import Core from './core'
+import DefaultBuilder from './default-builder'
 import ExpressPlugin from './plugins/express-plugin'
 import HeartbeatPlugin from './plugins/heartbeat-plugin'
 import InvalidateBuildManifestCachePlugin from './plugins/invalidate-build-manifest-cache-plugin'
 import LocalStorage from './local-storage'
+import Plugin from './plugin'
 import ReheatCachePlugin from './plugins/reheat-cache-plugin'
 import RollbarPlugin from './plugins/rollbar-plugin'
 import S3Storage from './s3-storage'
 import SlackPlugin from './plugins/slack-plugin'
+import Storage from './storage'
 import UsagePlugin from './plugins/usage-plugin'
-
-export interface TheiaExport {
-  (configFromParams?: Theia.Configuration): Theia.Core
-  AuthPlugin: typeof AuthPlugin
-  Builder: typeof Builder
-  BuildPlugin: typeof BuildPlugin
-  ExpressPlugin: typeof ExpressPlugin
-  HeartbeatPlugin: typeof HeartbeatPlugin
-  InvalidateBuildManifestCachePlugin: typeof InvalidateBuildManifestCachePlugin
-  LocalStorage: typeof LocalStorage
-  nn: typeof nn
-  ReheatCachePlugin: typeof ReheatCachePlugin
-  RollbarPlugin: typeof RollbarPlugin
-  S3Storage: typeof S3Storage
-  SlackPlugin: typeof SlackPlugin
-  UsagePlugin: typeof UsagePlugin
-}
 
 // no nulls
 export function nn<T> (array: (T | null)[]): T[] {
   return array.filter(e => e !== null) as T[]
 }
 
-function getConfig (configPath: string): Theia.Configuration {
+function getConfig (configPath: string): Configuration {
   return require(configPath).default
 }
 
-function configDefaulter (options: Theia.Configuration): Theia.CompleteConfiguration {
+function configDefaulter (options: Configuration): CompleteConfiguration {
   const opts = Object.assign({}, options)
 
   if (opts.builder === undefined) {
-    opts.builder = new Builder()
+    opts.builder = new DefaultBuilder()
   }
 
   if (opts.environment === undefined) {
-    opts.environment = process.env.THEIA_ENV as Theia.Environment || 'development'
+    opts.environment = process.env.THEIA_ENV as Environment || 'development'
   }
 
   if (opts.libs === undefined) {
@@ -66,10 +52,10 @@ function configDefaulter (options: Theia.Configuration): Theia.CompleteConfigura
     opts.verbose = true
   }
 
-  return opts as Theia.CompleteConfiguration
+  return opts as CompleteConfiguration
 }
 
-const theia = function theia (configFromParams?: Theia.Configuration): Theia.Core {
+export default function theia (configFromParams?: Configuration): Core {
   const configPaths = [
     path.resolve('theia.config'),
     path.resolve('dist/theia.config'),
@@ -105,19 +91,99 @@ const theia = function theia (configFromParams?: Theia.Configuration): Theia.Cor
   }
 
   return core
-} as TheiaExport
+}
 
-theia.AuthPlugin = AuthPlugin
-theia.Builder = Builder // TODO DefaultBuilder?
-theia.BuildPlugin = BuildPlugin
-theia.ExpressPlugin = ExpressPlugin
-theia.HeartbeatPlugin = HeartbeatPlugin
-theia.InvalidateBuildManifestCachePlugin = InvalidateBuildManifestCachePlugin
-theia.LocalStorage = LocalStorage
-theia.nn = nn
-theia.ReheatCachePlugin = ReheatCachePlugin
-theia.RollbarPlugin = RollbarPlugin
-theia.S3Storage = S3Storage
-theia.SlackPlugin = SlackPlugin
-theia.UsagePlugin = UsagePlugin
-export default theia
+export {
+  AuthPlugin,
+  Builder,
+  BuildPlugin,
+  Core,
+  ExpressPlugin,
+  HeartbeatPlugin,
+  InvalidateBuildManifestCachePlugin,
+  LocalStorage,
+  Plugin,
+  ReheatCachePlugin,
+  RollbarPlugin,
+  S3Storage,
+  SlackPlugin,
+  Storage,
+  UsagePlugin
+}
+
+export type Environment = 'development' | 'production'
+
+export interface Configuration {
+  builder?: Builder
+  environment?: Environment
+  libs?: ComponentLibraryConfigurations
+  plugins?: Plugin[]
+  storage?: Storage
+  verbose?: boolean
+  loadFromDisk?: boolean
+}
+
+export interface CompleteConfiguration {
+  builder: Builder
+  environment: Environment
+  libs: ComponentLibraryConfigurations
+  plugins: Plugin[]
+  storage: Storage
+  verbose: boolean
+}
+
+export interface ComponentLibraryConfigurations {
+  [key: string]: ComponentLibraryConfiguration
+}
+
+export interface ComponentLibraryConfiguration {
+  branches: {
+    development: string
+    production: string
+  }
+  source: string
+}
+
+export interface BuildManifestEntry {
+  author: {
+    name: string
+    email: string
+  }
+  commitHash: string
+  commitMessage: string
+  createdAt: string
+  stats: string
+}
+
+export interface BuildManifest extends Array<BuildManifestEntry> {}
+
+export interface ReactComponentClass extends React.ComponentClass<object> {}
+
+export interface ReactCacheEntry {
+  React: any
+  ReactDOMServer: any
+}
+
+export interface ComponentLibrary {
+  [key: string]: ReactComponentClass
+}
+
+export interface RenderResult {
+  html: string
+  assets: RenderResultAssets
+}
+
+export interface RenderResultAssets {
+  javascripts: string[]
+  stylesheets: string[]
+}
+
+export interface Stats {
+  assetsByChunkName: {
+    manifest: string[]
+  }
+}
+
+export interface ResponseError extends Error {
+  status?: number
+}

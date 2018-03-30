@@ -7,12 +7,13 @@ import * as HttpStatus from 'http-status-codes'
 import * as logger from 'morgan'
 import * as path from 'path'
 import * as Stream from 'stream'
+import { Core } from './theia'
 
 interface ResponseError extends Error {
   status?: number
 }
 
-export default (core: Theia.Core): express.Application => {
+export default (core: Core): express.Application => {
   const app: express.Application = express()
 
   app.engine('mustache', cons.mustache)

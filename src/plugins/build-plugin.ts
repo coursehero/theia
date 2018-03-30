@@ -1,11 +1,13 @@
+import { Core, Plugin } from '../theia'
+
 type OnStartArgs = {
-  core: Theia.Core
+  core: Core
 }
 
-class BuildPlugin implements Theia.Plugin {
+class BuildPlugin implements Plugin {
   constructor (public buildInterval: number) {}
 
-  apply (core: Theia.Core) {
+  apply (core: Core) {
     core.hooks.start.tapPromise('BuildPlugin', this.onStart)
   }
 

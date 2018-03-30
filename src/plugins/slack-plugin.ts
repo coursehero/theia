@@ -1,4 +1,5 @@
 import { WebClient } from '@slack/client'
+import { BuildManifestEntry, Core, Plugin } from '../theia'
 
 export interface CtorParams {
   channel: string
@@ -6,18 +7,18 @@ export interface CtorParams {
 }
 
 type OnComponentLibraryUpdateArgs = {
-  core: Theia.Core
+  core: Core
   componentLibrary: string
-  manifestEntry: Theia.BuildManifestEntry
+  manifestEntry: BuildManifestEntry
 }
 
 // goal: https://git.coursehero.com/coursehero/components/study-guides/commit/19a8435a97787d8a1849a63f5dbb739281ce977f
-function getCommitUrl (core: Theia.Core, gitSource: string, commitHash: string) {
+function getCommitUrl (core: Core, gitSource: string, commitHash: string) {
   const [host, repoPath] = gitSource.replace('git@', '').replace('https://', '').replace('.git', '').split(':', 2)
   return `${host}/${repoPath}/commit/${commitHash}`
 }
 
-class SlackPlugin implements Theia.Plugin {
+class SlackPlugin implements Plugin {
   client: WebClient
   channel: string
 
@@ -26,7 +27,7 @@ class SlackPlugin implements Theia.Plugin {
     this.client = new WebClient(token || process.env.SLACK_TOKEN!)
   }
 
-  apply (core: Theia.Core) {
+  apply (core: Core) {
     core.hooks.componentLibraryUpdate.tapPromise('SlackPlugin', this.onComponentLibraryUpdate)
   }
 

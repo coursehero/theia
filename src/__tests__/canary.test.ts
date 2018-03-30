@@ -1,12 +1,13 @@
 import * as rimraf from 'rimraf'
-import theia from '../theia'
 import LocalStorage from '../local-storage'
+import theia from '../theia'
+import {Configuration} from '../theia'
 
 describe('mythos', () => {
   rimraf.sync(__dirname + '/jest-libs')
   const storage = new LocalStorage(__dirname + '/jest-libs')
 
-  const config: Theia.Configuration = {
+  const config: Configuration = {
     libs: {
       mythos: {
           source: "https://github.com/theiajs/mythos.git",

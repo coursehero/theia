@@ -1,17 +1,18 @@
 import * as AWS from 'aws-sdk'
+import { Core, Plugin, BuildManifestEntry } from '../theia'
 
 type OnComponentLibraryUpdateArgs = {
-  core: Theia.Core
+  core: Core
   componentLibrary: string
-  manifestEntry: Theia.BuildManifestEntry
+  manifestEntry: BuildManifestEntry
 }
 
-class ReheatCachePlugin implements Theia.Plugin {
+class ReheatCachePlugin implements Plugin {
   sqs = new AWS.SQS()
 
   constructor (public queueUrl: string) {}
 
-  apply (core: Theia.Core) {
+  apply (core: Core) {
     core.hooks.componentLibraryUpdate.tapPromise('ReheatCachePlugin', this.onComponentLibraryUpdate)
   }
 

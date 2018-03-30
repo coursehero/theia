@@ -1,7 +1,8 @@
-import * as path from 'path'
 import * as fs from 'fs-extra'
+import * as path from 'path'
+import Storage from './storage'
 
-class LocalStorage implements Theia.Storage {
+class LocalStorage implements Storage {
   constructor (public rootStorageDir: string) {
     this.write = this.write.bind(this)
     this.exists = this.exists.bind(this)

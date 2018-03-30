@@ -1,24 +1,25 @@
 import * as Rollbar from 'rollbar'
 import * as XXHash from 'xxhash'
+import { Core, Plugin, ResponseError } from '../theia'
 
 export interface HashCache {
   [key: string]: number[]
 }
 
 type OnBeforeRenderArgs = {
-  core: Theia.Core
+  core: Core
   componentLibrary: string
   component: string
   props: object
 }
 
 type OnErrorArgs = {
-  core: Theia.Core
-  error: Theia.ResponseError
+  core: Core
+  error: ResponseError
 }
 
 type OnStartArgs = {
-  core: Theia.Core
+  core: Core
 }
 
 const FIVE_MINUTES = 1000 * 60 * 5
@@ -28,7 +29,7 @@ const REPEAT_RENDER_REQUEST_ERROR_THRESHOLD = 10
 const PRUNE_INTERVAL = FIVE_MINUTES
 const CACHE_TTL = ONE_HOUR
 
-class RollbarPlugin implements Theia.Plugin {
+class RollbarPlugin implements Plugin {
   rollbar: Rollbar
   hashCache: HashCache = {}
 
@@ -39,7 +40,7 @@ class RollbarPlugin implements Theia.Plugin {
     })
   }
 
-  apply (core: Theia.Core) {
+  apply (core: Core) {
     core.hooks.beforeRender.tapPromise('RollbarPlugin', this.onBeforeRender)
     core.hooks.error.tapPromise('RollbarPlugin', this.onError)
     core.hooks.start.tapPromise('RollbarPlugin', this.onStart)

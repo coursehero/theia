@@ -1,14 +1,15 @@
 import * as http from 'http'
 import createExpressApp from '../create-express-app'
+import { Core, Plugin } from '../theia'
 
 type OnStartArgs = {
-  core: Theia.Core
+  core: Core
 }
 
-class ExpressPlugin implements Theia.Plugin {
+class ExpressPlugin implements Plugin {
   constructor (public port: number) {}
 
-  apply (core: Theia.Core) {
+  apply (core: Core) {
     core.hooks.start.tapPromise('ExpressPlugin', this.onStart)
   }
 

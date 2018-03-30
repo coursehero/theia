@@ -1,9 +1,10 @@
-import * as path from 'path'
-import * as fs from 'fs-extra'
 import * as AWS from 'aws-sdk'
+import * as fs from 'fs-extra'
 import * as mime from 'mime-types'
+import * as path from 'path'
+import Storage from './storage'
 
-class S3Storage implements Theia.Storage {
+class S3Storage implements Storage {
   client: AWS.S3 = new AWS.S3()
 
   constructor (public bucket: string, public rootDir: string) {
