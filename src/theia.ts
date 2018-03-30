@@ -21,11 +21,11 @@ export function nn<T> (array: (T | null)[]): T[] {
   return array.filter(e => e !== null) as T[]
 }
 
-function getConfig (configPath: string): Configuration {
+function getConfig (configPath: string): Required<Configuration> {
   return require(configPath).default
 }
 
-function configDefaulter (options: Configuration): CompleteConfiguration {
+function configDefaulter (options: Configuration): Required<Configuration> {
   const opts = Object.assign({}, options)
 
   if (opts.builder === undefined) {
@@ -52,7 +52,7 @@ function configDefaulter (options: Configuration): CompleteConfiguration {
     opts.verbose = true
   }
 
-  return opts as CompleteConfiguration
+  return opts as Required<Configuration>
 }
 
 export default function theia (configFromParams?: Configuration): Core {
@@ -121,15 +121,6 @@ export interface Configuration {
   storage?: Storage
   verbose?: boolean
   loadFromDisk?: boolean
-}
-
-export interface CompleteConfiguration {
-  builder: Builder
-  environment: Environment
-  libs: ComponentLibraryConfigurations
-  plugins: Plugin[]
-  storage: Storage
-  verbose: boolean
 }
 
 export interface ComponentLibraryConfigurations {

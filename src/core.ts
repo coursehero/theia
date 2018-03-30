@@ -4,7 +4,7 @@ import * as bluebird from 'bluebird'
 import * as rp from 'request-promise'
 import { TypedAsyncParallelHook } from './typed-tapable'
 import { log as _log, logError as _logError } from './logger'
-import { Storage, ReactComponentClass, BuildManifestEntry, RenderResult, RenderResultAssets, Stats, ComponentLibrary, BuildManifest, Builder, Environment, ReactCacheEntry, ComponentLibraryConfigurations, CompleteConfiguration } from './theia'
+import { Storage, ReactComponentClass, BuildManifestEntry, RenderResult, RenderResultAssets, Stats, ComponentLibrary, BuildManifest, Builder, Environment, ReactCacheEntry, ComponentLibraryConfigurations, Configuration } from './theia'
 
 /*
   This loads the production bundle of React for a specified version, evaluates the code,
@@ -90,7 +90,7 @@ class Core {
   buildManifestCache: { [key: string]: BuildManifest } = {}
   statsContentsCache: { [key: string]: Stats } = {}
 
-  constructor (config: CompleteConfiguration) {
+  constructor (config: Required<Configuration>) {
     this.builder = config.builder
     this.libs = config.libs
     this.environment = config.environment
