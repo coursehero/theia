@@ -1,16 +1,11 @@
-import * as express from 'express'
+import { Core, CoreHooks, Plugin } from '../theia'
 
-type OnExpressArgs = {
-  core: Theia.Core
-  app: express.Application
-}
-
-class HeartbeatPlugin implements Theia.Plugin {
-  apply (core: Theia.Core) {
+class HeartbeatPlugin implements Plugin {
+  apply (core: Core) {
     core.hooks.express.tapPromise('HeartbeatPlugin', this.onExpress)
   }
 
-  onExpress = ({ core, app }: OnExpressArgs) => {
+  onExpress = ({ core, app }: CoreHooks.OnExpressArgs) => {
     app.get('/heartbeat', (req, res) => {
       res.send('thud thud')
     })

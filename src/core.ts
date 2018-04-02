@@ -1,9 +1,11 @@
 /* tslint:disable:no-eval */
 
 import * as bluebird from 'bluebird'
+import * as express from 'express'
 import * as rp from 'request-promise'
-import { TypedAsyncParallelHook } from './typed-tapable'
 import { log as _log, logError as _logError } from './logger'
+import { Builder, BuildManifest, BuildManifestEntry, ComponentLibrary, ComponentLibraryConfigurations, Configuration, Environment, ReactCacheEntry, ReactComponentClass, RenderResult, RenderResultAssets, Stats, Storage } from './theia'
+import { TypedAsyncParallelHook } from './typed-tapable'
 
 /*
   This loads the production bundle of React for a specified version, evaluates the code,
@@ -11,13 +13,13 @@ import { log as _log, logError as _logError } from './logger'
 
   This doesn't have to be dynamic, but this will enable multiple versions of React to be supported.
 */
-const reactCache: { [key: string]: Theia.ReactCacheEntry } = {}
-async function getReact (version: string): Promise<Theia.ReactCacheEntry> {
+const reactCache: { [key: string]: ReactCacheEntry } = {}
+async function getReact (version: string): Promise<ReactCacheEntry> {
   if (reactCache[version]) {
     return reactCache[version]
   }
 
-  const reactCacheEntry = reactCache[version] = {} as Theia.ReactCacheEntry
+  const reactCacheEntry = reactCache[version] = {} as ReactCacheEntry
   const majorVersion = parseInt(version.split('.')[0], 10)
 
   if (majorVersion >= 16) {
@@ -53,22 +55,58 @@ async function getUMD (url: string, thisContext: object): Promise<void> {
   fn.call(thisContext)
 }
 
-class Core implements Theia.Core {
-  builder: Theia.Builder
+export type OnBeforeRenderArgs = {
+  core: Core
+  componentLibrary: string
+  component: string
+  props: object
+}
 
-  libs: Theia.ComponentLibraryConfigurations
+export type OnComponentLibraryUpdateArgs = {
+  core: Core
+  componentLibrary: string
+  manifestEntry: BuildManifestEntry
+}
 
-  environment: Theia.Environment
+export type OnErrorArgs = {
+  core: Core
+  error: Error | string
+}
 
-  storage: Theia.Storage
+export type OnExpressArgs = {
+  core: Core
+  app: express.Application
+}
+
+export type OnRenderArgs = OnBeforeRenderArgs
+
+export type OnStartArgs = {
+  core: Core
+}
+
+export type BeforeRenderHook = Tapable.ITypedAsyncParallelHook<{core: Core, componentLibrary: string, component: string, props: object}>
+export type ComponentLibraryUpdateHook = Tapable.ITypedAsyncParallelHook<OnComponentLibraryUpdateArgs>
+export type ErrorHook = Tapable.ITypedAsyncParallelHook<OnErrorArgs>
+export type ExpressHook = Tapable.ITypedAsyncParallelHook<OnExpressArgs>
+export type RenderHook = Tapable.ITypedAsyncParallelHook<OnRenderArgs>
+export type StartHook = Tapable.ITypedAsyncParallelHook<OnStartArgs>
+
+class Core {
+  builder: Builder
+
+  libs: ComponentLibraryConfigurations
+
+  environment: Environment
+
+  storage: Storage
 
   hooks: {
-    beforeRender: Theia.BeforeRenderHook
-    componentLibraryUpdate: Theia.ComponentLibraryUpdateHook
-    error: Theia.ErrorHook
-    express: Theia.ExpressHook
-    render: Theia.RenderHook
-    start: Theia.StartHook
+    beforeRender: BeforeRenderHook
+    componentLibraryUpdate: ComponentLibraryUpdateHook
+    error: ErrorHook
+    express: ExpressHook
+    render: RenderHook
+    start: StartHook
   } = {
     beforeRender: new TypedAsyncParallelHook(['core', 'componentLibrary', 'component', 'props']),
     componentLibraryUpdate: new TypedAsyncParallelHook(['core', 'componentLibrary', 'manifestEntry']),
@@ -78,11 +116,11 @@ class Core implements Theia.Core {
     start: new TypedAsyncParallelHook(['core'])
   }
 
-  libCache: { [key: string]: Theia.ComponentLibrary } = {}
-  buildManifestCache: { [key: string]: Theia.BuildManifest } = {}
-  statsContentsCache: { [key: string]: Theia.Stats } = {}
+  libCache: { [key: string]: ComponentLibrary } = {}
+  buildManifestCache: { [key: string]: BuildManifest } = {}
+  statsContentsCache: { [key: string]: Stats } = {}
 
-  constructor (config: Theia.CompleteConfiguration) {
+  constructor (config: Required<Configuration>) {
     this.builder = config.builder
     this.libs = config.libs
     this.environment = config.environment
@@ -105,7 +143,7 @@ class Core implements Theia.Core {
 
   // TODO: should only hit storage if build files are not in cache/memory.
   // need to cache stats/build-manifest.json files just like source is being cached
-  async render (componentLibrary: string, componentName: string, props: object): Promise<Theia.RenderResult> {
+  async render (componentLibrary: string, componentName: string, props: object): Promise<RenderResult> {
     // don't wait for completion
     this.hooks.beforeRender.promise({ core: this, componentLibrary, component: componentName, props }).catch(err => {
       // TODO: find out how to get which plugin threw the error
@@ -137,12 +175,12 @@ class Core implements Theia.Core {
     }
   }
 
-  async registerComponentLibrary (componentLibrary: string, buildAssets: string[], manifestEntry: Theia.BuildManifestEntry): Promise<void> {
+  async registerComponentLibrary (componentLibrary: string, buildAssets: string[], manifestEntry: BuildManifestEntry): Promise<void> {
     for (const asset of buildAssets) {
       await this.storage.copy(componentLibrary, asset)
     }
 
-    let manifest: Theia.BuildManifest = []
+    let manifest: BuildManifest = []
     if (await this.hasBuildManifest(componentLibrary)) {
       manifest = await this.getBuildManifest(componentLibrary)
     }
@@ -166,7 +204,7 @@ class Core implements Theia.Core {
     return this.storage.exists(componentLibrary, 'build-manifest.json')
   }
 
-  async getBuildManifest (componentLibrary: string): Promise<Theia.BuildManifest> {
+  async getBuildManifest (componentLibrary: string): Promise<BuildManifest> {
     if (this.buildManifestCache[componentLibrary]) {
       return this.buildManifestCache[componentLibrary]
     }
@@ -175,7 +213,7 @@ class Core implements Theia.Core {
     return this.buildManifestCache[componentLibrary] = JSON.parse(contents)
   }
 
-  async getLatestStatsContents (componentLibrary: string): Promise<Theia.Stats> {
+  async getLatestStatsContents (componentLibrary: string): Promise<Stats> {
     if (this.statsContentsCache[componentLibrary]) {
       return this.statsContentsCache[componentLibrary]
     }
@@ -186,7 +224,7 @@ class Core implements Theia.Core {
     return this.statsContentsCache[componentLibrary] = JSON.parse(statsContents)
   }
 
-  async getComponentLibrary (reactVersion: string, componentLibrary: string): Promise<Theia.ComponentLibrary> {
+  async getComponentLibrary (reactVersion: string, componentLibrary: string): Promise<ComponentLibrary> {
     if (this.libCache[componentLibrary]) {
       return this.libCache[componentLibrary]
     }
@@ -209,7 +247,7 @@ class Core implements Theia.Core {
     return this.libCache[componentLibrary] = evaluated.default
   }
 
-  async getComponent (reactVersion: string, componentLibrary: string, component: string): Promise<Theia.ReactComponentClass> {
+  async getComponent (reactVersion: string, componentLibrary: string, component: string): Promise<ReactComponentClass> {
     const lib = await this.getComponentLibrary(reactVersion, componentLibrary)
 
     if (!(component in lib)) {
@@ -220,7 +258,7 @@ class Core implements Theia.Core {
   }
 
   // temporary. just returns all the assets for a CL. change when codesplitting is working
-  async getAssets (componentLibrary: string): Promise<Theia.RenderResultAssets> {
+  async getAssets (componentLibrary: string): Promise<RenderResultAssets> {
     const stats = await this.getLatestStatsContents(componentLibrary)
     const manifestAssets = stats.assetsByChunkName.manifest
 
@@ -261,7 +299,7 @@ class Core implements Theia.Core {
     _log(namespace, error)
   }
 
-  logError (namespace: string, error: any) {
+  logError (namespace: string, error: Error | string) {
     _logError(namespace, error)
     this.hooks.error.promise({ core: this, error }).catch(err => {
       _logError(namespace, `there was an error in the error handling hooks: ${err}`)

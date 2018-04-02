@@ -23,7 +23,7 @@ function log (namespace: string, message: string) {
   getStdOutLogger(namespace)(message)
 }
 
-function logError (namespace: string, message: string) {
+function logError (namespace: string, message: Error | string) {
   getStdErrLogger(namespace)(message)
 }
 

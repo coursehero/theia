@@ -6,7 +6,6 @@ dist
 var
 libs
 yarn-error.log
-theia.local.config.json
 .idea
 newrelic_agent.log
 jest-libs

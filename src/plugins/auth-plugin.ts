@@ -1,19 +1,14 @@
-import * as express from 'express'
 import * as HttpStatus from 'http-status-codes'
+import { Core, CoreHooks, Plugin } from '../theia'
 
-type OnExpressArgs = {
-  core: Theia.Core
-  app: express.Application
-}
-
-class AuthPlugin implements Theia.Plugin {
+class AuthPlugin implements Plugin {
   constructor (public header: string, public secret: string) {}
 
-  apply (core: Theia.Core) {
+  apply (core: Core) {
     core.hooks.express.tapPromise('AuthPlugin', this.onExpress)
   }
 
-  onExpress = ({ core, app }: OnExpressArgs) => {
+  onExpress = ({ core, app }: CoreHooks.OnExpressArgs) => {
     app.use((req, res, next) => {
       if (req.get(this.header) === this.secret) {
         return next()

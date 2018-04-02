@@ -1,13 +1,11 @@
+import { BuildManifest, Core, CoreHooks, Plugin } from '../theia'
+
 // when the build service runs, it updates the build-manifest in storage (S3)
 // the other instances of Theia (the ones that actualy render requests) won't get the new manifest b/c of internal caching
 // for now, just clear the cache periodically
 // a real solution is to have the build service alert the render services when a build has occurred
 
-type OnStartArgs = {
-  core: Theia.Core
-}
-
-function buildManifestsAreSame (bm1: Theia.BuildManifest, bm2: Theia.BuildManifest) {
+function buildManifestsAreSame (bm1: BuildManifest, bm2: BuildManifest) {
   if (!bm1.length && !bm2.length) return true
   if (bm1.length !== bm2.length) return false
   if (bm1[bm1.length - 1].commitHash !== bm2[bm2.length - 1].commitHash) return false
@@ -15,14 +13,14 @@ function buildManifestsAreSame (bm1: Theia.BuildManifest, bm2: Theia.BuildManife
   return true
 }
 
-class InvalidateBuildManifestCachePlugin implements Theia.Plugin {
+class InvalidateBuildManifestCachePlugin implements Plugin {
   constructor (public invalidationInterval: number) {}
 
-  apply (core: Theia.Core) {
+  apply (core: Core) {
     core.hooks.start.tapPromise('BuildPlugin', this.onStart)
   }
 
-  onStart = ({ core }: OnStartArgs) => {
+  onStart = ({ core }: CoreHooks.OnStartArgs) => {
     this.checkForUpdates(core, this.invalidationInterval).catch(err => {
       core.logError('theia:InvalidateBuildManifestCachePlugin', err)
     })
@@ -30,7 +28,7 @@ class InvalidateBuildManifestCachePlugin implements Theia.Plugin {
     return Promise.resolve()
   }
 
-  checkForUpdates (core: Theia.Core, delay: number): Promise<void> {
+  checkForUpdates (core: Core, delay: number): Promise<void> {
     return Promise.resolve()
       .then(() => new Promise(function (resolve) {
         setTimeout(resolve, delay)

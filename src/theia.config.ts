@@ -1,11 +1,11 @@
 import * as path from 'path'
-import theia from './theia'
+import * as theia from './theia'
 
 const FIVE_MINUTES = 1000 * 60 * 5
 const useLocalStorage = process.env.THEIA_LOCAL === '1' || process.env.THEIA_LOCAL_STORAGE === '1'
 const enablePeriodicBuilding = process.env.THEIA_LOCAL === '1' || process.env.THEIA_LOCAL_BUILD === '1'
 
-let storage: Theia.Storage
+let storage: theia.Storage
 if (useLocalStorage) {
   storage = new theia.LocalStorage(path.resolve(__dirname, '..', 'libs'))
 } else {
@@ -15,13 +15,13 @@ if (useLocalStorage) {
   )
 }
 
-const plugins: Theia.Plugin[] = theia.nn([
+const plugins: theia.Plugin[] = theia.nn([
   process.env.THEIA_ROLLBAR_TOKEN ? new theia.RollbarPlugin(process.env.THEIA_ROLLBAR_TOKEN, process.env.ROLLBAR_ENV!) : null,
   process.env.SLACK_TOKEN ? new theia.SlackPlugin({
     channel: {
       development: '#theia-dev',
       production: '#theia-prod'
-    }[process.env.THEIA_ENV as Theia.Environment]
+    }[process.env.THEIA_ENV as theia.Environment]
   }) : null,
   enablePeriodicBuilding ? new theia.BuildPlugin(FIVE_MINUTES) : null,
   new theia.InvalidateBuildManifestCachePlugin(5000), // the DelaySeconds param on 'new-build-job' should compensate for this
@@ -32,7 +32,7 @@ const plugins: Theia.Plugin[] = theia.nn([
   new theia.UsagePlugin()
 ])
 
-const libs: Theia.ComponentLibraryConfigurations = {
+const libs: theia.ComponentLibraryConfigurations = {
   '@coursehero-components/study-guides': {
     source: 'git@git.coursehero.com:coursehero/components/study-guides.git',
     branches: {
@@ -49,7 +49,7 @@ const libs: Theia.ComponentLibraryConfigurations = {
   }
 }
 
-const config: Theia.Configuration = {
+const config: theia.Configuration = {
   libs,
   plugins,
   storage

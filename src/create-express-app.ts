@@ -2,17 +2,14 @@ import * as bodyParser from 'body-parser'
 import * as cons from 'consolidate'
 import * as cookieParser from 'cookie-parser'
 import * as express from 'express'
-import * as favicon from 'serve-favicon'
 import * as HttpStatus from 'http-status-codes'
 import * as logger from 'morgan'
 import * as path from 'path'
+import * as favicon from 'serve-favicon'
 import * as Stream from 'stream'
+import { Core, ResponseError } from './theia'
 
-interface ResponseError extends Error {
-  status?: number
-}
-
-export default (core: Theia.Core): express.Application => {
+export default (core: Core): express.Application => {
   const app: express.Application = express()
 
   app.engine('mustache', cons.mustache)
