@@ -6,6 +6,10 @@ def silent_sh(cmd) {
 try{
     node {
         stage 'Checkout'
+            if("true" == "${FORCE_CLEAR_GIT_WORKSPACE}") {
+              echo "Force clearing Git workspace"
+              sh 'docker run --rm --net="host" -v /var/lib/jenkins/jobs/Build-DevTheia:/root/Build-DevTheia:rw -i 315915642113.dkr.ecr.us-east-1.amazonaws.com/scriptbox:php7.1 rm -fr /root/Build-DevTheia/workspace'
+            }
             git url: 'git@prod-git.coursehero.com:coursehero/service/theia.git', branch: BRANCH
 
         stage 'Build / Test'
