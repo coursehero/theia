@@ -40,6 +40,10 @@ function configDefaulter (options: Configuration): Required<Configuration> {
     throw new Error('must supply libs config')
   }
 
+  if (opts.loadFromDisk === undefined) {
+    opts.loadFromDisk = true
+  }
+
   if (opts.plugins === undefined) {
     opts.plugins = []
   }
