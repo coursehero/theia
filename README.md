@@ -76,7 +76,7 @@ Body (HTML):
 
 Component Library (CL) - React libraries which 1) build themselves and 2) export components via a component manifest module.
 
-View [mythos](https://git.coursehero.com/coursehero/components/mythos) for an simple example CL.
+View [mythos](https://github.com/theiajs/mythos) for an simple example CL.
 View [study guides](https://git.coursehero.com/coursehero/components/study-guides) for a production example CL. This uses TypeScript and implements hot code reloading.
 
 ### Rendering Client
