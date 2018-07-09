@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -12,6 +12,9 @@ docker run --rm -it -p 3000:80 \
   -v "$DIR"/../var:/var/www/current/var \
   -e DEBUG=${DEBUG:-theia*} \
   -e THEIA_LOCAL=${THEIA_LOCAL:-1} \
+  $( if [ ! -z ${THEIA_INCLUDE_MYTHOS+x} ]; then
+    echo "-e THEIA_INCLUDE_MYTHOS=$THEIA_INCLUDE_MYTHOS"
+  fi ) \
   $( if [ ! -z ${THEIA_LOCAL_STORAGE+x} ]; then
     echo "-e THEIA_LOCAL_STORAGE=$THEIA_LOCAL_STORAGE"
   fi ) \

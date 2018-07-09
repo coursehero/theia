@@ -42,6 +42,16 @@ const libs: theia.ComponentLibraryConfigurations = {
   }
 }
 
+if (process.env.THEIA_INCLUDE_MYTHOS) {
+  libs['@coursehero-components/mythos'] = {
+    source: 'https://github.com/theiajs/mythos.git',
+    branches: {
+      development: 'dev',
+      production: 'master'
+    }
+  }
+}
+
 const config: theia.Configuration = {
   libs,
   plugins,
