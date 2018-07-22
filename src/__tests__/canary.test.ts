@@ -10,11 +10,11 @@ describe('mythos', () => {
   const config: Configuration = {
     libs: {
       mythos: {
-          source: "https://github.com/theiajs/mythos.git",
-          branches: {
-              development: "dev",
-              production: "master"
-          }
+        source: "https://github.com/theiajs/mythos.git",
+        branches: {
+          development: "dev",
+          production: "master"
+        }
       }
     },
     storage,
@@ -35,8 +35,8 @@ describe('mythos', () => {
     expect(stats).toMatchObject({
       "assetsByChunkName": {
         "manifest": [
-          "manifest.19921ef415ad5c4fdaf5.js",
-          "manifest.19921ef415ad5c4fdaf5.js.map"
+          "manifest.7ebe6ba1d14adc2465d7.js",
+          "manifest.7ebe6ba1d14adc2465d7.js.map"
         ]
       }
     })
@@ -52,7 +52,18 @@ describe('mythos', () => {
     expect(result).toEqual({
       html: '<div data-reactroot="">Hello <em>Theia</em>!!!</div>',
       assets: {
-        javascripts: [ 'manifest.19921ef415ad5c4fdaf5.js' ],
+        javascripts: [ 'manifest.7ebe6ba1d14adc2465d7.js' ],
+        stylesheets: []
+      }
+    })
+  })
+
+  test('renders something using ReactDOM', async () => {
+    const result = await core.render('mythos', 'MythosApp', { })
+    expect(result).toEqual({
+      html: '<div data-reactroot="">Mythos App</div>',
+      assets: {
+        javascripts: [ 'manifest.7ebe6ba1d14adc2465d7.js' ],
         stylesheets: []
       }
     })

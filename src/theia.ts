@@ -157,6 +157,7 @@ export interface ReactComponentClass extends React.ComponentClass<object> {}
 
 export interface ReactCacheEntry {
   React: any
+  ReactDOM: any
   ReactDOMServer: any
 }
 
