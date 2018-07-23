@@ -114,3 +114,7 @@ See `StudyGuideTheiaJobHandler` for a production example.
 * Use source maps to map errors during rendering to CL source code
 * Confirm that cache job handling scales
 * Open source
+
+### Measure Real Performance
+
+Make script that hits testing endpoint on site -> webserver makes request to theia (enable timings, disable wendigo, do with caching and w/o caching) -> script record timings
