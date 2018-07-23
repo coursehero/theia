@@ -26,7 +26,10 @@ async function getReact (version: string): Promise<ReactCacheEntry> {
     const reactUrl = `https://cdnjs.cloudflare.com/ajax/libs/react/${version}/umd/react.production.min.js`
     await getUMD(reactUrl, reactCacheEntry)
 
-    // this expects "React" to already be defined
+    // these expects "React" to already be defined
+    const reactDomUrl = `https://cdnjs.cloudflare.com/ajax/libs/react-dom/${version}/umd/react-dom.production.min.js`
+    await getUMD(reactDomUrl, reactCacheEntry)
+
     const reactDomServerUrl = `https://cdnjs.cloudflare.com/ajax/libs/react-dom/${version}/umd/react-dom-server.browser.production.min.js`
     await getUMD(reactDomServerUrl, reactCacheEntry)
   } else {
@@ -236,8 +239,8 @@ class Core {
     const stats = await this.getLatestStatsContents(componentLibrary)
     const componentManifestBasename = stats.assetsByChunkName.manifest.find((asset: string) => asset.startsWith('manifest') && asset.endsWith('.js'))
     const source = await this.storage.load(componentLibrary, componentManifestBasename!)
-    const { React } = await getReact(reactVersion)
-    const window = { React } // tslint:disable-line
+    const { React, ReactDOM } = await getReact(reactVersion)
+    const window = { React, ReactDOM } // tslint:disable-line
     const evaluated = eval(source)
 
     if (!evaluated.default) {
