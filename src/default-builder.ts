@@ -73,30 +73,39 @@ class DefaultBuilder implements Builder {
 
     const componentLibraryPackage = require(path.resolve(workingDir, 'package.json'))
 
-    // If build command exists, use it. It is assumed that it pipes the webpack stats file to "dist/stats.json"
+    // If build command exists, use it
     const buildCommand = componentLibraryPackage.scripts.build ?
                           'yarn build' :
-                          `./node_modules/.bin/webpack --json > dist/stats.json`
+                          './node_modules/.bin/webpack --json > dist/stats-browser.json && ./node_modules/.bin/webpack --json --output-library-target commonjs2 > dist/stats-node.json'
     await doPromiseExec(buildCommand, { cwd: workingDir }).catch(err => {
       // webpack does not send errors to stdout when using "--json"
       // instead, it puts it in the json output
-      const statsPath = path.join(workingDir, 'dist', 'stats.json')
-      if (fs.pathExistsSync(statsPath)) {
-        const stats = require(statsPath)
-        if (stats.errors && stats.errors.length) {
-          throw new Error(stats.errors.join('\n====\n'))
+      const statsPaths = [path.join(workingDir, 'dist', 'stats-node.json'), path.join(workingDir, 'dist', 'stats-browser.json')]
+      statsPaths.forEach(statsPath => {
+        if (fs.pathExistsSync(statsPath)) {
+          const stats = require(statsPath)
+          if (stats.errors && stats.errors.length) {
+            throw new Error(stats.errors.join('\n====\n'))
+          }
         }
-      }
+      })
 
       throw err
     })
 
-    if (!fs.existsSync(path.join(workingDir, 'dist', 'stats.json'))) {
-      throw new Error(`Building ${componentLibrary} did not emit a stats file`)
+    if (!fs.existsSync(path.join(workingDir, 'dist', 'stats-browser.json'))) {
+      throw new Error(`Building ${componentLibrary} did not emit a browser stats file`)
     }
 
-    const statsFilename = `stats.${commitHash}.json`
-    fs.renameSync(path.join(workingDir, 'dist', 'stats.json'), path.join(workingDir, 'dist', statsFilename))
+    if (!fs.existsSync(path.join(workingDir, 'dist', 'stats-node.json'))) {
+      throw new Error(`Building ${componentLibrary} did not emit a node stats file`)
+    }
+
+    const browserStatsFilename = `stats-browser.${commitHash}.json`
+    fs.renameSync(path.join(workingDir, 'dist', 'stats-browser.json'), path.join(workingDir, 'dist', browserStatsFilename))
+
+    const nodeStatsFilename = `stats-node.${commitHash}.json`
+    fs.renameSync(path.join(workingDir, 'dist', 'stats-node.json'), path.join(workingDir, 'dist', nodeStatsFilename))
 
     if (componentLibraryPackage.scripts.test) {
       core.log(logNamespace, `running tests`)
@@ -111,7 +120,8 @@ class DefaultBuilder implements Builder {
         commitHash,
         commitMessage,
         author,
-        stats: statsFilename,
+        browserStats: browserStatsFilename,
+        nodeStats: nodeStatsFilename,
         createdAt: new Date().toString()
       }
 

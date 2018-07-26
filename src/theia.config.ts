@@ -46,7 +46,7 @@ if (process.env.THEIA_INCLUDE_MYTHOS) {
   libs['@coursehero-components/mythos'] = {
     source: 'https://github.com/theiajs/mythos.git',
     branches: {
-      development: 'dev',
+      development: 'v1',
       production: 'master'
     }
   }

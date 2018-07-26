@@ -2,61 +2,11 @@
 
 import * as bluebird from 'bluebird'
 import * as express from 'express'
-import * as rp from 'request-promise'
+import * as path from 'path'
+import * as requireFromString from 'require-from-string'
 import { log as _log, logError as _logError } from './logger'
-import { Builder, BuildManifest, BuildManifestEntry, ComponentLibrary, ComponentLibraryConfigurations, Configuration, Environment, ReactCacheEntry, ReactComponentClass, RenderResult, RenderResultAssets, Stats, Storage } from './theia'
+import { Builder, BuildManifest, BuildManifestEntry, ComponentLibrary, ComponentLibraryConfigurations, Configuration, Environment, ReactComponentClass, RenderResult, RenderResultAssets, Stats, Storage } from './theia'
 import { TypedAsyncParallelHook } from './typed-tapable'
-
-/*
-  This loads the production bundle of React for a specified version, evaluates the code,
-  and stores within a cache separate from other versions.
-
-  This doesn't have to be dynamic, but this will enable multiple versions of React to be supported.
-*/
-const reactCache: { [key: string]: ReactCacheEntry } = {}
-async function getReact (version: string): Promise<ReactCacheEntry> {
-  if (reactCache[version]) {
-    return reactCache[version]
-  }
-
-  const reactCacheEntry = reactCache[version] = {} as ReactCacheEntry
-  const majorVersion = parseInt(version.split('.')[0], 10)
-
-  if (majorVersion >= 16) {
-    const reactUrl = `https://cdnjs.cloudflare.com/ajax/libs/react/${version}/umd/react.production.min.js`
-    await getUMD(reactUrl, reactCacheEntry)
-
-    // these expects "React" to already be defined
-    const reactDomUrl = `https://cdnjs.cloudflare.com/ajax/libs/react-dom/${version}/umd/react-dom.production.min.js`
-    await getUMD(reactDomUrl, reactCacheEntry)
-
-    const reactDomServerUrl = `https://cdnjs.cloudflare.com/ajax/libs/react-dom/${version}/umd/react-dom-server.browser.production.min.js`
-    await getUMD(reactDomServerUrl, reactCacheEntry)
-  } else {
-    // React had a major overhaul in their build process at version 16. So, doing the above trick won't work.
-    // Using a version >=16 is really necessary to get the full benefits of SSR (ReactDOM.hydrate wasn't added until 16)
-    // So, not supporting <=15 shouldn't be a big deal.
-
-    // (Note: it's still possible to support <=15, I just don't care to figure it out right now.)
-
-    // hopefully we can get the website migrated to version 16 before Theia goes live
-
-    throw new Error('unsupported version of react: ' + version)
-  }
-
-  return reactCacheEntry
-}
-
-/*
-  This works because the UMD bundle (targeted for browsers) defines React on the global window object
-  by passing "this" to a module function. In the browser context, "this" points to "window" at the top scope.
-  By creating a new scope above the module code, we can modify where React gets stored.
-*/
-async function getUMD (url: string, thisContext: object): Promise<void> {
-  // TODO: not sure why tslint says that "rp.get" does not return a promise.
-  const fn = new Function(await rp.get(url)) // tslint:disable-line
-  fn.call(thisContext)
-}
 
 export type OnBeforeRenderArgs = {
   core: Core
@@ -144,8 +94,6 @@ class Core {
     })
   }
 
-  // TODO: should only hit storage if build files are not in cache/memory.
-  // need to cache stats/build-manifest.json files just like source is being cached
   async render (componentLibrary: string, componentName: string, props: object): Promise<RenderResult> {
     // don't wait for completion
     this.hooks.beforeRender.promise({ core: this, componentLibrary, component: componentName, props }).catch(err => {
@@ -154,16 +102,17 @@ class Core {
       this.logError(`theia:${plugin}:beforeRender`, err)
     })
 
-    // TODO: this version should come from the CL's yarn.lock. at build time, the react version should be
-    // saved in build-manifest.json for that CL
-    const reactVersion = '16.2.0'
-    const { React, ReactDOMServer } = await getReact(reactVersion)
-
-    const component = await this.getComponent(reactVersion, componentLibrary, componentName)
-    const html = ReactDOMServer.renderToString(React.createElement(component, props))
+    const ComponentLibrary = await this.getComponentLibrary(componentLibrary)
+    if (!(componentName in ComponentLibrary.Components)) {
+      throw new Error(`${componentName} is not a registered component of ${componentLibrary}`)
+    }
+    const React = ComponentLibrary.React
+    const ReactDOMServer = ComponentLibrary.ReactDOMServer
+    const Component = ComponentLibrary.Components[componentName]
+    const html = ReactDOMServer.renderToString(React.createElement(Component, props))
 
     // TODO: code splitting w/ universal components
-    const assets = await this.getAssets(componentLibrary)
+    const assets = await this.getAssets(componentLibrary, componentName)
 
     // don't wait for completion
     this.hooks.render.promise({ core: this, componentLibrary, component: componentName, props }).catch(err => {
@@ -223,11 +172,15 @@ class Core {
 
     const buildManifest = await this.getBuildManifest(componentLibrary)
     const latest = buildManifest[buildManifest.length - 1]
-    const statsContents = await this.storage.load(componentLibrary, latest.stats)
-    return this.statsContentsCache[componentLibrary] = JSON.parse(statsContents)
+    const browserStatsContents = await this.storage.load(componentLibrary, latest.browserStats)
+    const nodeStatsContents = await this.storage.load(componentLibrary, latest.nodeStats)
+    return this.statsContentsCache[componentLibrary] = {
+      browser: JSON.parse(browserStatsContents),
+      node: JSON.parse(nodeStatsContents)
+    }
   }
 
-  async getComponentLibrary (reactVersion: string, componentLibrary: string): Promise<ComponentLibrary> {
+  async getComponentLibrary (componentLibrary: string): Promise<ComponentLibrary> {
     if (this.libCache[componentLibrary]) {
       return this.libCache[componentLibrary]
     }
@@ -236,38 +189,33 @@ class Core {
       throw new Error(`${componentLibrary} is not a registered component library`)
     }
 
-    const stats = await this.getLatestStatsContents(componentLibrary)
-    const componentManifestBasename = stats.assetsByChunkName.manifest.find((asset: string) => asset.startsWith('manifest') && asset.endsWith('.js'))
-    const source = await this.storage.load(componentLibrary, componentManifestBasename!)
-    const { React, ReactDOM } = await getReact(reactVersion)
-    const window = { React, ReactDOM } // tslint:disable-line
-    const evaluated = eval(source)
-
-    if (!evaluated.default) {
-      throw new Error(`${componentLibrary} component manifest does not have a default export`)
+    const projectRootDir = path.resolve(__dirname, '..')
+    const workingDir = path.resolve(projectRootDir, 'var', componentLibrary)
+    const ComponentLibrary: ComponentLibrary = {
+      React: await import(`${workingDir}/node_modules/react`),
+      ReactDOM: await import(`${workingDir}/node_modules/react-dom`),
+      ReactDOMServer: await import(`${workingDir}/node_modules/react-dom/server`),
+      Components: {}
     }
 
-    return this.libCache[componentLibrary] = evaluated.default
-  }
-
-  async getComponent (reactVersion: string, componentLibrary: string, component: string): Promise<ReactComponentClass> {
-    const lib = await this.getComponentLibrary(reactVersion, componentLibrary)
-
-    if (!(component in lib)) {
-      throw new Error(`${component} is not a registered component of ${componentLibrary}`)
+    const stats = (await this.getLatestStatsContents(componentLibrary)).node
+    for (const [componentName, componentAssets] of Object.entries(stats.assetsByChunkName)) {
+      const componentBasename = componentAssets.find((asset: string) => asset.endsWith('.js'))
+      const source = await this.storage.load(componentLibrary, componentBasename!)
+      const Component = requireFromString(source).default
+      ComponentLibrary.Components[componentName] = Component
     }
 
-    return lib[component]
+    return this.libCache[componentLibrary] = ComponentLibrary
   }
 
   // temporary. just returns all the assets for a CL. change when codesplitting is working
-  async getAssets (componentLibrary: string): Promise<RenderResultAssets> {
-    const stats = await this.getLatestStatsContents(componentLibrary)
-    const manifestAssets = stats.assetsByChunkName.manifest
-
+  async getAssets (componentLibrary: string, componentName: string): Promise<RenderResultAssets> {
+    const stats = (await this.getLatestStatsContents(componentLibrary)).browser
+    const assets = stats.assetsByChunkName[componentName]
     return {
-      javascripts: manifestAssets.filter((asset: string) => asset.endsWith('.js')),
-      stylesheets: manifestAssets.filter((asset: string) => asset.endsWith('.css'))
+      javascripts: assets.filter((asset: string) => asset.endsWith('.js')),
+      stylesheets: assets.filter((asset: string) => asset.endsWith('.css'))
     }
   }
 

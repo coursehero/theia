@@ -148,7 +148,8 @@ export interface BuildManifestEntry {
   commitHash: string
   commitMessage: string
   createdAt: string
-  stats: string
+  nodeStats: string
+  browserStats: string
 }
 
 export interface BuildManifest extends Array<BuildManifestEntry> {}
@@ -162,7 +163,12 @@ export interface ReactCacheEntry {
 }
 
 export interface ComponentLibrary {
-  [key: string]: ReactComponentClass
+  React: any
+  ReactDOM: any
+  ReactDOMServer: any
+  Components: {
+    [key: string]: ReactComponentClass
+  }
 }
 
 export interface RenderResult {
@@ -176,8 +182,15 @@ export interface RenderResultAssets {
 }
 
 export interface Stats {
-  assetsByChunkName: {
-    manifest: string[]
+  browser: {
+    assetsByChunkName: {
+      [componentName: string]: string[]
+    }
+  }
+  node: {
+    assetsByChunkName: {
+      [componentName: string]: string[]
+    }
   }
 }
 
