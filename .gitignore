@@ -10,3 +10,4 @@ yarn-error.log
 newrelic_agent.log
 jest-libs
 theia.config.js
+perf-libs

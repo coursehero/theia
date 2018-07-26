@@ -132,7 +132,12 @@ class DefaultBuilder implements Builder {
       await doPromiseExec(`git clone ${repoSource} ${workingDir}`)
     }
 
-    await doPromiseExec(`git checkout --quiet ${branch} && git pull`, { cwd: workingDir })
+    if (process.env.THEIA_ONLY_CHECKOUT_COMMIT) {
+      // only for perf test
+      await doPromiseExec(`git checkout --quiet ${branch}`, { cwd: workingDir })
+    } else {
+      await doPromiseExec(`git checkout --quiet ${branch} && git pull`, { cwd: workingDir })
+    }
 
     return workingDir
   }
