@@ -154,8 +154,6 @@ export interface BuildManifestEntry {
 
 export interface BuildManifest extends Array<BuildManifestEntry> {}
 
-export interface ReactComponentClass extends React.ComponentClass<object> {}
-
 export interface ReactCacheEntry {
   React: any
   ReactDOM: any
@@ -167,7 +165,7 @@ export interface ComponentLibrary {
   ReactDOM: any
   ReactDOMServer: any
   Components: {
-    [key: string]: ReactComponentClass
+    [key: string]: any // React.ComponentClass
   }
 }
 

@@ -24,7 +24,7 @@ describe('mythos', () => {
   const core = theia(config)
 
   beforeAll(() => core.buildAll(), 1000 * 60)
-  // afterAll(() => rimraf.sync(__dirname + '/jest-libs'))
+  afterAll(() => rimraf.sync(__dirname + '/jest-libs'))
   
   test('saves build manifest and assets', async () => {
     const buildManifest = await core.getBuildManifest('canary')

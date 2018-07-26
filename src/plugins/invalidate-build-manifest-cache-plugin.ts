@@ -47,7 +47,7 @@ class InvalidateBuildManifestCachePlugin implements Plugin {
             core.clearCache(componentLibrary)
 
             // fill cache
-            await core.getComponentLibrary('16.2.0', componentLibrary)
+            await core.getComponentLibrary(componentLibrary)
           }
         }
       }).then(() => this.checkForUpdates(core, delay))
