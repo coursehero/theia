@@ -103,4 +103,52 @@ initial results (on my machine ...)
   '4xx': 0,
   '5xx': 0 }
 
+after moving to new v1 format, and updating to Node 10
+
+{ title: undefined,
+  url:
+   'http://localhost:3000/render?componentLibrary=benchmark&component=CourseApp',
+  socketPath: undefined,
+  requests:
+   { average: 298.7,
+     mean: 298.7,
+     stddev: 46.27,
+     min: 187,
+     max: 350,
+     total: 2987,
+     sent: 3037 },
+  latency:
+   { average: 178.87,
+     mean: 178.87,
+     stddev: 34.56,
+     min: 147,
+     max: 532.486256,
+     p50: 175,
+     p75: 192,
+     p90: 204,
+     p99: 279,
+     p999: 532,
+     p9999: 532,
+     p99999: 532 },
+  throughput:
+   { average: 3499622.4,
+     mean: 3499622.4,
+     stddev: 549252.68,
+     min: 2194819,
+     max: 4107950,
+     total: 35058419 },
+  errors: 0,
+  timeouts: 0,
+  duration: 11,
+  start: 2018-07-27T02:13:41.557Z,
+  finish: 2018-07-27T02:13:52.426Z,
+  connections: 50,
+  pipelining: 1,
+  non2xx: 0,
+  '1xx': 0,
+  '2xx': 2987,
+  '3xx': 0,
+  '4xx': 0,
+  '5xx': 0 }
+
 */
