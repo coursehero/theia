@@ -66,7 +66,7 @@
     "start": "DEBUG=${DEBUG:-theia*} node -r source-map-support/register ./dist/start.js",
     "start-build": "DEBUG=${DEBUG:-theia*} node -r source-map-support/register ./dist/build.js",
     "start-dev": "DEBUG=${DEBUG:-theia*} THEIA_LOCAL=${THEIA_LOCAL:-1} nodemon",
-    "test": "DEBUG=${DEBUG:-theia*} THEIA_ONLY_CHECKOUT_COMMIT=1 jest"
+    "test": "DEBUG=${DEBUG:-theia*} jest"
   },
   "jest": {
     "transform": {

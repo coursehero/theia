@@ -18,10 +18,7 @@ if (useLocalStorage) {
 const plugins: theia.Plugin[] = theia.nn([
   process.env.THEIA_ROLLBAR_TOKEN ? new theia.RollbarPlugin(process.env.THEIA_ROLLBAR_TOKEN, process.env.ROLLBAR_ENV!) : null,
   process.env.SLACK_TOKEN ? new theia.SlackPlugin({
-    channel: {
-      development: '#theia-dev',
-      production: '#theia-prod'
-    }[process.env.THEIA_ENV as theia.Environment]
+    channel: process.env.THEIA_ENV === 'production' ? '#theia-prod' : '#theia-dev'
   }) : null,
   enablePeriodicBuilding ? new theia.BuildPlugin(FIVE_MINUTES) : null,
   new theia.InvalidateBuildManifestCachePlugin(5000), // the DelaySeconds param on 'new-build-job' should compensate for this
@@ -33,21 +30,16 @@ const plugins: theia.Plugin[] = theia.nn([
 ])
 
 const libs: theia.ComponentLibraryConfigurations = {
-  '@coursehero-components/study-guides': {
+  '@coursehero/study-guides': {
     source: 'git@git.coursehero.com:coursehero/components/study-guides.git',
-    branches: {
-      development: 'dev',
-      production: 'master'
+    env: {
+      development: 'v1'
     }
-  }
-}
-
-if (process.env.THEIA_INCLUDE_MYTHOS) {
-  libs['@coursehero-components/mythos'] = {
+  },
+  '@coursehero/mythos': {
     source: 'https://github.com/theiajs/mythos.git',
-    branches: {
-      development: 'v1',
-      production: 'master'
+    env: {
+      development: 'v1'
     }
   }
 }

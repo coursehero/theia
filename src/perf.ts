@@ -1,4 +1,4 @@
-// yarn build && DEBUG='theia*' THEIA_ONLY_CHECKOUT_COMMIT=1 node ./dist/perf.js
+// yarn build && DEBUG='theia*' node ./dist/perf.js
 // rough performance test
 // TODO: get insights of performance in production environment
 
@@ -12,12 +12,12 @@ async function run () {
 
   // TODO: make a separate CL to use as a benchmark
   const config: theia.Configuration = {
+    environment: 'test',
     libs: {
       benchmark: {
         source: 'git@git.coursehero.com:coursehero/components/study-guides.git',
-        branches: {
-          development: '7a4846ec9d8',
-          production: '7a4846ec9d8'
+        env: {
+          test: '7a4846ec9d8'
         }
       }
     },

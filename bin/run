@@ -8,13 +8,10 @@ docker run --rm -it -p 3000:80 \
   -v yarn-cache-theia:/usr/local/share/.cache/yarn/v1 \
   -v ~/.ssh:/root/.ssh \
   -v ~/.aws:/root/.aws \
-  -v "$DIR"/../libs:/var/www/current/libs \
-  -v "$DIR"/../var:/var/www/current/var \
+  -v "$DIR"/../libs:/theia/libs \
+  -v "$DIR"/../var:/theia/var \
   -e DEBUG=${DEBUG:-theia*} \
   -e THEIA_LOCAL=${THEIA_LOCAL:-1} \
-  $( if [ ! -z ${THEIA_INCLUDE_MYTHOS+x} ]; then
-    echo "-e THEIA_INCLUDE_MYTHOS=$THEIA_INCLUDE_MYTHOS"
-  fi ) \
   $( if [ ! -z ${THEIA_LOCAL_STORAGE+x} ]; then
     echo "-e THEIA_LOCAL_STORAGE=$THEIA_LOCAL_STORAGE"
   fi ) \
@@ -22,8 +19,8 @@ docker run --rm -it -p 3000:80 \
     echo "-e THEIA_LOCAL_BUILD=$THEIA_LOCAL_BUILD"
   fi ) \
   $( if [ -f theia.local.config.json ]; then
-    echo "-v ${DIR}/../theia.local.config.json:/var/www/current/theia.local.config.json"
-    echo "-v /websites/coursehero/components:/websites/coursehero/components"
+    # echo "-v ${DIR}/../theia.local.config.json:/theia/theia.local.config.json"
+    # echo "-v /websites/coursehero/components:/websites/coursehero/components"
   fi ) \
   $@ \
   theia

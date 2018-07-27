@@ -86,7 +86,7 @@ A [PHP SDK](https://git.coursehero.com/coursehero/sdk/theia-php) is provided to 
 ```php
 $client = $this->theiaProviderService->getClient();
 $propsAsString = StudyGuideTheiaJobHandler::getProps(...);
-$renderResult = $client->renderAndCache('@coursehero-components/study-guides', 'CourseApp', $propsAsString);
+$renderResult = $client->renderAndCache('@coursehero/study-guides', 'CourseApp', $propsAsString);
 //                  or ->render to avoid cache
 
 $renderResult->isRetrievedFromCache();

@@ -7,7 +7,7 @@ class UsagePlugin implements Plugin {
 
   onExpress = ({ core, app }: CoreHooks.OnExpressArgs) => {
     app.get('/', async (req, res) => {
-      const helloWorldResult = await core.render('mythos', 'Greeting', {
+      const helloWorldResult = await core.render('@coursehero/mythos', 'Greeting', {
         name: 'World'
       })
 

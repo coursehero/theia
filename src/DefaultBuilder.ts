@@ -40,8 +40,8 @@ function wrapPromiseExecLogNamespace (namespace: string): WrapPromiseExecLoggers
 class DefaultBuilder implements Builder {
   async build (core: Core, componentLibrary: string, componentLibraryConfig: ComponentLibraryConfiguration) {
     // the latest commit in the tracked branch will be persisted
-    const branch = componentLibraryConfig.branches[core.environment]
-    const workingDir = await this.ensureRepoIsClonedAndUpdated(componentLibrary, componentLibraryConfig.source, branch)
+    const branchOrCommit = componentLibraryConfig.env![core.environment]
+    const workingDir = await this.ensureRepoIsClonedAndUpdated(componentLibrary, componentLibraryConfig.source, branchOrCommit)
 
     return this.buildFromDir(core, componentLibrary, workingDir)
   }
@@ -51,7 +51,6 @@ class DefaultBuilder implements Builder {
     const doPromiseExec = wrapPromiseExecLogNamespace(logNamespace)
 
     core.log(logNamespace, `checking for updates in ${workingDir} ...`)
-
     const commitHash = await doPromiseExec(`git rev-parse HEAD`, { cwd: workingDir })
     if (commitHash && await this.hasBuilt(core, componentLibrary, commitHash)) {
       core.log(logNamespace, `no updates found`)
@@ -64,17 +63,19 @@ class DefaultBuilder implements Builder {
       email: (await doPromiseExec(`git log -1 ${commitHash} --pretty=format:%ae`, { cwd: workingDir }))
     }
 
-    core.log(logNamespace, `building ${commitHash} ...`)
-
-    const workingDistDir = path.resolve(workingDir, 'dist')
-
+    core.log(logNamespace, `installing ${commitHash} ...`)
     await doPromiseExec('yarn install --production=false --non-interactive', { cwd: workingDir })
-    await doPromiseExec('rm -rf dist && mkdir dist', { cwd: workingDir })
 
     const componentLibraryPackage = require(path.resolve(workingDir, 'package.json'))
+    if (componentLibraryPackage.scripts.test) {
+      core.log(logNamespace, `running tests`)
+      await doPromiseExec('yarn test', { cwd: workingDir })
+      core.log(logNamespace, `finished tests`)
+    }
 
-    // If build command exists, use it
-    const buildCommand = componentLibraryPackage.scripts.build ?
+    core.log(logNamespace, `building ${commitHash} ...`)
+    await doPromiseExec('rm -rf dist && mkdir dist', { cwd: workingDir })
+    const buildCommand = componentLibraryPackage.scripts.build ? // if build script exists, use it
                           'yarn build' :
                           './node_modules/.bin/webpack --json > dist/stats-browser.json && ./node_modules/.bin/webpack --json --output-library-target commonjs2 > dist/stats-node.json'
     await doPromiseExec(buildCommand, { cwd: workingDir }).catch(err => {
@@ -107,12 +108,7 @@ class DefaultBuilder implements Builder {
     const nodeStatsFilename = `stats-node.${commitHash}.json`
     fs.renameSync(path.join(workingDir, 'dist', 'stats-node.json'), path.join(workingDir, 'dist', nodeStatsFilename))
 
-    if (componentLibraryPackage.scripts.test) {
-      core.log(logNamespace, `running tests`)
-      await doPromiseExec('yarn test', { cwd: workingDir })
-      core.log(logNamespace, `finished tests`)
-    }
-
+    const workingDistDir = path.resolve(workingDir, 'dist')
     return fs.readdir(workingDistDir).then(buildAssetBasenames => {
       return buildAssetBasenames.map(basename => path.join(workingDir, 'dist', basename))
     }).then(buildAssets => {
@@ -131,24 +127,17 @@ class DefaultBuilder implements Builder {
     })
   }
 
-  async ensureRepoIsClonedAndUpdated (componentLibrary: string, repoSource: string, branch: string): Promise<string> {
+  async ensureRepoIsClonedAndUpdated (componentLibrary: string, repoSource: string, branchOrCommit: string): Promise<string> {
     const doPromiseExec = wrapPromiseExecLogNamespace(`theia:builder ${componentLibrary}`)
-
     const projectRootDir = path.resolve(__dirname, '..')
     const workingDir = path.resolve(projectRootDir, 'var', componentLibrary)
-
     const exists = await fs.pathExists(workingDir)
-    if (!exists) {
+    if (exists) {
+      await doPromiseExec('git fetch', { cwd: workingDir })
+    } else {
       await doPromiseExec(`git clone ${repoSource} ${workingDir}`)
     }
-
-    if (process.env.THEIA_ONLY_CHECKOUT_COMMIT) {
-      // only for perf test
-      await doPromiseExec(`git checkout --quiet ${branch}`, { cwd: workingDir })
-    } else {
-      await doPromiseExec(`git checkout --quiet ${branch} && git pull`, { cwd: workingDir })
-    }
-
+    await doPromiseExec(`git checkout --quiet ${branchOrCommit}`, { cwd: workingDir })
     return workingDir
   }
 

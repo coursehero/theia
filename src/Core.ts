@@ -185,7 +185,7 @@ class Core {
       return this.libCache[componentLibrary]
     }
 
-    if (!this.hasBuildManifest(componentLibrary)) {
+    if (!await this.hasBuildManifest(componentLibrary)) {
       throw new Error(`${componentLibrary} is not a registered component library`)
     }
 

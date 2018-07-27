@@ -7,12 +7,12 @@ describe('mythos', () => {
   const storage = new LocalStorage(__dirname + '/jest-libs')
 
   const config: Configuration = {
+    environment: 'test',
     libs: {
       canary: {
         source: 'https://github.com/theiajs/mythos.git',
-        branches: {
-          development: '737253db',
-          production: '737253db'
+        env: {
+          test: '737253db'
         }
       }
     },

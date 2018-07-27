@@ -14,7 +14,7 @@ import RollbarPlugin from './plugins/RollbarPlugin'
 import SlackPlugin from './plugins/SlackPlugin'
 import UsagePlugin from './plugins/UsagePlugin'
 import S3Storage from './S3Storage'
-import Storage from './storage'
+import Storage from './Storage'
 
 // no nulls
 export function nn<T> (array: (T | null)[]): T[] {
@@ -38,6 +38,13 @@ function configDefaulter (options: Configuration): Required<Configuration> {
 
   if (opts.libs === undefined) {
     throw new Error('must supply libs config')
+  }
+
+  for (const componentLibrary in opts.libs) {
+    const componentLibConfig = opts.libs[componentLibrary]
+    componentLibConfig.env = componentLibConfig.env || {}
+    componentLibConfig.env.development = componentLibConfig.env.development || 'dev'
+    componentLibConfig.env.production = componentLibConfig.env.production || 'master'
   }
 
   if (opts.loadFromDisk === undefined) {
@@ -116,7 +123,7 @@ export {
   UsagePlugin
 }
 
-export type Environment = 'development' | 'production'
+export type Environment = 'test' | 'development' | 'production'
 
 export interface Configuration {
   builder?: Builder
@@ -133,9 +140,8 @@ export interface ComponentLibraryConfigurations {
 }
 
 export interface ComponentLibraryConfiguration {
-  branches: {
-    development: string
-    production: string
+  env?: {
+    [env: string]: string
   }
   source: string
 }

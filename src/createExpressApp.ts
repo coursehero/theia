@@ -41,7 +41,7 @@ export default (core: Core): express.Application => {
     core.logError(`theia:${plugin}:express`, err)
   })
 
-  app.post('/render', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  app.post('/render', async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const { componentLibrary, component } = req.query
 
     if (!core.libs[componentLibrary]) {
