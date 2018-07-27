@@ -1,3 +1,5 @@
+// https://github.com/webpack/tapable/issues/43#issuecomment-364694318
+
 import { AsyncParallelHook } from 'tapable'
 
 type IAsyncParallelHook = any

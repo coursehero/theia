@@ -4,9 +4,9 @@ import * as bluebird from 'bluebird'
 import * as express from 'express'
 import * as path from 'path'
 import * as requireFromString from 'require-from-string'
-import { log as _log, logError as _logError } from './logger'
+import { log as _log, logError as _logError } from './Logger'
 import { Builder, BuildManifest, BuildManifestEntry, ComponentLibrary, ComponentLibraryConfigurations, Configuration, Environment, RenderResult, RenderResultAssets, Stats, Storage } from './theia'
-import { TypedAsyncParallelHook } from './typed-tapable'
+import { TypedAsyncParallelHook } from './TypedTapable'
 
 export type OnBeforeRenderArgs = {
   core: Core

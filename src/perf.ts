@@ -4,7 +4,7 @@
 
 import * as autocannon from 'autocannon'
 import * as fs from 'fs'
-import LocalStorage from './local-storage'
+import LocalStorage from './LocalStorage'
 import makeCore, * as theia from './theia'
 
 async function run () {

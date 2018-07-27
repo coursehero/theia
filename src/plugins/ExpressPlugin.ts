@@ -1,6 +1,6 @@
 import * as http from 'http'
 import { AddressInfo } from 'net'
-import createExpressApp from '../create-express-app'
+import createExpressApp from '../createExpressApp'
 import { Core, CoreHooks, Plugin } from '../theia'
 
 class ExpressPlugin implements Plugin {

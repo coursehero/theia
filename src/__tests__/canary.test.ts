@@ -1,5 +1,5 @@
 import * as rimraf from 'rimraf'
-import LocalStorage from '../local-storage'
+import LocalStorage from '../LocalStorage'
 import theia, { Configuration } from '../theia'
 
 describe('mythos', () => {

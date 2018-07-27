@@ -1,7 +1,7 @@
 import { exec as __exec } from 'child_process'
 import * as fs from 'fs-extra'
 import * as path from 'path'
-import { log, logError } from './logger'
+import { log, logError } from './Logger'
 import { Builder, ComponentLibraryConfiguration, Core } from './theia'
 
 function promiseExec (cmd: string, opts = {}, logNamespace: string): Promise<string> {
