@@ -57,15 +57,16 @@ export default (core: Core): express.Application => {
       })
   })
 
-  app.get('/assets', (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if (/\.(js|css|map)$/.test(req.path)) {
-      return next()
-    }
-
-    res.send(HttpStatus.NOT_FOUND)
+  app.get('/config', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    res.send(core.libs)
   })
 
-  app.use('/assets', async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  app.use('/assets', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (!/\.(js|css|map)$/.test(req.path)) {
+      res.sendStatus(HttpStatus.NOT_FOUND)
+      return
+    }
+
     const split = req.path.split('/')
     const componentLibrary = split.slice(1, split.length - 1).join('/')
     const asset = split[split.length - 1]
