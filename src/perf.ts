@@ -16,8 +16,8 @@ async function run () {
       benchmark: {
         source: 'git@git.coursehero.com:coursehero/components/study-guides.git',
         branches: {
-          development: '0129c55c0a44',
-          production: '0129c55c0a44'
+          development: '7a4846ec9d8',
+          production: '7a4846ec9d8'
         }
       }
     },

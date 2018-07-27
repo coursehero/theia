@@ -1,6 +1,6 @@
 # temporary Dockerfile. Don't care about minimizing the size.
 
-FROM node:8.9-alpine
+FROM node:10.7-alpine
 WORKDIR /var/www/current
 COPY ./package.json ./
 COPY ./yarn.lock ./
@@ -33,7 +33,7 @@ CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn start" ]
 # COPY ./public ./public
 # COPY ./views ./views
 
-# FROM node:8.9-alpine as build
+# FROM node:10.7-alpine as build
 # WORKDIR /var/www/current
 # RUN apk update && apk --no-cache add python make g++ git
 # COPY --from=base / ./
@@ -47,7 +47,7 @@ CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn start" ]
 # # this prunes dev deps
 # RUN yarn install --production
 
-# FROM node:8.9-alpine AS release
+# FROM node:10.7-alpine AS release
 # WORKDIR /var/www/current
 # RUN apk update && apk --no-cache add bash git openssh
 # COPY --from=base / ./

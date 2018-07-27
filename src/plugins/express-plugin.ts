@@ -1,4 +1,5 @@
 import * as http from 'http'
+import { AddressInfo } from 'net'
 import createExpressApp from '../create-express-app'
 import { Core, CoreHooks, Plugin } from '../theia'
 
@@ -40,8 +41,8 @@ class ExpressPlugin implements Plugin {
     }
 
     function onListening () {
-      const addr = server.address()
-      core.log('theia:ExpressPlugin', 'Listening on port ' + addr.port)
+      const { port } = server.address() as AddressInfo
+      core.log('theia:ExpressPlugin', 'Listening on port ' + port)
     }
 
     return Promise.resolve()
