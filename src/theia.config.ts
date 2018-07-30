@@ -22,8 +22,11 @@ const plugins: theia.Plugin[] = theia.nn([
   }) : null,
   enablePeriodicBuilding ? new theia.BuildPlugin(FIVE_MINUTES) : null,
   new theia.InvalidateBuildManifestCachePlugin(5000), // the DelaySeconds param on 'new-build-job' should compensate for this
-  process.env.THEIA_SQS_QUEUE_URL ? new theia.ReheatCachePlugin({
-    '@coursehero/study-guides': process.env.THEIA_SQS_QUEUE_URL // TODO
+  process.env.THEIA_CACHE ? new theia.CachePlugin({
+    '@coursehero/study-guides': {
+      strategy: 'new-build-job',
+      queue: process.env.THEIA_SQS_QUEUE_URL
+    }
   }) : null,
   new theia.ExpressPlugin(process.env.PORT ? parseInt(process.env.PORT, 10) : 3000),
   new theia.HeartbeatPlugin(),

@@ -6,10 +6,10 @@ import LocalStorage from './LocalStorage'
 import Plugin from './Plugin'
 import AuthPlugin from './plugins/AuthPlugin'
 import BuildPlugin from './plugins/BuildPlugin'
+import CachePlugin from './plugins/CachePlugin'
 import ExpressPlugin from './plugins/ExpressPlugin'
 import HeartbeatPlugin from './plugins/HeartbeatPlugin'
 import InvalidateBuildManifestCachePlugin from './plugins/InvalidateBuildManifestCachePlugin'
-import ReheatCachePlugin from './plugins/ReheatCachePlugin'
 import RollbarPlugin from './plugins/RollbarPlugin'
 import SlackPlugin from './plugins/SlackPlugin'
 import UsagePlugin from './plugins/UsagePlugin'
@@ -115,7 +115,7 @@ export {
   InvalidateBuildManifestCachePlugin,
   LocalStorage,
   Plugin,
-  ReheatCachePlugin,
+  CachePlugin,
   RollbarPlugin,
   S3Storage,
   SlackPlugin,
