@@ -15,6 +15,12 @@ if (useLocalStorage) {
   )
 }
 
+// const useUniqueQueue = (componentLibrary: string) => {
+//   const cleaned = componentLibrary.replace(/@/g, '')
+//   return process.env.THEIA_ENV === 'production' ? `Theia_${cleaned}` : `Theia_${cleaned}_Dev`
+// }
+const defaultQueue = process.env.THEIA_ENV === 'production' ? 'TheiaReheatJobs' : 'TheiaReheatJobs_Dev'
+
 const plugins: theia.Plugin[] = theia.nn([
   process.env.THEIA_ROLLBAR_TOKEN ? new theia.RollbarPlugin(process.env.THEIA_ROLLBAR_TOKEN, process.env.ROLLBAR_ENV!) : null,
   process.env.SLACK_TOKEN ? new theia.SlackPlugin({
@@ -25,7 +31,7 @@ const plugins: theia.Plugin[] = theia.nn([
   process.env.THEIA_CACHE ? new theia.CachePlugin({
     '@coursehero/study-guides': {
       strategy: 'new-build-job',
-      queue: process.env.THEIA_SQS_QUEUE_URL
+      queue: defaultQueue
     }
   }) : null,
   new theia.ExpressPlugin(process.env.PORT ? parseInt(process.env.PORT, 10) : 3000),
