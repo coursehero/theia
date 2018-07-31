@@ -108,21 +108,47 @@ class DefaultBuilder implements Builder {
     const nodeStatsFilename = `stats-node.${commitHash}.json`
     fs.renameSync(path.join(workingDir, 'dist', 'stats-node.json'), path.join(workingDir, 'dist', nodeStatsFilename))
 
-    const workingDistDir = path.resolve(workingDir, 'dist')
-    return fs.readdir(workingDistDir).then(buildAssetBasenames => {
-      return buildAssetBasenames.map(basename => path.join(workingDir, 'dist', basename))
-    }).then(buildAssets => {
-      const buildManifestEntry = {
-        commitHash,
-        commitMessage,
-        author,
-        browserStats: browserStatsFilename,
-        nodeStats: nodeStatsFilename,
-        createdAt: new Date().toString()
-      }
+    // extract react stuff
+    const reactBuildCommand = './node_modules/.bin/webpack React=react ReactDOMServer=react-dom/server --output-library-target commonjs2 --output-path=dist'
+    await doPromiseExec(reactBuildCommand, { cwd: workingDir }).catch(err => {
+      // webpack does not send errors to stdout when using "--json"
+      // instead, it puts it in the json output
+      const statsPaths = [path.join(workingDir, 'dist', 'stats-react.json')]
+      statsPaths.forEach(statsPath => {
+        if (fs.pathExistsSync(statsPath)) {
+          const stats = require(statsPath)
+          if (stats.errors && stats.errors.length) {
+            throw new Error(stats.errors.join('\n====\n'))
+          }
+        }
+      })
 
-      return core.registerComponentLibrary(componentLibrary, buildAssets, buildManifestEntry)
-    }).then(() => {
+      throw err
+    })
+
+    const buildAssetBasenames = await fs.readdir(path.resolve(workingDir, 'dist'))
+    const buildAssets = buildAssetBasenames.map(basename => path.join(workingDir, 'dist', basename))
+
+    const reactFile = buildAssetBasenames.find(f => /^React\..*\.js$/.test(f))
+    const reactDOMServerFile = buildAssetBasenames.find(f => /^ReactDOMServer\..*\.js$/.test(f))
+
+    if (!reactFile || !reactDOMServerFile) {
+      throw new Error('could not discover react files')
+    }
+
+    const buildManifestEntry = {
+      commitHash,
+      commitMessage,
+      author,
+      browserStats: browserStatsFilename,
+      nodeStats: nodeStatsFilename,
+      createdAt: new Date().toString(),
+      react: reactFile,
+      reactDOMServer: reactDOMServerFile
+    }
+
+    core.log(logNamespace, `manifest entry: ${JSON.stringify(buildManifestEntry)}`)
+    return core.registerComponentLibrary(componentLibrary, buildAssets, buildManifestEntry).then(() => {
       core.log(logNamespace, `built ${commitHash}`)
     })
   }

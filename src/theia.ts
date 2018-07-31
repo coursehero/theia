@@ -156,19 +156,19 @@ export interface BuildManifestEntry {
   createdAt: string
   nodeStats: string
   browserStats: string
+  react: string
+  reactDOMServer: string
 }
 
 export interface BuildManifest extends Array<BuildManifestEntry> {}
 
 export interface ReactCacheEntry {
   React: any
-  ReactDOM: any
   ReactDOMServer: any
 }
 
 export interface ComponentLibrary {
   React: any
-  ReactDOM: any
   ReactDOMServer: any
   Components: {
     [key: string]: any // React.ComponentClass

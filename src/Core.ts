@@ -2,7 +2,6 @@
 
 import * as bluebird from 'bluebird'
 import * as express from 'express'
-import * as path from 'path'
 import * as requireFromString from 'require-from-string'
 import { log as _log, logError as _logError } from './Logger'
 import { Builder, BuildManifest, BuildManifestEntry, ComponentLibrary, ComponentLibraryConfigurations, Configuration, Environment, RenderResult, RenderResultAssets, Stats, Storage } from './theia'
@@ -189,12 +188,11 @@ class Core {
       throw new Error(`${componentLibrary} is not a registered component library`)
     }
 
-    const projectRootDir = path.resolve(__dirname, '..')
-    const workingDir = path.resolve(projectRootDir, 'var', componentLibrary)
+    const buildManifest = await this.getBuildManifest(componentLibrary)
+    const latest = buildManifest[buildManifest.length - 1]
     const ComponentLibrary: ComponentLibrary = {
-      React: await import(`${workingDir}/node_modules/react`),
-      ReactDOM: await import(`${workingDir}/node_modules/react-dom`),
-      ReactDOMServer: await import(`${workingDir}/node_modules/react-dom/server`),
+      React: requireFromString(await this.storage.load(componentLibrary, latest.react)),
+      ReactDOMServer: requireFromString(await this.storage.load(componentLibrary, latest.reactDOMServer)),
       Components: {}
     }
 
