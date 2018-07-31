@@ -163,7 +163,7 @@ class DefaultBuilder implements Builder {
       await doPromiseExec(`git clone ${repoSource} ${workingDir}`)
     }
 
-    const isBranch = doPromiseExec(`git ls-remote --heads ${repoSource} ${branchOrCommit}`, { cwd: workingDir })
+    const isBranch = await doPromiseExec(`git ls-remote --heads ${repoSource} ${branchOrCommit} | wc -l`, { cwd: workingDir }) !== '0'
     if (isBranch) {
       await doPromiseExec(`git checkout --quiet ${branchOrCommit} && git pull`, { cwd: workingDir })
     } else {
