@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"typescript.tsdk": "node_modules/typescript/lib",
+		"tslint.autoFixOnSave": true,
+		"[typescript]": {
+			"editor.formatOnSave": false,
+		},
+		"emmet.triggerExpansionOnTab": false,
+		"emmet.showExpandedAbbreviation": "never"
+	}
+}

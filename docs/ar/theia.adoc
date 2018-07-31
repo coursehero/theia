@@ -191,7 +191,7 @@ Payload schema:
 [source,javascript]
 POST /render
 {
-    "library": "@coursehero-components/study-guides",
+    "library": "@coursehero/study-guides",
     "component": "CourseApp",
     "majorVersion": 1, // changes only when props schema changes
     "props": { ... },
@@ -213,7 +213,7 @@ config.json
         "branch": "master"
     },
     "libraries": {
-        "@coursehero-components/study-guides": "git@git.coursehero.com:coursehero/components/study-guides.git"
+        "@coursehero/study-guides": "git@git.coursehero.com:coursehero/components/study-guides.git"
     }
 }
 

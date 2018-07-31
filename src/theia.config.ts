@@ -15,17 +15,25 @@ if (useLocalStorage) {
   )
 }
 
+// const useUniqueQueue = (componentLibrary: string) => {
+//   const cleaned = componentLibrary.replace(/@/g, '')
+//   return process.env.THEIA_ENV === 'production' ? `Theia_${cleaned}` : `Theia_${cleaned}_dev`
+// }
+const defaultQueue = process.env.THEIA_ENV === 'production' ? 'TheiaReheatJobs' : 'TheiaReheatJobs_dev'
+
 const plugins: theia.Plugin[] = theia.nn([
   process.env.THEIA_ROLLBAR_TOKEN ? new theia.RollbarPlugin(process.env.THEIA_ROLLBAR_TOKEN, process.env.ROLLBAR_ENV!) : null,
   process.env.SLACK_TOKEN ? new theia.SlackPlugin({
-    channel: {
-      development: '#theia-dev',
-      production: '#theia-prod'
-    }[process.env.THEIA_ENV as theia.Environment]
+    channel: process.env.THEIA_ENV === 'production' ? '#theia-prod' : '#theia-dev'
   }) : null,
   enablePeriodicBuilding ? new theia.BuildPlugin(FIVE_MINUTES) : null,
   new theia.InvalidateBuildManifestCachePlugin(5000), // the DelaySeconds param on 'new-build-job' should compensate for this
-  process.env.THEIA_SQS_QUEUE_URL ? new theia.ReheatCachePlugin(process.env.THEIA_SQS_QUEUE_URL) : null,
+  process.env.THEIA_CACHE ? new theia.CachePlugin({
+    '@coursehero/study-guides': {
+      strategy: 'new-build-job',
+      queue: defaultQueue
+    }
+  }) : null,
   new theia.ExpressPlugin(process.env.PORT ? parseInt(process.env.PORT, 10) : 3000),
   new theia.HeartbeatPlugin(),
   process.env.THEIA_AUTH_SECRET ? new theia.AuthPlugin('CH-Auth', process.env.THEIA_AUTH_SECRET) : null,
@@ -33,21 +41,18 @@ const plugins: theia.Plugin[] = theia.nn([
 ])
 
 const libs: theia.ComponentLibraryConfigurations = {
-  '@coursehero-components/study-guides': {
+  '@coursehero/study-guides': {
     source: 'git@git.coursehero.com:coursehero/components/study-guides.git',
-    branches: {
-      development: 'dev',
-      production: 'master'
+    env: {
+      development: 'v1',
+      production: 'v1'
     }
-  }
-}
-
-if (process.env.THEIA_INCLUDE_MYTHOS) {
-  libs['@coursehero-components/mythos'] = {
+  },
+  '@coursehero/mythos': {
     source: 'https://github.com/theiajs/mythos.git',
-    branches: {
-      development: 'dev',
-      production: 'master'
+    env: {
+      development: 'v1',
+      production: 'v1'
     }
   }
 }

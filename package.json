@@ -11,6 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "@slack/client": "^4.1.0",
+    "@types/require-from-string": "^1.2.0",
     "aws-sdk": "^2.213.1",
     "bluebird": "^3.5.1",
     "body-parser": "~1.18.2",
@@ -25,11 +26,11 @@
     "morgan": "~1.9.0",
     "mustache": "^2.3.0",
     "newrelic": "^3.2.0",
-    "react": "^16.2.0",
     "request": "^2.83.0",
-    "request-promise": "^4.2.2",
+    "require-from-string": "^2.0.2",
     "rollbar": "^2.3.8",
     "serve-favicon": "~2.4.5",
+    "source-map-support": "^0.5.6",
     "tapable": "^1.0.0-beta.5",
     "xxhash": "^0.2.4"
   },
@@ -44,11 +45,10 @@
     "@types/jest": "^22.1.4",
     "@types/mime-types": "^2.1.0",
     "@types/morgan": "^1.7.35",
-    "@types/node": "^9.6.0",
-    "@types/react": "^16.0.31",
-    "@types/react-dom": "^16.0.3",
-    "@types/request-promise": "^4.1.39",
+    "@types/node": "^10.5.3",
+    "@types/rimraf": "^2.0.2",
     "@types/serve-favicon": "^2.2.30",
+    "autocannon": "^2.4.1",
     "jest": "^22.4.2",
     "nodemon": "^1.13.3",
     "pre-commit": "^1.2.2",
@@ -62,9 +62,9 @@
   "pre-commit": "lint",
   "scripts": {
     "lint": "tslint --fix --project .",
-    "build": "rimraf dist var theia.config.js && mkdir dist && cp -r src/types dist/types && tsc",
-    "start": "DEBUG=${DEBUG:-theia*} node ./dist/start.js",
-    "start-build": "DEBUG=${DEBUG:-theia*} node ./dist/build.js",
+    "build": "rimraf dist && mkdir dist && cp -r src/types dist/types && tsc",
+    "start": "DEBUG=${DEBUG:-theia*} node -r source-map-support/register ./dist/start.js",
+    "start-build": "DEBUG=${DEBUG:-theia*} node -r source-map-support/register ./dist/build.js",
     "start-dev": "DEBUG=${DEBUG:-theia*} THEIA_LOCAL=${THEIA_LOCAL:-1} nodemon",
     "test": "DEBUG=${DEBUG:-theia*} jest"
   },
@@ -73,6 +73,10 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "testRegex": "(/__tests__/.*\\.(test|spec))\\.(jsx?|tsx?)$",
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/var/"
+    ],
     "moduleFileExtensions": [
       "ts",
       "tsx",

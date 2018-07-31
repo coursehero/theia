@@ -1,20 +1,20 @@
 import * as path from 'path'
-import Builder from './builder'
-import Core, * as CoreHooks from './core'
-import DefaultBuilder from './default-builder'
-import LocalStorage from './local-storage'
-import Plugin from './plugin'
-import AuthPlugin from './plugins/auth-plugin'
-import BuildPlugin from './plugins/build-plugin'
-import ExpressPlugin from './plugins/express-plugin'
-import HeartbeatPlugin from './plugins/heartbeat-plugin'
-import InvalidateBuildManifestCachePlugin from './plugins/invalidate-build-manifest-cache-plugin'
-import ReheatCachePlugin from './plugins/reheat-cache-plugin'
-import RollbarPlugin from './plugins/rollbar-plugin'
-import SlackPlugin from './plugins/slack-plugin'
-import UsagePlugin from './plugins/usage-plugin'
-import S3Storage from './s3-storage'
-import Storage from './storage'
+import Builder from './Builder'
+import Core, * as CoreHooks from './Core'
+import DefaultBuilder from './DefaultBuilder'
+import LocalStorage from './LocalStorage'
+import Plugin from './Plugin'
+import AuthPlugin from './plugins/AuthPlugin'
+import BuildPlugin from './plugins/BuildPlugin'
+import CachePlugin from './plugins/CachePlugin'
+import ExpressPlugin from './plugins/ExpressPlugin'
+import HeartbeatPlugin from './plugins/HeartbeatPlugin'
+import InvalidateBuildManifestCachePlugin from './plugins/InvalidateBuildManifestCachePlugin'
+import RollbarPlugin from './plugins/RollbarPlugin'
+import SlackPlugin from './plugins/SlackPlugin'
+import UsagePlugin from './plugins/UsagePlugin'
+import S3Storage from './S3Storage'
+import Storage from './Storage'
 
 // no nulls
 export function nn<T> (array: (T | null)[]): T[] {
@@ -38,6 +38,13 @@ function configDefaulter (options: Configuration): Required<Configuration> {
 
   if (opts.libs === undefined) {
     throw new Error('must supply libs config')
+  }
+
+  for (const componentLibrary in opts.libs) {
+    const componentLibConfig = opts.libs[componentLibrary]
+    componentLibConfig.env = componentLibConfig.env || {}
+    componentLibConfig.env.development = componentLibConfig.env.development || 'dev'
+    componentLibConfig.env.production = componentLibConfig.env.production || 'master'
   }
 
   if (opts.loadFromDisk === undefined) {
@@ -108,7 +115,7 @@ export {
   InvalidateBuildManifestCachePlugin,
   LocalStorage,
   Plugin,
-  ReheatCachePlugin,
+  CachePlugin,
   RollbarPlugin,
   S3Storage,
   SlackPlugin,
@@ -116,7 +123,7 @@ export {
   UsagePlugin
 }
 
-export type Environment = 'development' | 'production'
+export type Environment = 'test' | 'development' | 'production'
 
 export interface Configuration {
   builder?: Builder
@@ -133,9 +140,8 @@ export interface ComponentLibraryConfigurations {
 }
 
 export interface ComponentLibraryConfiguration {
-  branches: {
-    development: string
-    production: string
+  env?: {
+    [env: string]: string
   }
   source: string
 }
@@ -148,21 +154,25 @@ export interface BuildManifestEntry {
   commitHash: string
   commitMessage: string
   createdAt: string
-  stats: string
+  nodeStats: string
+  browserStats: string
+  react: string
+  reactDOMServer: string
 }
 
 export interface BuildManifest extends Array<BuildManifestEntry> {}
 
-export interface ReactComponentClass extends React.ComponentClass<object> {}
-
 export interface ReactCacheEntry {
   React: any
-  ReactDOM: any
   ReactDOMServer: any
 }
 
 export interface ComponentLibrary {
-  [key: string]: ReactComponentClass
+  React: any
+  ReactDOMServer: any
+  Components: {
+    [key: string]: any // React.ComponentClass
+  }
 }
 
 export interface RenderResult {
@@ -176,8 +186,15 @@ export interface RenderResultAssets {
 }
 
 export interface Stats {
-  assetsByChunkName: {
-    manifest: string[]
+  browser: {
+    assetsByChunkName: {
+      [componentName: string]: string[]
+    }
+  }
+  node: {
+    assetsByChunkName: {
+      [componentName: string]: string[]
+    }
   }
 }
 

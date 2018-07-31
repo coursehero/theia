@@ -1,13 +1,15 @@
 # temporary Dockerfile. Don't care about minimizing the size.
 
-FROM node:8.9-alpine
-WORKDIR /var/www/current
+FROM node:10.7-alpine
+WORKDIR /theia
+
+RUN apk update && apk --no-cache add python make g++ git bash openssh
+
 COPY ./package.json ./
 COPY ./yarn.lock ./
 COPY ./public ./public
 COPY ./views ./views
 
-RUN apk update && apk --no-cache add python make g++ git bash openssh
 RUN yarn install
 COPY ./tsconfig.json ./
 COPY ./tslint.json ./
@@ -27,14 +29,14 @@ CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn start" ]
 # Use the following when docker on Jenkins has been upgraded.
 
 # FROM scratch as base
-# RUN mkdir ./var
+# RUN mkdir ./theia
 # COPY ./package.json ./
 # COPY ./yarn.lock ./
 # COPY ./public ./public
 # COPY ./views ./views
 
-# FROM node:8.9-alpine as build
-# WORKDIR /var/www/current
+# FROM node:10.7-alpine as build
+# WORKDIR /build-theia
 # RUN apk update && apk --no-cache add python make g++ git
 # COPY --from=base / ./
 # RUN yarn install
@@ -47,12 +49,12 @@ CMD [ "/bin/bash", "-c", "source ./secrets.sh && PORT=80 yarn start" ]
 # # this prunes dev deps
 # RUN yarn install --production
 
-# FROM node:8.9-alpine AS release
-# WORKDIR /var/www/current
+# FROM node:10.7-alpine AS release
+# WORKDIR /theia
 # RUN apk update && apk --no-cache add bash git openssh
 # COPY --from=base / ./
-# COPY --from=build /var/www/current/node_modules ./node_modules
-# COPY --from=build /var/www/current/dist ./dist
+# COPY --from=build /build-theia/node_modules ./node_modules
+# COPY --from=build /build-theia/dist ./dist
 # COPY ./deploy/secrets.sh ./secrets.sh
 # ARG theia_env=development
 # ENV THEIA_ENV=$theia_env

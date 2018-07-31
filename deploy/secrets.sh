@@ -5,7 +5,7 @@ export SLACK_TOKEN=$(cat /run/secrets/slack.token)
 export THEIA_AUTH_SECRET=$(cat /run/secrets/api.authKey)
 export THEIA_ROLLBAR_TOKEN=$(cat /run/secrets/theia.rollbar.token)
 export THEIA_S3_BUCKET=$(cat /run/secrets/theia.s3.bucket)
-export THEIA_SQS_QUEUE_URL=$(cat /run/secrets/theia.sqs.queue)
+export THEIA_CACHE=1
 
 if [ ! -f /root/.aws/credentials ]; then
   mkdir -p /root/.aws

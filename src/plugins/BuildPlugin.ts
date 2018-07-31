@@ -8,9 +8,19 @@ class BuildPlugin implements Plugin {
   }
 
   onStart = ({ core }: CoreHooks.OnStartArgs) => {
-    void core.buildAll() // do it once, supress lint error
-    setInterval(core.buildAll.bind(core), this.buildInterval) // do it in interval
+    void this.build(core) // do it in interval
     return Promise.resolve()
+  }
+
+  build (core: Core): Promise<void> {
+    return Promise.resolve()
+      .then(async () => {
+        await core.buildAll()
+      })
+      .then(() => new Promise((resolve) => {
+        setTimeout(resolve, this.buildInterval)
+      }))
+      .then(() => this.build(core))
   }
 }
 

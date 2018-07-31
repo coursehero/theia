@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra'
 import * as path from 'path'
-import Storage from './storage'
+import Storage from './Storage'
 
 class LocalStorage implements Storage {
   constructor (public rootStorageDir: string) {

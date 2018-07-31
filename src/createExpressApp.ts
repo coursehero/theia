@@ -57,15 +57,48 @@ export default (core: Core): express.Application => {
       })
   })
 
-  app.get('/assets', (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if (/\.(js|css|map)$/.test(req.path)) {
-      return next()
-    }
-
-    res.send(HttpStatus.NOT_FOUND)
+  app.get('/config', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    res.send(core.libs)
   })
 
-  app.use('/assets', async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  app.use('/build-manifest', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const [_, ...componentLibraryParts] = req.path.split('/')
+    const componentLibrary = componentLibraryParts.join('/')
+
+    if (!core.libs[componentLibrary]) {
+      return res.status(HttpStatus.BAD_REQUEST).send({ error: `Invalid component library: ${componentLibrary}` })
+    }
+
+    core.getBuildManifest(componentLibrary)
+      .then(buildManifest => {
+        res.send(buildManifest)
+      }).catch(reason => {
+        next(reason)
+      })
+  })
+
+  app.use('/stats-contents', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const [_, ...componentLibraryParts] = req.path.split('/')
+    const componentLibrary = componentLibraryParts.join('/')
+
+    if (!core.libs[componentLibrary]) {
+      return res.status(HttpStatus.BAD_REQUEST).send({ error: `Invalid component library: ${componentLibrary}` })
+    }
+
+    core.getLatestStatsContents(componentLibrary)
+      .then(statsContents => {
+        res.send(statsContents)
+      }).catch(reason => {
+        next(reason)
+      })
+  })
+
+  app.use('/assets', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (!/\.(js|css|map|json)$/.test(req.path)) {
+      res.sendStatus(HttpStatus.NOT_FOUND)
+      return
+    }
+
     const split = req.path.split('/')
     const componentLibrary = split.slice(1, split.length - 1).join('/')
     const asset = split[split.length - 1]
