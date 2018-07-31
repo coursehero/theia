@@ -50,7 +50,7 @@ class CachePlugin implements Plugin {
   }
 
   onComponentLibraryUpdate = async ({ core, componentLibrary, manifestEntry }: CoreHooks.OnComponentLibraryUpdateArgs) => {
-    if (this.config[componentLibrary]) {
+    if (!this.config[componentLibrary]) {
       core.log(`theia:reheat ${componentLibrary}`, 'no cache strategy')
       return
     }
