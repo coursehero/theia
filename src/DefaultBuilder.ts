@@ -157,7 +157,7 @@ class DefaultBuilder implements Builder {
     const doPromiseExec = wrapPromiseExecLogNamespace(`theia:builder ${componentLibrary}`)
     const projectRootDir = path.resolve(__dirname, '..')
     const workingDir = path.resolve(projectRootDir, 'var', componentLibrary)
-    
+
     const exists = await fs.pathExists(workingDir)
     if (!exists) {
       await doPromiseExec(`git clone ${repoSource} ${workingDir}`)
