@@ -41,7 +41,7 @@ export default (core: Core): express.Application => {
     core.logError(`theia:${plugin}:express`, err)
   })
 
-  app.post('/render', async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  app.post('/render', (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const { componentLibrary, component } = req.query
 
     if (!core.libs[componentLibrary]) {
@@ -61,8 +61,40 @@ export default (core: Core): express.Application => {
     res.send(core.libs)
   })
 
+  app.use('/build-manifest', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const [_, ...componentLibraryParts] = req.path.split('/')
+    const componentLibrary = componentLibraryParts.join('/')
+
+    if (!core.libs[componentLibrary]) {
+      return res.status(HttpStatus.BAD_REQUEST).send({ error: `Invalid component library: ${componentLibrary}` })
+    }
+
+    core.getBuildManifest(componentLibrary)
+      .then(buildManifest => {
+        res.send(buildManifest)
+      }).catch(reason => {
+        next(reason)
+      })
+  })
+
+  app.use('/stats-contents', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const [_, ...componentLibraryParts] = req.path.split('/')
+    const componentLibrary = componentLibraryParts.join('/')
+
+    if (!core.libs[componentLibrary]) {
+      return res.status(HttpStatus.BAD_REQUEST).send({ error: `Invalid component library: ${componentLibrary}` })
+    }
+
+    core.getLatestStatsContents(componentLibrary)
+      .then(statsContents => {
+        res.send(statsContents)
+      }).catch(reason => {
+        next(reason)
+      })
+  })
+
   app.use('/assets', (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if (!/\.(js|css|map)$/.test(req.path)) {
+    if (!/\.(js|css|map|json)$/.test(req.path)) {
       res.sendStatus(HttpStatus.NOT_FOUND)
       return
     }
