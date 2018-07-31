@@ -70,19 +70,33 @@ class CachePlugin implements Plugin {
     }
   }
 
-  purge = (componentLibrary: string) => {
-    const params: AWS.SQS.Types.PurgeQueueRequest = {
-      QueueUrl: this.config[componentLibrary].queue!
+  getQueueUrl = (componentLibrary: string): Promise<string> => {
+    const params = {
+      QueueName: this.config[componentLibrary].queue!
     }
     return new Promise((resolve, reject) => {
-      this.sqs.purgeQueue(params, (err) => {
+      this.sqs.getQueueUrl(params, (err, data) => {
         if (err) reject(err)
-        resolve()
+        else resolve(data.QueueUrl!)
       })
     })
   }
 
-  send = (componentLibrary: string, manifestEntry: BuildManifestEntry) => {
+  purge = async (componentLibrary: string) => {
+    const queueUrl = await this.getQueueUrl(componentLibrary)
+    const params: AWS.SQS.Types.PurgeQueueRequest = {
+      QueueUrl: queueUrl
+    }
+    return new Promise((resolve, reject) => {
+      this.sqs.purgeQueue(params, (err) => {
+        if (err) reject(err)
+        else resolve()
+      })
+    })
+  }
+
+  send = async (componentLibrary: string, manifestEntry: BuildManifestEntry) => {
+    const queueUrl = await this.getQueueUrl(componentLibrary)
     const messageAttributes: AWS.SQS.Types.MessageBodyAttributeMap = {
       Type: {
         DataType: 'String',
@@ -100,14 +114,14 @@ class CachePlugin implements Plugin {
     const params: AWS.SQS.Types.SendMessageRequest = {
       MessageAttributes: messageAttributes,
       MessageBody: JSON.stringify(messageBody),
-      QueueUrl: this.config[componentLibrary].queue!,
+      QueueUrl: queueUrl,
       DelaySeconds: 10
     }
 
     return new Promise((resolve, reject) => {
       this.sqs.sendMessage(params, (err) => {
         if (err) reject(err)
-        resolve()
+        else resolve()
       })
     })
   }

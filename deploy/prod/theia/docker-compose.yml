@@ -5,7 +5,6 @@ services:
     environment:
       NEW_RELIC_APP_NAME: theia
       ROLLBAR_ENV: production
-      THEIA_SQS_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/315915642113/TheiaReheatJobs
       THEIA_S3_BUCKET: coursehero
     stdin_open: true
     volumes:
@@ -14,7 +13,6 @@ services:
       - /run/secrets/theia.aws.config/:/root/.aws/config
       - /run/secrets/theia.rollbar.token:/run/secrets/theia.rollbar.token
       - /run/secrets/theia.s3.bucket:/run/secrets/theia.s3.bucket
-      - /run/secrets/theia.sqs.queue:/run/secrets/theia.sqs.queue
       - /run/secrets/aws.key:/run/secrets/aws.key
       - /run/secrets/aws.secret:/run/secrets/aws.secret
       - /run/secrets/api.authKey:/run/secrets/api.authKey
@@ -42,7 +40,6 @@ services:
     environment:
       NEW_RELIC_APP_NAME: theia
       ROLLBAR_ENV: production
-      THEIA_SQS_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/315915642113/TheiaReheatJobs
       THEIA_S3_BUCKET: coursehero
     stdin_open: true
     volumes:
@@ -51,7 +48,6 @@ services:
       - /run/secrets/theia.aws.config/:/root/.aws/config
       - /run/secrets/theia.rollbar.token:/run/secrets/theia.rollbar.token
       - /run/secrets/theia.s3.bucket:/run/secrets/theia.s3.bucket
-      - /run/secrets/theia.sqs.queue:/run/secrets/theia.sqs.queue
       - /run/secrets/aws.key:/run/secrets/aws.key
       - /run/secrets/aws.secret:/run/secrets/aws.secret
       - /run/secrets/api.authKey:/run/secrets/api.authKey
