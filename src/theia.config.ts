@@ -44,7 +44,7 @@ const libs: theia.ComponentLibraryConfigurations = {
   '@coursehero/study-guides': {
     source: 'git@git.coursehero.com:coursehero/components/study-guides.git',
     env: {
-      development: 'dev',
+      development: 'dev-18',
       production: 'master'
     }
   },
