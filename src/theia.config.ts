@@ -17,9 +17,9 @@ if (useLocalStorage) {
 
 // const useUniqueQueue = (componentLibrary: string) => {
 //   const cleaned = componentLibrary.replace(/@/g, '')
-//   return process.env.THEIA_ENV === 'production' ? `Theia_${cleaned}` : `Theia_${cleaned}_Dev`
+//   return process.env.THEIA_ENV === 'production' ? `Theia_${cleaned}` : `Theia_${cleaned}_dev`
 // }
-const defaultQueue = process.env.THEIA_ENV === 'production' ? 'TheiaReheatJobs' : 'TheiaReheatJobs_Dev'
+const defaultQueue = process.env.THEIA_ENV === 'production' ? 'TheiaReheatJobs' : 'TheiaReheatJobs_dev'
 
 const plugins: theia.Plugin[] = theia.nn([
   process.env.THEIA_ROLLBAR_TOKEN ? new theia.RollbarPlugin(process.env.THEIA_ROLLBAR_TOKEN, process.env.ROLLBAR_ENV!) : null,
