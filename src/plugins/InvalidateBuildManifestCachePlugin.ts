@@ -17,7 +17,7 @@ class InvalidateBuildManifestCachePlugin implements Plugin {
   constructor (public invalidationInterval: number) {}
 
   apply (core: Core) {
-    core.hooks.start.tapPromise('BuildPlugin', this.onStart)
+    core.hooks.start.tapPromise('InvalidateBuildManifestCachePlugin', this.onStart)
   }
 
   onStart = ({ core }: CoreHooks.OnStartArgs) => {

@@ -14,6 +14,12 @@ export type OnBeforeRenderArgs = {
   props: object
 }
 
+export type OnComponentLibraryLoadArgs = {
+  core: Core
+  componentLibrary: string
+  manifestEntry: BuildManifestEntry
+}
+
 export type OnComponentLibraryUpdateArgs = {
   core: Core
   componentLibrary: string
@@ -37,6 +43,7 @@ export type OnStartArgs = {
 }
 
 export type BeforeRenderHook = Tapable.ITypedAsyncParallelHook<{core: Core, componentLibrary: string, component: string, props: object}>
+export type ComponentLibraryLoadHook = Tapable.ITypedAsyncParallelHook<OnComponentLibraryLoadArgs>
 export type ComponentLibraryUpdateHook = Tapable.ITypedAsyncParallelHook<OnComponentLibraryUpdateArgs>
 export type ErrorHook = Tapable.ITypedAsyncParallelHook<OnErrorArgs>
 export type ExpressHook = Tapable.ITypedAsyncParallelHook<OnExpressArgs>
@@ -54,6 +61,7 @@ class Core {
 
   hooks: {
     beforeRender: BeforeRenderHook
+    componentLibraryLoad: ComponentLibraryLoadHook
     componentLibraryUpdate: ComponentLibraryUpdateHook
     error: ErrorHook
     express: ExpressHook
@@ -61,6 +69,7 @@ class Core {
     start: StartHook
   } = {
     beforeRender: new TypedAsyncParallelHook(['core', 'componentLibrary', 'component', 'props']),
+    componentLibraryLoad: new TypedAsyncParallelHook(['core', 'componentLibrary', 'manifestEntry']),
     componentLibraryUpdate: new TypedAsyncParallelHook(['core', 'componentLibrary', 'manifestEntry']),
     error: new TypedAsyncParallelHook(['core', 'error']),
     express: new TypedAsyncParallelHook(['core', 'app']),
@@ -101,13 +110,13 @@ class Core {
       this.logError(`theia:${plugin}:beforeRender`, err)
     })
 
-    const ComponentLibrary = await this.getComponentLibrary(componentLibrary)
-    if (!(componentName in ComponentLibrary.Components)) {
+    const componentLibraryObject = await this.getComponentLibrary(componentLibrary)
+    if (!(componentName in componentLibraryObject.Components)) {
       throw new Error(`${componentName} is not a registered component of ${componentLibrary}`)
     }
-    const React = ComponentLibrary.React
-    const ReactDOMServer = ComponentLibrary.ReactDOMServer
-    const Component = ComponentLibrary.Components[componentName]
+    const React = componentLibraryObject.React
+    const ReactDOMServer = componentLibraryObject.ReactDOMServer
+    const Component = componentLibraryObject.Components[componentName]
     const html = ReactDOMServer.renderToString(React.createElement(Component, props))
 
     // TODO: code splitting w/ universal components
@@ -190,9 +199,9 @@ class Core {
 
     const buildManifest = await this.getBuildManifest(componentLibrary)
     const latest = buildManifest[buildManifest.length - 1]
-    const ComponentLibrary: ComponentLibrary = {
-      React: requireFromString(await this.storage.load(componentLibrary, latest.react)),
-      ReactDOMServer: requireFromString(await this.storage.load(componentLibrary, latest.reactDOMServer)),
+    const componentLibraryObject: ComponentLibrary = {
+      React: requireFromString(await this.storage.load(componentLibrary, latest.react), `${componentLibrary}/${latest.react}`),
+      ReactDOMServer: requireFromString(await this.storage.load(componentLibrary, latest.reactDOMServer), `${componentLibrary}/${latest.reactDOMServer}`),
       Components: {}
     }
 
@@ -200,11 +209,17 @@ class Core {
     for (const [componentName, componentAssets] of Object.entries(stats.assetsByChunkName)) {
       const componentBasename = componentAssets.find((asset: string) => asset.endsWith('.js'))
       const source = await this.storage.load(componentLibrary, componentBasename!)
-      const Component = requireFromString(source).default
-      ComponentLibrary.Components[componentName] = Component
+      const Component = requireFromString(source, `${componentLibrary}/${componentBasename}`).default
+      componentLibraryObject.Components[componentName] = Component
     }
 
-    return this.libCache[componentLibrary] = ComponentLibrary
+    await this.hooks.componentLibraryLoad.promise({ core: this, componentLibrary, manifestEntry: latest }).catch(err => {
+      // TODO: find out how to get which plugin threw the error
+      const plugin = 'plugin'
+      this.logError(`theia:${plugin}:componentLibraryLoad`, err)
+    })
+
+    return this.libCache[componentLibrary] = componentLibraryObject
   }
 
   // temporary. just returns all the assets for a CL. change when codesplitting is working

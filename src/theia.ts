@@ -12,6 +12,7 @@ import HeartbeatPlugin from './plugins/HeartbeatPlugin'
 import InvalidateBuildManifestCachePlugin from './plugins/InvalidateBuildManifestCachePlugin'
 import RollbarPlugin from './plugins/RollbarPlugin'
 import SlackPlugin from './plugins/SlackPlugin'
+import SourceMapSupportPlugin from './plugins/SourceMapSupportPlugin'
 import UsagePlugin from './plugins/UsagePlugin'
 import S3Storage from './S3Storage'
 import Storage from './Storage'
@@ -108,6 +109,7 @@ export {
   AuthPlugin,
   Builder,
   BuildPlugin,
+  CachePlugin,
   Core,
   CoreHooks,
   ExpressPlugin,
@@ -115,10 +117,10 @@ export {
   InvalidateBuildManifestCachePlugin,
   LocalStorage,
   Plugin,
-  CachePlugin,
   RollbarPlugin,
   S3Storage,
   SlackPlugin,
+  SourceMapSupportPlugin,
   Storage,
   UsagePlugin
 }
@@ -190,11 +192,17 @@ export interface Stats {
     assetsByChunkName: {
       [componentName: string]: string[]
     }
+    assets: {
+      name: string
+    }[]
   }
   node: {
     assetsByChunkName: {
       [componentName: string]: string[]
     }
+    assets: {
+      name: string
+    }[]
   }
 }
 
