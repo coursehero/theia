@@ -22,6 +22,7 @@ if (useLocalStorage) {
 const defaultQueue = process.env.THEIA_ENV === 'production' ? 'TheiaReheatJobs' : 'TheiaReheatJobs_dev'
 
 const plugins: theia.Plugin[] = theia.nn([
+  new theia.SourceMapSupportPlugin(),
   process.env.THEIA_ROLLBAR_TOKEN ? new theia.RollbarPlugin(process.env.THEIA_ROLLBAR_TOKEN, process.env.ROLLBAR_ENV!) : null,
   process.env.SLACK_TOKEN ? new theia.SlackPlugin({
     channel: process.env.THEIA_ENV === 'production' ? '#theia-prod' : '#theia-dev'
