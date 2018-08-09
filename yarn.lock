@@ -4159,6 +4159,13 @@ source-map-support@^0.5.0, source-map-support@^0.5.3, source-map-support@^0.5.5:
     buffer-from "^1.0.0"
     source-map "^0.6.0"
 
+source-map-support@^0.5.8:
+  version "0.5.8"
+  resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.8.tgz#04f5581713a8a65612d0175fbf3a01f80a162613"
+  dependencies:
+    buffer-from "^1.0.0"
+    source-map "^0.6.0"
+
 source-map-url@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/source-map-url/-/source-map-url-0.4.0.tgz#3e935d7ddd73631b97659956d55128e87b5084a3"
