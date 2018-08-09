@@ -62,7 +62,7 @@
   "pre-commit": "lint",
   "scripts": {
     "lint": "tslint --fix --project .",
-    "build": "rimraf dist && mkdir dist && cp -r src/types dist/types && tsc",
+    "build": "rimraf dist && mkdir dist && cp -r src/types dist/types && tsc && cp src/source-map-support.js dist",
     "start": "DEBUG=${DEBUG:-theia*} node ./dist/start.js",
     "start-build": "DEBUG=${DEBUG:-theia*} node ./dist/build.js",
     "start-dev": "DEBUG=${DEBUG:-theia*} THEIA_LOCAL=${THEIA_LOCAL:-1} nodemon",
