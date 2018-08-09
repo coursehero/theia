@@ -11,7 +11,7 @@ class SourceMapSupportPlugin implements Plugin {
   }
 
   onStart = ({ core }: CoreHooks.OnStartArgs) => {
-    require('../source-map-support').install({
+    require('source-map-support').install({
       retrieveSourceMap: (source: string) => {
         if (this.sourceMaps[source]) {
           return {
