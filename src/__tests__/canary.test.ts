@@ -69,7 +69,7 @@ describe('mythos', () => {
   })
 
   test('renders', async () => {
-    const result = await core.render('canary', 'Greeting', { name: 'Theia' })
+    const result = await core.render(null as any, 'canary', 'Greeting', { name: 'Theia' })
     expect(result).toEqual({
       html: '<div data-reactroot="">Hello <em>Theia</em>!!!</div>',
       assets: {
@@ -80,7 +80,7 @@ describe('mythos', () => {
   })
 
   test('renders something using ReactDOM', async () => {
-    const result = await core.render('canary', 'MythosApp', { })
+    const result = await core.render(null as any, 'canary', 'MythosApp', { })
     expect(result).toEqual({
       html: '<div data-reactroot="">Mythos App</div>',
       assets: {
