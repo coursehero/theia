@@ -34,7 +34,7 @@ async function run () {
   const props = fs.readFileSync('./perf.json', 'utf-8')
 
   // warm up
-  await core.render('benchmark', 'CourseApp', JSON.parse(props))
+  await core.render(null as any, 'benchmark', 'CourseApp', JSON.parse(props))
 
   autocannon({
     url: 'http://localhost:3000/render?componentLibrary=benchmark&component=CourseApp',

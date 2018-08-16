@@ -48,7 +48,7 @@ export default (core: Core): express.Application => {
       return res.status(HttpStatus.BAD_REQUEST).send({ error: `Invalid component library: ${componentLibrary}` })
     }
 
-    core.render(componentLibrary, component, req.body)
+    core.render(req, componentLibrary, component, req.body)
       .then(result => {
         res.set('Theia-Assets', JSON.stringify(result.assets))
         res.send(result.html)
