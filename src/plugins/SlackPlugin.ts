@@ -1,5 +1,5 @@
 import { WebClient } from '@slack/client'
-import { BuildManifestEntry, Core, CoreHooks, Plugin } from '../theia'
+import { Core, CoreHooks, Plugin } from '../theia'
 
 export interface CtorParams {
   channel: string

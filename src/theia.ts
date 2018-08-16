@@ -14,6 +14,7 @@ import RollbarPlugin from './plugins/RollbarPlugin'
 import SlackPlugin from './plugins/SlackPlugin'
 import SourceMapSupportPlugin from './plugins/SourceMapSupportPlugin'
 import UsagePlugin from './plugins/UsagePlugin'
+import WendigoPlugin from './plugins/WendigoPlugin'
 import S3Storage from './S3Storage'
 import Storage from './Storage'
 
@@ -122,7 +123,8 @@ export {
   SlackPlugin,
   SourceMapSupportPlugin,
   Storage,
-  UsagePlugin
+  UsagePlugin,
+  WendigoPlugin
 }
 
 export type Environment = 'test' | 'development' | 'production'

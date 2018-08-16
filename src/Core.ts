@@ -9,6 +9,7 @@ import { TypedAsyncParallelHook } from './TypedTapable'
 
 export type OnBeforeRenderArgs = {
   core: Core
+  req: express.Request
   componentLibrary: string
   component: string
   props: object
@@ -42,7 +43,7 @@ export type OnStartArgs = {
   core: Core
 }
 
-export type BeforeRenderHook = Tapable.ITypedAsyncParallelHook<{core: Core, componentLibrary: string, component: string, props: object}>
+export type BeforeRenderHook = Tapable.ITypedAsyncParallelHook<OnBeforeRenderArgs>
 export type ComponentLibraryLoadHook = Tapable.ITypedAsyncParallelHook<OnComponentLibraryLoadArgs>
 export type ComponentLibraryUpdateHook = Tapable.ITypedAsyncParallelHook<OnComponentLibraryUpdateArgs>
 export type ErrorHook = Tapable.ITypedAsyncParallelHook<OnErrorArgs>
@@ -68,12 +69,12 @@ class Core {
     render: RenderHook
     start: StartHook
   } = {
-    beforeRender: new TypedAsyncParallelHook(['core', 'componentLibrary', 'component', 'props']),
+    beforeRender: new TypedAsyncParallelHook(['core', 'req', 'componentLibrary', 'component', 'props']),
     componentLibraryLoad: new TypedAsyncParallelHook(['core', 'componentLibrary', 'manifestEntry']),
     componentLibraryUpdate: new TypedAsyncParallelHook(['core', 'componentLibrary', 'manifestEntry']),
     error: new TypedAsyncParallelHook(['core', 'error']),
     express: new TypedAsyncParallelHook(['core', 'app']),
-    render: new TypedAsyncParallelHook(['core', 'componentLibrary', 'component', 'props']),
+    render: new TypedAsyncParallelHook(['core', 'req', 'componentLibrary', 'component', 'props']),
     start: new TypedAsyncParallelHook(['core'])
   }
 
@@ -102,9 +103,9 @@ class Core {
     })
   }
 
-  async render (componentLibrary: string, componentName: string, props: object): Promise<RenderResult> {
+  async render (req: express.Request, componentLibrary: string, componentName: string, props: object): Promise<RenderResult> {
     // don't wait for completion
-    this.hooks.beforeRender.promise({ core: this, componentLibrary, component: componentName, props }).catch(err => {
+    this.hooks.beforeRender.promise({ core: this, req, componentLibrary, component: componentName, props }).catch(err => {
       // TODO: find out how to get which plugin threw the error
       const plugin = 'plugin'
       this.logError(`theia:${plugin}:beforeRender`, err)
@@ -123,7 +124,7 @@ class Core {
     const assets = await this.getAssets(componentLibrary, componentName)
 
     // don't wait for completion
-    this.hooks.render.promise({ core: this, componentLibrary, component: componentName, props }).catch(err => {
+    this.hooks.render.promise({ core: this, req, componentLibrary, component: componentName, props }).catch(err => {
       // TODO: find out how to get which plugin threw the error
       const plugin = 'plugin'
       this.logError(`theia:${plugin}:render`, err)
@@ -259,8 +260,8 @@ class Core {
     }
   }
 
-  log (namespace: string, error: any) {
-    _log(namespace, error)
+  log (namespace: string, ...toLog: any[]) {
+    _log(namespace, toLog.join())
   }
 
   logError (namespace: string, error: Error | string) {
