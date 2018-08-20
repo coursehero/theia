@@ -6,6 +6,7 @@ def silent_sh(cmd) {
 try{
     node {
         stage 'Checkout'
+            silent_sh "eval \$(aws ecr get-login)"
             if("true" == "${FORCE_CLEAR_GIT_WORKSPACE}") {
               echo "Force clearing Git workspace"
               sh 'docker run --rm --net="host" -v /var/lib/jenkins/jobs/Build-Theia:/root/Build-Theia:rw -i 315915642113.dkr.ecr.us-east-1.amazonaws.com/scriptbox:php7.1 rm -fr /root/Build-Theia/workspace'
@@ -18,7 +19,6 @@ try{
                   -t 315915642113.dkr.ecr.us-east-1.amazonaws.com/theia .'
 
         stage 'Push'
-            silent_sh "eval \$(aws ecr get-login)"
             sh "docker push 315915642113.dkr.ecr.us-east-1.amazonaws.com/theia:latest"
 
         stage 'Release'
