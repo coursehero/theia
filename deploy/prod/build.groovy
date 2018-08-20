@@ -10,7 +10,7 @@ try{
               echo "Force clearing Git workspace"
               sh 'docker run --rm --net="host" -v /var/lib/jenkins/jobs/Build-Theia:/root/Build-Theia:rw -i 315915642113.dkr.ecr.us-east-1.amazonaws.com/scriptbox:php7.1 rm -fr /root/Build-Theia/workspace'
             }
-            git url: 'git@prod-git.coursehero.com:coursehero/service/theia.git', branch: 'master'
+            git url: 'git@git.coursehero.com:coursehero/service/theia.git', branch: 'master'
 
         stage 'Build / Test'
             sh 'docker build \
