@@ -11,3 +11,4 @@ newrelic_agent.log
 jest-libs
 theia.config.js
 perf-libs
+yarn.lock
