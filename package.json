@@ -1,5 +1,5 @@
 {
-  "name": "theia",
+  "name": "@coursehero/theia",
   "version": "0.0.0",
   "main": "dist/theia.js",
   "types": "dist/theia.d.ts",
