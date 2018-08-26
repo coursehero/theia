@@ -1,6 +1,6 @@
 {
   "name": "@coursehero/theia",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "main": "dist/theia.js",
   "types": "dist/theia.d.ts",
   "files": [
