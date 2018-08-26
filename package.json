@@ -11,7 +11,6 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@slack/client": "^4.1.0",
-    "@types/require-from-string": "^1.2.0",
     "aws-sdk": "^2.213.1",
     "bluebird": "^3.5.1",
     "body-parser": "~1.18.2",
@@ -25,7 +24,6 @@
     "mime-types": "^2.1.17",
     "morgan": "~1.9.0",
     "mustache": "^2.3.0",
-    "newrelic": "^3.2.0",
     "request": "^2.83.0",
     "require-from-string": "^2.0.2",
     "rollbar": "^2.3.8",
@@ -46,6 +44,7 @@
     "@types/mime-types": "^2.1.0",
     "@types/morgan": "^1.7.35",
     "@types/node": "^10.5.3",
+    "@types/require-from-string": "^1.2.0",
     "@types/rimraf": "^2.0.2",
     "@types/serve-favicon": "^2.2.30",
     "autocannon": "^2.4.1",
@@ -55,8 +54,8 @@
     "rimraf": "^2.6.2",
     "ts-jest": "^22.4.1",
     "ts-node": "^5.0.1",
-    "tslint": "^5.8.0",
     "tslint-config-standard": "^7.0.0",
+    "tslint": "^5.8.0",
     "typescript": "^2.6.2"
   },
   "pre-commit": "lint",
