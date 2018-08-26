@@ -3,9 +3,6 @@
   "version": "1.0.0-alpha.3",
   "main": "dist/theia.js",
   "types": "dist/theia.d.ts",
-  "files": [
-    "dist/"
-  ],
   "repository": "https://git.coursehero.com/coursehero/theia.git",
   "author": "Connor Clark <connor.clark@coursehero.com>",
   "license": "Apache-2.0",
