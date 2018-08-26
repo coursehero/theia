@@ -9,9 +9,6 @@
       "@coursehero/theia": "*",
       "@coursehero/theia-express-plugin": "*",
       "autocannon": "^2.4.1"
-    },
-    "scripts": {
-      "prepare": "rimraf dist && mkdir dist && tsc --outDir dist"
     }
   }
   

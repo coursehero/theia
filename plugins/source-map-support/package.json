@@ -9,10 +9,6 @@
     "license": "Apache-2.0",
     "author": "Connor Clark <connor.clark@coursehero.com>",
     "main": "dist/SourceMapSupportPlugin.js",
-    "directories": {
-        "lib": "lib",
-        "test": "__tests__"
-    },
     "publishConfig": {
         "access": "public"
     },
