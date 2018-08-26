@@ -1,6 +1,6 @@
 {
     "name": "@coursehero/theia-cache-plugin",
-    "version": "0.0.0",
+    "version": "0.0.1-alpha.0",
     "keywords": [
         "theia",
         "cache"
@@ -14,7 +14,7 @@
         "url": "git+https://github.com/coursehero/theia.git"
     },
     "dependencies": {
-        "http-status-codes": "^1.3.0",
-        "aws-sdk": "^2.213.1"
+        "aws-sdk": "^2.213.1",
+        "http-status-codes": "^1.3.0"
     }
 }

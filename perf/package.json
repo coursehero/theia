@@ -1,17 +1,16 @@
 {
-    "name": "@coursehero/theia-perf",
-    "private": true,
-    "version": "0.0.0",
-    "repository": "https://git.coursehero.com/coursehero/theia.git",
-    "author": "Connor Clark <connor.clark@coursehero.com>",
-    "license": "Apache-2.0",
-    "dependencies": {
-      "@coursehero/theia": "*",
-      "@coursehero/theia-express-plugin": "*",
-      "autocannon": "^2.4.1"
-    },
-    "scripts": {
-      "prepare": "rimraf dist && mkdir dist && tsc --outDir dist"
-    }
+  "name": "@coursehero/theia-perf",
+  "private": true,
+  "version": "0.0.1-alpha.0",
+  "repository": "https://git.coursehero.com/coursehero/theia.git",
+  "author": "Connor Clark <connor.clark@coursehero.com>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@coursehero/theia": "^0.0.1-alpha.0",
+    "@coursehero/theia-express-plugin": "^0.0.1-alpha.0",
+    "autocannon": "^2.4.1"
+  },
+  "scripts": {
+    "prepare": "rimraf dist && mkdir dist && tsc --outDir dist"
   }
-  
+}
