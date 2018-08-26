@@ -1,5 +1,7 @@
 # Theia
 
+[![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
+
 ### Server Side Rendering And React Build Server as a Service (SSR&RBSaaS)
 
 Theia provides:

@@ -1,4 +1,4 @@
-/// <reference path="./types/tapable.d.ts" />
+/// <reference path="../types/tapable.d.ts" />
 
 import * as path from 'path'
 import Builder from './Builder'

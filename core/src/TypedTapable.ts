@@ -1,4 +1,4 @@
-/// <reference path="./types/tapable.d.ts" />
+/// <reference path="../types/tapable.d.ts" />
 
 // https://github.com/webpack/tapable/issues/43#issuecomment-364694318
 
