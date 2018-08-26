@@ -2,16 +2,17 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "commonjs",
-    "outDir": "dist",
     "jsx": "react",
     "sourceMap": true,
     "strict": true,
-    "declaration": true
+    "declaration": true,
+    "baseUrl": ".",
+    "paths": {
+      "@coursehero/theia": ["./core"]
+    }
   },
-  "include": [
-    "./src/**/*"
-  ],
   "exclude": [
-    "./src/**/*.test.ts"
+    "./**/*.test.ts",
+    "./**/dist"
   ]
 }

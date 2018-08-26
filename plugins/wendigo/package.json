@@ -1,0 +1,26 @@
+{
+    "name": "@coursehero/theia-wendigo-plugin",
+    "version": "0.0.0",
+    "keywords": [
+        "theia",
+        "wendigo"
+    ],
+    "homepage": "https://github.com/coursehero/theia",
+    "license": "Apache-2.0",
+    "author": "Connor Clark <connor.clark@coursehero.com>",
+    "main": "dist/WendigoPlugin.js",
+    "directories": {
+        "lib": "lib",
+        "test": "__tests__"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/coursehero/theia.git"
+    },
+    "dependencies": {
+        "xxhash": "^0.2.4"
+    }
+}

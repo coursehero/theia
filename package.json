@@ -1,39 +1,15 @@
 {
-  "name": "@coursehero/theia",
+  "name": "@coursehero/theia-monorepo",
   "version": "0.0.0",
-  "main": "dist/theia.js",
-  "types": "dist/theia.d.ts",
-  "files": [
-    "dist/"
-  ],
+  "private": true,
   "repository": "https://git.coursehero.com/coursehero/theia.git",
   "author": "Connor Clark <connor.clark@coursehero.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "@slack/client": "^4.1.0",
-    "aws-sdk": "^2.213.1",
-    "bluebird": "^3.5.1",
-    "body-parser": "~1.18.2",
-    "consolidate": "^0.15.0",
-    "cookie-parser": "~1.4.3",
-    "debug": "~3.1.0",
-    "escape-html": "^1.0.3",
-    "express": "^4.16.2",
-    "fs-extra": "^5.0.0",
-    "http-status-codes": "^1.3.0",
-    "mime-types": "^2.1.17",
-    "morgan": "~1.9.0",
-    "mustache": "^2.3.0",
-    "request": "^2.83.0",
-    "require-from-string": "^2.0.2",
-    "rollbar": "^2.3.8",
-    "serve-favicon": "~2.4.5",
-    "source-map-support": "^0.5.8",
-    "tapable": "^1.0.0-beta.5",
-    "xxhash": "^0.2.4"
+    "lerna": "^3.1.4"
   },
   "devDependencies": {
-    "@types/bluebird": "^3.5.20",
+    "@types/bluebird": "^3.5.23",
     "@types/consolidate": "^0.0.33",
     "@types/cookie-parser": "^1.4.1",
     "@types/debug": "^0.0.30",
@@ -49,22 +25,23 @@
     "@types/serve-favicon": "^2.2.30",
     "autocannon": "^2.4.1",
     "jest": "^22.4.2",
-    "nodemon": "^1.13.3",
     "pre-commit": "^1.2.2",
     "rimraf": "^2.6.2",
     "ts-jest": "^22.4.1",
     "ts-node": "^5.0.1",
-    "tslint-config-standard": "^7.0.0",
     "tslint": "^5.8.0",
-    "typescript": "^2.6.2"
+    "tslint-config-standard": "^7.0.0",
+    "typescript": "^3.0.1"
   },
   "pre-commit": "lint",
   "scripts": {
+    "bootstrap": "yarn install && lerna bootstrap --hoist",
+    "build": "lerna --concurrency 1 exec 'pwd && rimraf dist && mkdir dist && tsc --outDir dist && (cp -r types dist/types 2>/dev/null || true)'",
     "lint": "tslint --fix --project .",
-    "build": "rimraf dist && mkdir dist && cp -r src/types dist/types && tsc",
     "test": "DEBUG=${DEBUG:-theia*} jest"
   },
   "jest": {
+    "testURL": "http://localhost",
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },

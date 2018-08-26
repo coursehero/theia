@@ -1,0 +1,19 @@
+{
+    "name": "@coursehero/theia-auth-plugin",
+    "version": "0.0.0",
+    "keywords": [
+        "theia",
+        "auth"
+    ],
+    "homepage": "https://github.com/coursehero/theia",
+    "license": "Apache-2.0",
+    "author": "Connor Clark <connor.clark@coursehero.com>",
+    "main": "dist/AuthPlugin.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/coursehero/theia.git"
+    },
+    "dependencies": {
+        "http-status-codes": "^1.3.0"
+    }
+}

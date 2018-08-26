@@ -12,3 +12,4 @@ jest-libs
 theia.config.js
 perf-libs
 yarn.lock
+package-lock.json

@@ -1,0 +1,25 @@
+{
+  "name": "@coursehero/theia",
+  "version": "0.0.0",
+  "main": "dist/theia.js",
+  "types": "dist/theia.d.ts",
+  "files": [
+    "dist/"
+  ],
+  "repository": "https://git.coursehero.com/coursehero/theia.git",
+  "author": "Connor Clark <connor.clark@coursehero.com>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "aws-sdk": "^2.213.1",
+    "bluebird": "^3.5.1",
+    "debug": "~3.1.0",
+    "fs-extra": "^5.0.0",
+    "mime-types": "^2.1.17",
+    "request": "^2.83.0",
+    "require-from-string": "^2.0.2",
+    "tapable": "^1.0.0-beta.5"
+  },
+  "scripts": {
+    "prepare": "rimraf dist && mkdir dist && tsc --outDir dist"
+  }
+}
