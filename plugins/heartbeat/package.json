@@ -1,6 +1,6 @@
 {
     "name": "@coursehero/theia-heartbeat-plugin",
-    "version": "0.0.0",
+    "version": "1.0.0-alpha.1",
     "keywords": [
         "theia",
         "heartbeat"
@@ -15,7 +15,5 @@
     "repository": {
         "type": "git",
         "url": "git+https://github.com/coursehero/theia.git"
-    },
-    "dependencies": {
     }
 }
