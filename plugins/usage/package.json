@@ -19,6 +19,7 @@
         "type": "git",
         "url": "git+https://github.com/coursehero/theia.git"
     },
-    "dependencies": {
+    "scripts": {
+        "postbuild": "cp -r views dist/views"
     }
 }
