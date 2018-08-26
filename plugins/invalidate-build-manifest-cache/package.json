@@ -1,6 +1,6 @@
 {
     "name": "@coursehero/theia-invalidate-build-manifest-cache-plugin",
-    "version": "0.0.0",
+    "version": "1.0.0-alpha.0",
     "keywords": [
         "theia",
         "cache"
@@ -19,7 +19,5 @@
     "repository": {
         "type": "git",
         "url": "git+https://github.com/coursehero/theia.git"
-    },
-    "dependencies": {
     }
 }
