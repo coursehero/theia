@@ -24,11 +24,10 @@ async function run () {
     plugins: [
       new ExpressPlugin(process.env.PORT ? parseInt(process.env.PORT, 10) : 3000)
     ],
-    storage,
-    loadFromDisk: false
+    storage
   }
 
-  const core = makeCore(config)
+  const core = makeCore(config, 'theia*')
   await core.buildAll()
   await core.start()
   const props = fs.readFileSync('./perf.json', 'utf-8')

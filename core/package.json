@@ -1,6 +1,7 @@
 {
   "name": "@coursehero/theia",
   "version": "1.0.0-alpha.4",
+  "bin": "./dist/cli.js",
   "main": "dist/theia.js",
   "types": "dist/theia.d.ts",
   "repository": "https://git.coursehero.com/coursehero/theia.git",
@@ -9,6 +10,7 @@
   "dependencies": {
     "aws-sdk": "^2.213.1",
     "bluebird": "^3.5.1",
+    "commander": "^2.17.1",
     "debug": "~3.1.0",
     "fs-extra": "^5.0.0",
     "mime-types": "^2.1.17",

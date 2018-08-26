@@ -1,5 +1,6 @@
 /// <reference path="../types/tapable.d.ts" />
 
+import * as debug from 'debug'
 import * as path from 'path'
 import Builder from './Builder'
 import Core, * as CoreHooks from './Core'
@@ -12,10 +13,6 @@ import Storage from './Storage'
 // no nulls
 export function nn<T> (array: (T | null)[]): T[] {
   return array.filter(e => e !== null) as T[]
-}
-
-function getConfig (configPath: string): Required<Configuration> {
-  return require(configPath).default
 }
 
 function configDefaulter (options: Configuration): Required<Configuration> {
@@ -40,10 +37,6 @@ function configDefaulter (options: Configuration): Required<Configuration> {
     componentLibConfig.env.production = componentLibConfig.env.production || 'master'
   }
 
-  if (opts.loadFromDisk === undefined) {
-    opts.loadFromDisk = true
-  }
-
   if (opts.plugins === undefined) {
     opts.plugins = []
   }
@@ -59,33 +52,10 @@ function configDefaulter (options: Configuration): Required<Configuration> {
   return opts as Required<Configuration>
 }
 
-export default function theia (configFromParams?: Configuration): Core {
-  const configPaths = [
-    path.resolve('theia.config'),
-    path.resolve('dist/theia.config'),
-    path.resolve('src/theia.config')
-  ]
-  const configPath = configPaths.find(p => {
-    try {
-      require.resolve(p)
-      return true
-    } catch (e) {
-      return false
-    }
-  })
+export default function theia (configFromParams: Configuration, debugNamespaces: string): Core {
+  debug.enable(debugNamespaces)
 
-  let config
-  const readFromDisk = !configFromParams || (configFromParams && configFromParams.loadFromDisk)
-  if (readFromDisk && configPath) {
-    config = getConfig(configPath)
-    // TODO merge configFromParams
-  } else if (configFromParams) {
-    config = configFromParams
-  } else {
-    throw new Error('could not find theia config')
-  }
-
-  config = configDefaulter(config)
+  const config = configDefaulter(configFromParams)
   const core = new Core(config)
 
   if (config.verbose) {
@@ -116,7 +86,6 @@ export interface Configuration {
   plugins?: Plugin[]
   storage?: Storage
   verbose?: boolean
-  loadFromDisk?: boolean
 }
 
 export interface ComponentLibraryConfigurations {

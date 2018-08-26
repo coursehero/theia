@@ -30,7 +30,6 @@ This will run the server locally:
 | builder         | `Builder`                                 | DefaultBuilder                              |
 | environment     | `'development' `&#124;` 'production'`     | process.env.THEIA_ENV || 'development'      |
 | libs            |`{ [name]: ComponentLibraryConfiguration }`| required                                    | CLs
-| loadFromDisk    | `boolean`                                 | true                                        | loads config from disk. Only set to false for testing
 | plugins         | `Plugin[]`                                | []                                          | 
 | storage         | `Storage`                                 | LocalStorage("libs")                        |
 | verbose         | `boolean`                                 | true                                        |

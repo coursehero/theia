@@ -1,5 +1,5 @@
 import * as rimraf from 'rimraf'
-import theia, { Configuration, LocalStorage } from '../theia'
+import theia, { Configuration, LocalStorage } from '../src/theia'
 
 describe('mythos', () => {
   rimraf.sync(__dirname + '/jest-libs')
@@ -15,11 +15,10 @@ describe('mythos', () => {
         }
       }
     },
-    storage,
-    loadFromDisk: false
+    storage
   }
 
-  const core = theia(config)
+  const core = theia(config, 'theia*')
 
   beforeAll(() => core.buildAll(), 1000 * 60)
   afterAll(() => rimraf.sync(__dirname + '/jest-libs'))
