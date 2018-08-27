@@ -82,7 +82,7 @@ class Core {
   buildManifestCache: { [key: string]: BuildManifest } = {}
   statsContentsCache: { [key: string]: Stats } = {}
 
-  constructor (config: Required<Configuration>) {
+  constructor (public config: Required<Configuration>) {
     this.builder = config.builder
     this.libs = config.libs
     this.environment = config.environment

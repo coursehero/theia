@@ -26,6 +26,10 @@ function configDefaulter (options: Configuration): Required<Configuration> {
     opts.environment = process.env.THEIA_ENV as Environment || 'development'
   }
 
+  if (opts.gitDir === undefined) {
+    opts.gitDir = path.join(require('app-root-path').toString(), 'var')
+  }
+
   if (opts.libs === undefined) {
     throw new Error('must supply libs config')
   }
@@ -59,6 +63,7 @@ export default function theia (configFromParams: Configuration, debugNamespaces:
   const core = new Core(config)
 
   if (config.verbose) {
+    core.log('theia', 'Version: ' + require('../package.json').version)
     core.log('theia', 'Libs: ' + JSON.stringify(config.libs, null, 2))
     core.log('theia', 'Plugins: ' + config.plugins.map(p => p.constructor.name).join(' '))
     core.log('theia', 'Storage: ' + config.storage.constructor.name)
@@ -86,6 +91,7 @@ export interface Configuration {
   plugins?: Plugin[]
   storage?: Storage
   verbose?: boolean
+  gitDir?: string
 }
 
 export interface ComponentLibraryConfigurations {

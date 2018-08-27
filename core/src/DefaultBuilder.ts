@@ -41,7 +41,7 @@ class DefaultBuilder implements Builder {
   async build (core: Core, componentLibrary: string, componentLibraryConfig: ComponentLibraryConfiguration) {
     // the latest commit in the tracked branch will be persisted
     const branchOrCommit = componentLibraryConfig.env![core.environment]
-    const workingDir = await this.ensureRepoIsClonedAndUpdated(componentLibrary, componentLibraryConfig.source, branchOrCommit)
+    const workingDir = await this.ensureRepoIsClonedAndUpdated(core.config.gitDir, componentLibrary, componentLibraryConfig.source, branchOrCommit)
 
     return this.buildFromDir(core, componentLibrary, workingDir)
   }
@@ -153,10 +153,9 @@ class DefaultBuilder implements Builder {
     })
   }
 
-  async ensureRepoIsClonedAndUpdated (componentLibrary: string, repoSource: string, branchOrCommit: string): Promise<string> {
+  async ensureRepoIsClonedAndUpdated (gitDir: string, componentLibrary: string, repoSource: string, branchOrCommit: string): Promise<string> {
     const doPromiseExec = wrapPromiseExecLogNamespace(`theia:builder ${componentLibrary}`)
-    const projectRootDir = path.resolve(__dirname, '..')
-    const workingDir = path.resolve(projectRootDir, 'var', componentLibrary)
+    const workingDir = path.join(gitDir, componentLibrary)
 
     const exists = await fs.pathExists(workingDir)
     if (!exists) {

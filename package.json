@@ -6,6 +6,7 @@
   "author": "Connor Clark <connor.clark@coursehero.com>",
   "license": "Apache-2.0",
   "dependencies": {
+    "app-root-path": "^2.1.0",
     "lerna": "^3.1.4"
   },
   "devDependencies": {
