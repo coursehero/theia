@@ -243,8 +243,7 @@ class Core {
     }).then(() => {
       this.log('theia:build-all', 'finished building component libraries')
     }).catch(err => {
-      this.logError('theia:build-all', 'error while building component libraries')
-      this.logError('theia:build-all', err)
+      this.logError('theia:build-all', `error while building component libraries ${err}`)
     })
   }
 
