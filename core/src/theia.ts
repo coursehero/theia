@@ -105,6 +105,12 @@ export interface ComponentLibraryConfiguration {
   source: string
 }
 
+export interface BuildLogStage {
+  name: string
+  started: Date
+  ended: Date | null
+}
+
 export interface BuildManifestEntry {
   author: {
     name: string

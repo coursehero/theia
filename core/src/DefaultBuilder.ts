@@ -2,7 +2,7 @@ import { exec as __exec } from 'child_process'
 import * as fs from 'fs-extra'
 import * as path from 'path'
 import { log, logError } from './Logger'
-import { Builder, ComponentLibraryConfiguration, Core } from './theia'
+import { Builder, BuildLogStage, ComponentLibraryConfiguration, Core } from './theia'
 
 function promiseExec (cmd: string, opts = {}, logNamespace: string): Promise<string> {
   log(logNamespace, `running '${cmd}' with options ${JSON.stringify(opts)}`)
@@ -37,16 +37,35 @@ function wrapPromiseExecLogNamespace (namespace: string): WrapPromiseExecLoggers
   return (cmd: string, opts = {}) => promiseExec(cmd, opts, namespace)
 }
 
+function stageStart (buildLog: BuildLogStage[], name: string) {
+  buildLog.push({ name, started: new Date(), ended: null })
+}
+
+function stageEnd (buildLog: BuildLogStage[]) {
+  buildLog[buildLog.length - 1].ended = new Date()
+}
+
 class DefaultBuilder implements Builder {
   async build (core: Core, componentLibrary: string, componentLibraryConfig: ComponentLibraryConfiguration) {
     // the latest commit in the tracked branch will be persisted
     const branchOrCommit = componentLibraryConfig.env![core.environment]
     const workingDir = await this.ensureRepoIsClonedAndUpdated(core.config.gitDir, componentLibrary, componentLibraryConfig.source, branchOrCommit)
 
-    return this.buildFromDir(core, componentLibrary, workingDir)
+    const buildLog: BuildLogStage[] = []
+    const doTick = () => void core.hooks.buildTick.promise({ core, componentLibrary, buildLog })
+    const onTickTimerHandle = setInterval(doTick, 1000)
+    doTick()
+
+    return this.buildFromDir(core, componentLibrary, workingDir, buildLog).then(() => {
+      clearTimeout(onTickTimerHandle)
+      doTick()
+    }).catch(() => {
+      clearTimeout(onTickTimerHandle)
+      doTick()
+    })
   }
 
-  async buildFromDir (core: Core, componentLibrary: string, workingDir: string): Promise<void> {
+  async buildFromDir (core: Core, componentLibrary: string, workingDir: string, buildLog: BuildLogStage[]): Promise<void> {
     const logNamespace = `theia:builder ${componentLibrary}`
     const doPromiseExec = wrapPromiseExecLogNamespace(logNamespace)
 
@@ -57,6 +76,8 @@ class DefaultBuilder implements Builder {
       return
     }
 
+    stageStart(buildLog, 'yarn install')
+
     const commitMessage = (await doPromiseExec(`git log -1 ${commitHash} --pretty=format:%s`, { cwd: workingDir }))
     const author = {
       name: (await doPromiseExec(`git log -1 ${commitHash} --pretty=format:%aN`, { cwd: workingDir })),
@@ -65,14 +86,18 @@ class DefaultBuilder implements Builder {
 
     core.log(logNamespace, `installing ${commitHash} ...`)
     await doPromiseExec('yarn install --production=false --non-interactive', { cwd: workingDir })
+    stageEnd(buildLog)
 
     const componentLibraryPackage = require(path.resolve(workingDir, 'package.json'))
     if (componentLibraryPackage.scripts.test) {
       core.log(logNamespace, `running tests`)
+      stageStart(buildLog, 'yarn test')
       await doPromiseExec('yarn test', { cwd: workingDir })
+      stageEnd(buildLog)
       core.log(logNamespace, `finished tests`)
     }
 
+    stageStart(buildLog, 'build')
     core.log(logNamespace, `building ${commitHash} ...`)
     await doPromiseExec('rm -rf dist && mkdir dist', { cwd: workingDir })
     const buildCommand = componentLibraryPackage.scripts.build ? // if build script exists, use it
@@ -101,6 +126,9 @@ class DefaultBuilder implements Builder {
     if (!fs.existsSync(path.join(workingDir, 'dist', 'stats-node.json'))) {
       throw new Error(`Building ${componentLibrary} did not emit a node stats file`)
     }
+
+    stageEnd(buildLog)
+    stageStart(buildLog, 'copy assets')
 
     const browserStatsFilename = `stats-browser.${commitHash}.json`
     fs.renameSync(path.join(workingDir, 'dist', 'stats-browser.json'), path.join(workingDir, 'dist', browserStatsFilename))
@@ -150,6 +178,7 @@ class DefaultBuilder implements Builder {
     core.log(logNamespace, `manifest entry: ${JSON.stringify(buildManifestEntry)}`)
     return core.registerComponentLibrary(componentLibrary, buildAssets, buildManifestEntry).then(() => {
       core.log(logNamespace, `built ${commitHash}`)
+      stageEnd(buildLog)
     })
   }
 

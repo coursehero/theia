@@ -4,7 +4,7 @@ import * as bluebird from 'bluebird'
 import * as express from 'express'
 import * as requireFromString from 'require-from-string'
 import { log as _log, logError as _logError } from './Logger'
-import { Builder, BuildManifest, BuildManifestEntry, ComponentLibrary, ComponentLibraryConfigurations, Configuration, Environment, RenderResult, RenderResultAssets, Stats, Storage } from './theia'
+import { Builder, BuildLogStage, BuildManifest, BuildManifestEntry, ComponentLibrary, ComponentLibraryConfigurations, Configuration, Environment, RenderResult, RenderResultAssets, Stats, Storage } from './theia'
 import { TypedAsyncParallelHook } from './TypedTapable'
 
 export type OnBeforeRenderArgs = {
@@ -13,6 +13,12 @@ export type OnBeforeRenderArgs = {
   componentLibrary: string
   component: string
   props: object
+}
+
+export type OnBuildTickArgs = {
+  core: Core
+  componentLibrary: string
+  buildLog: BuildLogStage[]
 }
 
 export type OnComponentLibraryLoadArgs = {
@@ -44,6 +50,7 @@ export type OnStartArgs = {
 }
 
 export type BeforeRenderHook = Tapable.ITypedAsyncParallelHook<OnBeforeRenderArgs>
+export type BuildTickHook = Tapable.ITypedAsyncParallelHook<OnBuildTickArgs>
 export type ComponentLibraryLoadHook = Tapable.ITypedAsyncParallelHook<OnComponentLibraryLoadArgs>
 export type ComponentLibraryUpdateHook = Tapable.ITypedAsyncParallelHook<OnComponentLibraryUpdateArgs>
 export type ErrorHook = Tapable.ITypedAsyncParallelHook<OnErrorArgs>
@@ -62,6 +69,7 @@ class Core {
 
   hooks: {
     beforeRender: BeforeRenderHook
+    buildTick: BuildTickHook
     componentLibraryLoad: ComponentLibraryLoadHook
     componentLibraryUpdate: ComponentLibraryUpdateHook
     error: ErrorHook
@@ -70,6 +78,7 @@ class Core {
     start: StartHook
   } = {
     beforeRender: new TypedAsyncParallelHook(['core', 'req', 'componentLibrary', 'component', 'props']),
+    buildTick: new TypedAsyncParallelHook(['core', 'componentLibrary', 'buildLog']),
     componentLibraryLoad: new TypedAsyncParallelHook(['core', 'componentLibrary', 'manifestEntry']),
     componentLibraryUpdate: new TypedAsyncParallelHook(['core', 'componentLibrary', 'manifestEntry']),
     error: new TypedAsyncParallelHook(['core', 'error']),

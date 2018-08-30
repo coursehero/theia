@@ -17,6 +17,6 @@
         "url": "git+https://github.com/coursehero/theia.git"
     },
     "dependencies": {
-        "@slack/client": "^4.1.0"
+        "@slack/client": "^4.6.0"
     }
 }
