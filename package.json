@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "app-root-path": "^2.1.0",
-    "lerna": "^3.1.4"
+    "lerna": "^3.2.1"
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.23",

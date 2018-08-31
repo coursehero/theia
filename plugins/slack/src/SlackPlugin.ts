@@ -1,5 +1,5 @@
 import { Core, CoreHooks, Plugin } from '@coursehero/theia'
-import { WebClient } from '@slack/client'
+import { WebAPICallResult, WebClient } from '@slack/client'
 
 export interface CtorParams {
   channel: string
@@ -85,9 +85,9 @@ ${stagesFormatted.join('\n')}
         text
       }
 
-      promise = this.client.chat.postMessage(opts).then(res => {
-        this.currentBuildTickMessageId = (res).ts
-        this.currentBuildTickChannelId = (res).channel
+      promise = this.client.chat.postMessage(opts).then((res: WebAPICallResult | any) => {
+        this.currentBuildTickMessageId = res.ts
+        this.currentBuildTickChannelId = res.channel
         return res
       })
     } else {
