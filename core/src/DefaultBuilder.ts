@@ -2,7 +2,7 @@ import { exec as __exec } from 'child_process'
 import * as fs from 'fs-extra'
 import * as path from 'path'
 import { log, logError } from './Logger'
-import { Builder, BuildLogStage, ComponentLibraryConfiguration, Core } from './theia'
+import { Builder, BuildLogStage, BuildManifestEntry, ComponentLibraryConfiguration, Core } from './theia'
 
 function promiseExec (cmd: string, opts = {}, logNamespace: string): Promise<string> {
   log(logNamespace, `running '${cmd}' with options ${JSON.stringify(opts)}`)
@@ -47,25 +47,55 @@ function stageEnd (buildLog: BuildLogStage[]) {
 
 class DefaultBuilder implements Builder {
   async build (core: Core, componentLibrary: string, componentLibraryConfig: ComponentLibraryConfiguration) {
-    // the latest commit in the tracked branch will be persisted
+    const logNamespace = `theia:builder ${componentLibrary}`
+
     const branchOrCommit = componentLibraryConfig.env![core.environment]
     const workingDir = await this.ensureRepoIsClonedAndUpdated(core.config.gitDir, componentLibrary, componentLibraryConfig.source, branchOrCommit)
+    const buildAssets: string[] = []
+    const buildManifestEntry: BuildManifestEntry = {
+      commitHash: '',
+      commitMessage: '',
+      author: { name: '', email: '' },
+      browserStats: '',
+      nodeStats: '',
+      createdAt: new Date().toString(),
+      react: '',
+      reactDOMServer: '',
+      success: false
+    }
 
     const buildLog: BuildLogStage[] = []
-    const doTick = () => void core.hooks.buildTick.promise({ core, componentLibrary, buildLog })
+    const doTick = () => void core.hooks.buildTick.promise({ core, componentLibrary, buildLog, buildManifestEntry })
     const onTickTimerHandle = setInterval(doTick, 1000)
     doTick()
 
-    return this.buildFromDir(core, componentLibrary, workingDir, buildLog).then(() => {
+    const _finally = () => {
+      if (buildLog.length > 0 && !buildLog[buildLog.length - 1].ended) stageEnd(buildLog)
       clearTimeout(onTickTimerHandle)
       doTick()
-    }).catch(() => {
-      clearTimeout(onTickTimerHandle)
-      doTick()
+
+      if (!buildManifestEntry.commitHash) {
+        // no changes
+        return Promise.resolve()
+      }
+
+      return core.registerComponentLibrary(componentLibrary, buildAssets, buildManifestEntry).then(() => {
+        if (buildManifestEntry.success) {
+          core.log(logNamespace, `built ${buildManifestEntry.commitHash}`)
+        } else {
+          core.log(logNamespace, `failed to build ${buildManifestEntry.commitHash}`)
+        }
+      })
+    }
+    return this.buildFromDir(core, componentLibrary, workingDir, buildLog, buildAssets, buildManifestEntry).then(() => {
+      return _finally()
+    }).catch((err) => {
+      core.logError(logNamespace, err)
+      return _finally()
     })
   }
 
-  async buildFromDir (core: Core, componentLibrary: string, workingDir: string, buildLog: BuildLogStage[]): Promise<void> {
+  async buildFromDir (core: Core, componentLibrary: string, workingDir: string, buildLog: BuildLogStage[], buildAssets: string[], bme: BuildManifestEntry): Promise<void> {
     const logNamespace = `theia:builder ${componentLibrary}`
     const doPromiseExec = wrapPromiseExecLogNamespace(logNamespace)
 
@@ -75,11 +105,12 @@ class DefaultBuilder implements Builder {
       core.log(logNamespace, `no updates found`)
       return
     }
+    bme.commitHash = commitHash
 
     stageStart(buildLog, 'yarn install')
 
-    const commitMessage = (await doPromiseExec(`git log -1 ${commitHash} --pretty=format:%s`, { cwd: workingDir }))
-    const author = {
+    bme.commitMessage = (await doPromiseExec(`git log -1 ${commitHash} --pretty=format:%s`, { cwd: workingDir }))
+    bme.author = {
       name: (await doPromiseExec(`git log -1 ${commitHash} --pretty=format:%aN`, { cwd: workingDir })),
       email: (await doPromiseExec(`git log -1 ${commitHash} --pretty=format:%ae`, { cwd: workingDir }))
     }
@@ -103,7 +134,9 @@ class DefaultBuilder implements Builder {
     const buildCommand = componentLibraryPackage.scripts.build ? // if build script exists, use it
                           'yarn build' :
                           './node_modules/.bin/webpack --json > dist/stats-browser.json && ./node_modules/.bin/webpack --json --output-library-target commonjs2 > dist/stats-node.json'
-    await doPromiseExec(buildCommand, { cwd: workingDir }).catch(err => {
+    await doPromiseExec(buildCommand, { cwd: workingDir }).catch(stderr => {
+      const errors: string[] = []
+
       // webpack does not send errors to stdout when using "--json"
       // instead, it puts it in the json output
       const statsPaths = [path.join(workingDir, 'dist', 'stats-node.json'), path.join(workingDir, 'dist', 'stats-browser.json')]
@@ -111,12 +144,13 @@ class DefaultBuilder implements Builder {
         if (fs.pathExistsSync(statsPath)) {
           const stats = require(statsPath)
           if (stats.errors && stats.errors.length) {
-            throw new Error(stats.errors.join('\n====\n'))
+            errors.push(...stats.errors)
           }
         }
       })
 
-      throw err
+      if (stderr) errors.push(stderr)
+      throw new Error(errors.join('\n====\n') || 'Unknown error while building')
     })
 
     if (!fs.existsSync(path.join(workingDir, 'dist', 'stats-browser.json'))) {
@@ -130,11 +164,11 @@ class DefaultBuilder implements Builder {
     stageEnd(buildLog)
     stageStart(buildLog, 'copy assets')
 
-    const browserStatsFilename = `stats-browser.${commitHash}.json`
-    fs.renameSync(path.join(workingDir, 'dist', 'stats-browser.json'), path.join(workingDir, 'dist', browserStatsFilename))
+    bme.browserStats = `stats-browser.${commitHash}.json`
+    fs.renameSync(path.join(workingDir, 'dist', 'stats-browser.json'), path.join(workingDir, 'dist', bme.browserStats))
 
-    const nodeStatsFilename = `stats-node.${commitHash}.json`
-    fs.renameSync(path.join(workingDir, 'dist', 'stats-node.json'), path.join(workingDir, 'dist', nodeStatsFilename))
+    bme.nodeStats = `stats-node.${commitHash}.json`
+    fs.renameSync(path.join(workingDir, 'dist', 'stats-node.json'), path.join(workingDir, 'dist', bme.nodeStats))
 
     // extract react stuff
     const reactBuildCommand = './node_modules/.bin/webpack React=react ReactDOMServer=react-dom/server --output-library-target commonjs2 --output-path=dist'
@@ -155,31 +189,16 @@ class DefaultBuilder implements Builder {
     })
 
     const buildAssetBasenames = await fs.readdir(path.resolve(workingDir, 'dist'))
-    const buildAssets = buildAssetBasenames.map(basename => path.join(workingDir, 'dist', basename))
+    buildAssets.push(...buildAssetBasenames.map(basename => path.join(workingDir, 'dist', basename)))
 
-    const reactFile = buildAssetBasenames.find(f => /^React\..*\.js$/.test(f))
-    const reactDOMServerFile = buildAssetBasenames.find(f => /^ReactDOMServer\..*\.js$/.test(f))
+    bme.react = buildAssetBasenames.find(f => /^React\..*\.js$/.test(f)) || ''
+    bme.reactDOMServer = buildAssetBasenames.find(f => /^ReactDOMServer\..*\.js$/.test(f)) || ''
 
-    if (!reactFile || !reactDOMServerFile) {
+    if (!bme.react || !bme.reactDOMServer) {
       throw new Error('could not discover react files')
     }
 
-    const buildManifestEntry = {
-      commitHash,
-      commitMessage,
-      author,
-      browserStats: browserStatsFilename,
-      nodeStats: nodeStatsFilename,
-      createdAt: new Date().toString(),
-      react: reactFile,
-      reactDOMServer: reactDOMServerFile
-    }
-
-    core.log(logNamespace, `manifest entry: ${JSON.stringify(buildManifestEntry)}`)
-    return core.registerComponentLibrary(componentLibrary, buildAssets, buildManifestEntry).then(() => {
-      core.log(logNamespace, `built ${commitHash}`)
-      stageEnd(buildLog)
-    })
+    bme.success = true
   }
 
   async ensureRepoIsClonedAndUpdated (gitDir: string, componentLibrary: string, repoSource: string, branchOrCommit: string): Promise<string> {

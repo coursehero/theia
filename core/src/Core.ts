@@ -19,6 +19,7 @@ export type OnBuildTickArgs = {
   core: Core
   componentLibrary: string
   buildLog: BuildLogStage[]
+  buildManifestEntry: BuildManifestEntry
 }
 
 export type OnComponentLibraryLoadArgs = {
@@ -78,7 +79,7 @@ class Core {
     start: StartHook
   } = {
     beforeRender: new TypedAsyncParallelHook(['core', 'req', 'componentLibrary', 'component', 'props']),
-    buildTick: new TypedAsyncParallelHook(['core', 'componentLibrary', 'buildLog']),
+    buildTick: new TypedAsyncParallelHook(['core', 'componentLibrary', 'buildLog', 'buildManifestEntry']),
     componentLibraryLoad: new TypedAsyncParallelHook(['core', 'componentLibrary', 'manifestEntry']),
     componentLibraryUpdate: new TypedAsyncParallelHook(['core', 'componentLibrary', 'manifestEntry']),
     error: new TypedAsyncParallelHook(['core', 'error']),
@@ -146,8 +147,10 @@ class Core {
   }
 
   async registerComponentLibrary (componentLibrary: string, buildAssets: string[], manifestEntry: BuildManifestEntry): Promise<void> {
-    for (const asset of buildAssets) {
-      await this.storage.copy(componentLibrary, asset)
+    if (manifestEntry.success) {
+      for (const asset of buildAssets) {
+        await this.storage.copy(componentLibrary, asset)
+      }
     }
 
     let manifest: BuildManifest = []
@@ -156,11 +159,13 @@ class Core {
     }
 
     manifest.push(manifestEntry)
-    await this.hooks.componentLibraryUpdate.promise({ core: this, componentLibrary, manifestEntry }).catch(err => {
-      // TODO: find out how to get which plugin threw the error
-      const plugin = 'plugin'
-      this.logError(`theia:${plugin}:componentLibraryUpdate`, err)
-    })
+    if (manifestEntry.success) {
+      await this.hooks.componentLibraryUpdate.promise({ core: this, componentLibrary, manifestEntry }).catch(err => {
+        // TODO: find out how to get which plugin threw the error
+        const plugin = 'plugin'
+        this.logError(`theia:${plugin}:componentLibraryUpdate`, err)
+      })
+    }
 
     const manifestJson = JSON.stringify(manifest, null, 2)
     await this.storage.write(componentLibrary, 'build-manifest.json', manifestJson)
@@ -189,7 +194,18 @@ class Core {
     }
 
     const buildManifest = await this.getBuildManifest(componentLibrary)
-    const latest = buildManifest[buildManifest.length - 1]
+    let latest: BuildManifestEntry | null = null
+    for (let i = buildManifest.length - 1; i >= 0; i--) {
+      if (buildManifest[i].success) {
+        latest = buildManifest[i]
+        break
+      }
+    }
+
+    if (!latest) {
+      throw new Error(`${componentLibrary} has no successful build`)
+    }
+
     const browserStatsContents = await this.storage.load(componentLibrary, latest.browserStats)
     const nodeStatsContents = await this.storage.load(componentLibrary, latest.nodeStats)
     return this.statsContentsCache[componentLibrary] = {

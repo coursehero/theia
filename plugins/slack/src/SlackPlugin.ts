@@ -51,7 +51,7 @@ class SlackPlugin implements Plugin {
     core.hooks.componentLibraryUpdate.tapPromise('SlackPlugin', this.onComponentLibraryUpdate)
   }
 
-  onBuildTick = ({ core, componentLibrary, buildLog }: CoreHooks.OnBuildTickArgs) => {
+  onBuildTick = ({ core, componentLibrary, buildLog, buildManifestEntry }: CoreHooks.OnBuildTickArgs) => {
     if (buildLog.length === 0) {
       this.currentBuildTickMessageId = ''
       this.currentBuildTickChannelId = ''
@@ -59,6 +59,7 @@ class SlackPlugin implements Plugin {
       return Promise.resolve()
     }
 
+    const lines = []
     const stagesFormatted = buildLog.map(stage => {
       if (stage.ended) {
         return `${stage.name} - ${parseMillisecondsIntoReadableTime(+stage.ended - +stage.started)}`
@@ -67,11 +68,20 @@ class SlackPlugin implements Plugin {
       }
     })
     const isDone = buildLog[buildLog.length - 1].ended !== null
-    const text = `\`\`\`
-${isDone ? 'Built' : 'Building'} ${componentLibrary}
-${stagesFormatted.join('\n')}
-\`\`\``
 
+    if (isDone) {
+      lines.push(`${buildManifestEntry.success ? 'Sucessfully built' : 'Failed to build'} ${componentLibrary}`)
+    } else {
+      lines.push(`Building ${componentLibrary}`)
+    }
+
+    if (buildManifestEntry.commitHash && buildManifestEntry.commitMessage) {
+      lines.push(`${buildManifestEntry.commitHash.substring(0, 6)} - ${buildManifestEntry.commitMessage}`)
+    }
+
+    lines.push(...stagesFormatted)
+
+    const text = `\`\`\`${lines.join('\n')}\`\`\``
     if (this.lastMessageSent === text) {
       return Promise.resolve()
     }

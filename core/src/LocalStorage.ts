@@ -11,7 +11,7 @@ class LocalStorage implements Storage {
   }
 
   write (componentLibrary: string, basename: string, contents: string): Promise<void> {
-    return fs.writeFile(path.join(this.rootStorageDir, componentLibrary, basename), contents)
+    return fs.outputFile(path.join(this.rootStorageDir, componentLibrary, basename), contents)
   }
 
   exists (componentLibrary: string, basename: string): Promise<boolean> {
@@ -19,6 +19,7 @@ class LocalStorage implements Storage {
   }
 
   copy (componentLibrary: string, file: string): Promise<void> {
+    fs.mkdirpSync(path.join(this.rootStorageDir, componentLibrary))
     const basename = path.basename(file)
     return fs.copy(file, path.join(this.rootStorageDir, componentLibrary, basename))
   }

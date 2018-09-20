@@ -123,6 +123,7 @@ export interface BuildManifestEntry {
   browserStats: string
   react: string
   reactDOMServer: string
+  success: boolean
 }
 
 export interface BuildManifest extends Array<BuildManifestEntry> {}
