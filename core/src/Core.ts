@@ -196,7 +196,7 @@ class Core {
     const buildManifest = await this.getBuildManifest(componentLibrary)
     let latest: BuildManifestEntry | null = null
     for (let i = buildManifest.length - 1; i >= 0; i--) {
-      if (buildManifest[i].success) {
+      if (buildManifest[i].success !== false) {
         latest = buildManifest[i]
         break
       }
