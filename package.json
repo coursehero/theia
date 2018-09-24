@@ -2,11 +2,10 @@
   "name": "@coursehero/theia-monorepo",
   "version": "0.0.0",
   "private": true,
-  "repository": "https://git.coursehero.com/coursehero/theia.git",
+  "repository": "https://github.com/coursehero/theia.git",
   "author": "Connor Clark <connor.clark@coursehero.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "app-root-path": "^2.1.0",
     "lerna": "^3.2.1"
   },
   "devDependencies": {

@@ -8,6 +8,7 @@
   "author": "Connor Clark <connor.clark@coursehero.com>",
   "license": "Apache-2.0",
   "dependencies": {
+    "app-root-path": "^2.1.0",
     "aws-sdk": "^2.213.1",
     "bluebird": "^3.5.1",
     "commander": "^2.17.1",
