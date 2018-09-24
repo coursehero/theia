@@ -1,10 +1,6 @@
 import { Core, CoreHooks, Plugin } from '@coursehero/theia'
 import * as Rollbar from 'rollbar'
 
-export interface HashCache {
-  [key: string]: number[]
-}
-
 class RollbarPlugin implements Plugin {
   rollbar: Rollbar
 
