@@ -3,7 +3,7 @@ import { WebAPICallResult, WebClient } from '@slack/client'
 
 export interface CtorParams {
   channel: string
-  token?: string
+  token: string
 }
 
 // goal: https://git.coursehero.com/coursehero/components/study-guides/commit/19a8435a97787d8a1849a63f5dbb739281ce977f
@@ -40,7 +40,7 @@ class SlackPlugin implements Plugin {
 
   constructor ({ channel, token }: CtorParams) {
     this.channel = channel
-    this.client = new WebClient(token || process.env.SLACK_TOKEN!)
+    this.client = new WebClient(token)
     this.currentBuildTickMessageId = ''
     this.currentBuildTickChannelId = ''
     this.lastMessageSent = ''
