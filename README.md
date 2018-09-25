@@ -8,7 +8,7 @@
 
 Theia is a framework for building, rendering, and caching React applications.
 
-Theia was created to enable React server side rendering for backends not written in Node. Currently, there is just one client SDK (for PHP), but creating one for any language should be straightforward.
+Theia was created to enable React server side rendering for backends not written in Node. Currently, there is just one rendering client (for PHP), but creating one for any language should be straightforward.
 
 Theia attempts to be plugin friendly. Inspired by Webpack, and powered by Webpack's [tapable package](https://github.com/webpack/tapable).
 
@@ -18,7 +18,7 @@ Theia consists of
 
 1) a server
 2) Component Libraries (CLs)
-3) client SDKs
+3) rendering clients
 4) Render cache job processing (optional)
 
 ### Theia Server
@@ -49,7 +49,7 @@ import * as path from 'path'
 const storage: theia.Storage = new theia.LocalStorage(path.resolve(__dirname, 'libs'))
 
 const plugins: theia.Plugin[] = [
-  new ExpressPlugin(process.env.PORT ? parseInt(process.env.PORT, 10) : 3000),
+  new ExpressPlugin(3000),
   new UsagePlugin()
 ]
 
@@ -125,7 +125,7 @@ There are a few plugins available that utilize this functionality:
 
 ##### @coursehero/theia-auth-plugin
 
-Requires client to provide a secret.
+Requires rendering client to provide a secret.
 
 ```ts
 // 1: HTTP header
@@ -235,9 +235,7 @@ TODO
 
 Each Component Library is its own repository, and defines 1 or more React components. See [@coursehero/mythos](https://github.com/theiajs/mythos) for an example CL using TypeScript and supporting hot code reloading.
 
-### Client SDKs
-
-TODO
+### Rendering Clients
 
 The most direct way to render with Theia is to make a HTTP request. The body contains the props to render.
 
@@ -265,7 +263,7 @@ Response Header `Theia-Assets` (asset names):
 }
 ```
 
-A [PHP SDK](https://git.coursehero.com/coursehero/sdk/theia-php) is provides to wrap the HTTP interface, and provide additonal control around caching.
+A [PHP Rendering Client](https://github.com/coursehero/theia-php) is provided to wrap the HTTP interface, and provides additional control around caching.
 
 ```php
 $client = $this->theiaProviderService->getClient();
@@ -280,11 +278,9 @@ $renderResult->getAssets();
 
 ### Render Cache Job Processing
 
-TODO
-
 Theia defines a job protocol to keep the cached contents of your React app up-to-date with the latest version.
 
-Each CL should implement a `JobHandler`. You may need access to code from your main language backend, so each client SDK provides job handling classes. You should create a service that polls messages from the SQS queue defined in Theia server, serializes them to `JobData`s, and feeds them to `JobProcessor`. See the PHP SDK for more details.
+Each CL should implement a `JobHandler`. You may need access to code from your main language backend, so each rendering client provides job handling classes. You should create a service that polls messages from the SQS queue defined in Theia server, serializes them to `JobData`s, and feeds them to `JobProcessor`. See the PHP rendering client for more details.
 
 When Theia builds a new version of a CL, a `new-build-job` is emitted, and `MyComponentLibraryJobHandler::processNewBuildJob` is eventually called. A `new-build-job` should split up the work by emitting multiple `render-job`s, or if there are many pages to cache, it should emit `producer-job`s that themselves emit a subset of `render-job`s. How this work is broken up is specific to each CL. Breaking up the caching work creates a more fault tolerant system - if a single job fails, it will be retried without redoing much work.
 
