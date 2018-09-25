@@ -214,8 +214,6 @@ const plugins: theia.Plugin[] = theia.nn([
 ]) 
 ```
 
-There are a few plugins available that utilize this functionality:
-
 ##### @coursehero/theia-auth-plugin
 
 Requires rendering client to provide a secret.
@@ -320,9 +318,11 @@ Generates errors when the same rendering request happens to much in a short peri
 new WendigoPlugin()
 ```
 
-##### Making your own plugin
+#### Make Your Own Plugin
 
-TODO
+Implement the [Plugin interface](core/src/Plugin.ts), and tap into the behaviors you want in the apply method. See the [existing plugins](plugins/) for examples.
+
+The available hooks are defined in [Core.ts](core/src/Core.ts#L71).
 
 ### Component Libraries
 
