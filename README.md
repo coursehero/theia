@@ -1,4 +1,4 @@
-# Theia · [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
+# Theia · [![GitHub license](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/course-hero/assetic-bundle/blob/master/LICENSE) [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
 
 **README IS A WIP**
 
