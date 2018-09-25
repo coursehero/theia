@@ -6,7 +6,7 @@ _Server Side Rendering And React Build Server as a Service (SSR&RBSaaS)_
 
 Theia is a framework for building, rendering, and caching React applications.
 
-Theia was created to enable React server side rendering for backends not written in Node. Currently, there is just one rendering client (for PHP), but creating one for any language should be straightforward.
+Theia was created to enable React server side rendering for backends not written in Node. Instead of maintaining an "initial view" UI in the backend's templating language of choice, Theia can be utilized to offload the initial rendering to a Node runtime using the actual React application code. This allows for developing rich React apps mindful of SEO, without maintaining two disparate implementations of the same UI. Currently, there is just one rendering client (for PHP), but creating one for any language should be straightforward.
 
 Theia attempts to be plugin friendly. Inspired by Webpack, and powered by Webpack's [tapable package](https://github.com/webpack/tapable).
 
