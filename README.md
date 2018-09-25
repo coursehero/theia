@@ -98,95 +98,16 @@ This server configuration does not support any cache reheating - see below for a
 
 `theia.Configuration` options:
 
-<table>
 
-<thead>
+| Name            | Type                                      | Default                                     | Description |
+| --------------- | ----------------------------------------- | ------------------------------------------- | ----------- |
+| builder         | `Builder`                                 | DefaultBuilder                              |
+| environment     | `'development' `&#124;` 'production'`     | process.env.THEIA_ENV || 'development'      |
+| libs            |`{ [name]: ComponentLibraryConfiguration }`| required                                    | CLs
+| plugins         | `Plugin[]`                                | []                                          | 
+| storage         | `Storage`                                 | LocalStorage("libs")                        |
+| verbose         | `boolean`                                 | true                                        |
 
-<tr>
-
-<th>Name</th>
-
-<th>Type</th>
-
-<th>Default</th>
-
-<th>Description</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td>builder</td>
-
-<td>`Builder`</td>
-
-<td>DefaultBuilder</td>
-
-</tr>
-
-<tr>
-
-<td>environment</td>
-
-<td>`'development'`|`'production'`</td>
-
-<td>process.env.THEIA_ENV</td>
-
-<td></td>
-
-<td>'development'</td>
-
-</tr>
-
-<tr>
-
-<td>libs</td>
-
-<td>`{ [name]: ComponentLibraryConfiguration }`</td>
-
-<td>required</td>
-
-<td>CLs</td>
-
-</tr>
-
-<tr>
-
-<td>plugins</td>
-
-<td>`Plugin[]`</td>
-
-<td>[]</td>
-
-</tr>
-
-<tr>
-
-<td>storage</td>
-
-<td>`Storage`</td>
-
-<td>LocalStorage("libs")</td>
-
-</tr>
-
-<tr>
-
-<td>verbose</td>
-
-<td>`boolean`</td>
-
-<td>true</td>
-
-</tr>
-
-</tbody>
-
-</table>
 
 ComponentLibraryConfiguration:
 
