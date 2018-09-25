@@ -1,10 +1,8 @@
-# Theia
+# Theia · [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
 
-## README IS WIP
+**README IS A WIP**
 
-[![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
-
-### Server Side Rendering And React Build Server as a Service (SSR&RBSaaS)
+_Server Side Rendering And React Build Server as a Service (SSR&RBSaaS)_
 
 Theia is a framework for building, rendering, and caching React applications.
 
@@ -12,14 +10,25 @@ Theia was created to enable React server side rendering for backends not written
 
 Theia attempts to be plugin friendly. Inspired by Webpack, and powered by Webpack's [tapable package](https://github.com/webpack/tapable).
 
+[](toc&max-level=4)
+
+*   [Usage](#usage)
+    *   [Theia Server](#theia-server)
+        *   [Configuration](#configuration)
+        *   [Plugins](#plugins)
+    *   [Component Libraries](#component-libraries)
+    *   [Rendering Clients](#rendering-clients)
+    *   [Render Cache Job Processing](#render-cache-job-processing)
+    *   [Full Theia Server Configuration](#full-theia-server-configuration)
+
 ## Usage
 
-Theia consists of
+Theia consists of four components;
 
-1) a server
-2) Component Libraries (CLs)
-3) rendering clients
-4) Render cache job processing (optional)
+* Server
+* Component Libraries (CLs)
+* Rendering clients
+* Render cache job processing (optional)
 
 ### Theia Server
 
@@ -40,6 +49,7 @@ The deployment plan for the Theia server should run the `build` command occassio
 The default location for the configuration file is at the root of the project: `theia.config.js`. You can define a different path with the `-c` option (useful if you wish to use TypeScript).
 
 `theia.config.ts`
+
 ```ts
 import * as theia from '@coursehero/theia'
 import ExpressPlugin from '@coursehero/theia-express-plugin'
@@ -94,7 +104,6 @@ This server configuration does not support any cache reheating - see below for a
 | plugins         | `Plugin[]`                                | []                                          | 
 | storage         | `Storage`                                 | LocalStorage("libs")                        |
 | verbose         | `boolean`                                 | true                                        |
-
 
 ComponentLibraryConfiguration:
 ```ts
@@ -360,3 +369,11 @@ const config: theia.Configuration = {
 
 export default config
 ```
+
+## Contributing
+
+Before opening a PR, ensure that all tests and linting pass.
+
+## License
+
+Apache 2.0
