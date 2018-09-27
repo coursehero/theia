@@ -1,13 +1,13 @@
 {
   "name": "@coursehero/theia-perf",
   "private": true,
-  "version": "1.0.0-alpha.9",
+  "version": "1.0.0-alpha.10",
   "repository": "https://git.coursehero.com/coursehero/theia.git",
   "author": "Connor Clark <connor.clark@coursehero.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "@coursehero/theia": "^1.0.0-alpha.9",
-    "@coursehero/theia-express-plugin": "^1.0.0-alpha.9",
+    "@coursehero/theia": "^1.0.0-alpha.10",
+    "@coursehero/theia-express-plugin": "^1.0.0-alpha.10",
     "autocannon": "^2.4.1"
   }
 }
