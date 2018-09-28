@@ -9,7 +9,7 @@ describe('mythos', () => {
     environment: 'test',
     libs: {
       canary: {
-        source: 'git@github.com:coursehero/mythos.git',
+        source: 'https://github.com/coursehero/mythos.git',
         env: {
           test: '737253db'
         }
