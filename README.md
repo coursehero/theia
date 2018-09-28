@@ -67,7 +67,7 @@ const plugins: theia.Plugin[] = [
 
 const libs: theia.ComponentLibraryConfigurations = {
   '@coursehero/mythos': {
-    source: 'https://github.com/theiajs/mythos.git',
+    source: 'git@github.com:coursehero/mythos.git',
     env: {
       development: 'dev',
       production: 'master'
@@ -247,7 +247,7 @@ The available hooks are defined in [Core.ts](core/src/Core.ts#L71).
 
 ### Component Libraries
 
-Each Component Library is its own repository, and defines 1 or more React components. See [@coursehero/mythos](https://github.com/theiajs/mythos) for an example CL using TypeScript and supporting hot code reloading.
+Each Component Library is its own repository, and defines 1 or more React components. See [@coursehero/mythos](https://github.com/coursehero/mythos) for an example CL using TypeScript and supporting hot code reloading.
 
 ### Rendering Clients
 
@@ -361,7 +361,7 @@ const plugins: theia.Plugin[] = theia.nn([
 
 const libs: theia.ComponentLibraryConfigurations = {
   '@coursehero/mythos': {
-    source: 'https://github.com/theiajs/mythos.git',
+    source: 'git@github.com:coursehero/mythos.git',
     env: {
       development: 'dev',
       production: 'master'
