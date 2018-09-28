@@ -35,7 +35,7 @@ Theia consists of four components;
 ### Theia Server
 
 ```sh
-yarn add @coursehero/theia@^1.0.0-alpha.10 @coursehero/theia-express-plugin@^1.0.0-alpha.10 @coursehero/theia-usage-plugin@^1.0.0-alpha.10 typescript ts-node @types/node
+yarn add @coursehero/theia@^1.0.0-alpha.11 @coursehero/theia-express-plugin@^1.0.0-alpha.11 @coursehero/theia-usage-plugin@^1.0.0-alpha.11 typescript ts-node @types/node
 ```
 
 TypeScript is optional, but recommended for the configuration file.
