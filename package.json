@@ -35,7 +35,7 @@
   },
   "pre-commit": "lint",
   "scripts": {
-    "bootstrap": "yarn install && lerna bootstrap --hoist",
+    "bootstrap": "yarn install && lerna bootstrap",
     "build": "lerna --concurrency 1 exec 'pwd && rimraf dist && mkdir dist && tsc --outDir dist' && lerna run postbuild",
     "lint": "tslint --fix --project .",
     "test": "DEBUG=${DEBUG:-theia*} jest"
