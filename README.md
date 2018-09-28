@@ -274,11 +274,13 @@ Response Header `Theia-Assets` (asset names):
 ```json
 {
   "javascripts": [
-    "manifest.19921ef415ad5c4fdaf5.js"
+    "Greeting.130745ae49384aada2f1.js"
   ],
   "stylesheets": []
 }
 ```
+
+The asset names are the files that the browser should request. If the Theia server is using the provided S3 Storage adaptor, then you'll find the assets in S3.
 
 A [PHP Rendering Client](https://github.com/coursehero/theia-php) is provided to wrap the HTTP interface, and provides additional control around caching.
 
@@ -297,7 +299,7 @@ $renderResult->getAssets();
 
 Theia defines a job protocol to keep the cached contents of your React app up-to-date with the latest version.
 
-Each CL should implement a `JobHandler`. You may need access to code from your main language backend, so each rendering client provides job handling classes. You should create a service that polls messages from the SQS queue defined in Theia server, serializes them to `JobData`s, and feeds them to `JobProcessor`. See the PHP rendering client for more details.
+Each CL should implement a `JobHandler`. You may need access to code from your main language backend, so each rendering client provides job handling classes. You should create a service that polls for messages (from the SQS queue defined in the Theia server), serializes them to `JobData`s, and feeds them to `JobProcessor`. See the PHP rendering client for more details.
 
 When Theia builds a new version of a CL, a `new-build-job` is emitted, and `MyComponentLibraryJobHandler::processNewBuildJob` is eventually called. A `new-build-job` should split up the work by emitting multiple `render-job`s, or if there are many pages to cache, it should emit `producer-job`s that themselves emit a subset of `render-job`s. How this work is broken up is specific to each CL. Breaking up the caching work creates a more fault tolerant system - if a single job fails, it will be retried without redoing much work.
 
