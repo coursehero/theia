@@ -9,7 +9,7 @@ cache:
     - "node_modules"
   yarn: true
 
-before_install:
+before_script:
   - yarn bootstrap
 
 install:
