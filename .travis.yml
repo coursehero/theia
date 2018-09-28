@@ -2,7 +2,7 @@ language: node_js
 
 node_js:
   - node
-  - lts/8
+  - lts/*
 
 cache:
   directories:
@@ -11,9 +11,6 @@ cache:
 
 before_script:
   - yarn bootstrap
-
-install:
-  - travis_retry composer install
 
 script:
   - yarn build
