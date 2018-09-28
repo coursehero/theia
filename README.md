@@ -1,4 +1,4 @@
-# Theia · [![GitHub license](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/course-hero/assetic-bundle/blob/master/LICENSE) [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
+# Theia · [![GitHub license](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/course-hero/assetic-bundle/blob/master/LICENSE) [![Build Status](https://travis-ci.org/coursehero/theia.svg?branch=master)](https://travis-ci.org/coursehero/theia) [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
 
 _Server Side Rendering And React Build Server as a Service (SSR&RBSaaS)_
 
@@ -35,7 +35,7 @@ Theia consists of four components;
 ### Theia Server
 
 ```sh
-yarn add @coursehero/theia@^1.0.0-alpha.11 @coursehero/theia-express-plugin@^1.0.0-alpha.11 @coursehero/theia-usage-plugin@^1.0.0-alpha.11 typescript ts-node @types/node
+yarn add @coursehero/theia @coursehero/theia-express-plugin @coursehero/theia-usage-plugin typescript ts-node @types/node
 ```
 
 TypeScript is optional, but recommended for the configuration file.
