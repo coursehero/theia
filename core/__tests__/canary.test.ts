@@ -76,15 +76,4 @@ describe('mythos', () => {
       }
     })
   })
-
-  test('renders something using ReactDOM', async () => {
-    const result = await core.render(null as any, 'canary', 'MythosApp', { })
-    expect(result).toEqual({
-      html: '<div data-reactroot="">Mythos App</div>',
-      assets: {
-        javascripts: [ 'MythosApp.e0fecb7372d5af75e495.js' ],
-        stylesheets: []
-      }
-    })
-  })
 })
