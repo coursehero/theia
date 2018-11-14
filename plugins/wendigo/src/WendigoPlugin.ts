@@ -23,7 +23,16 @@ class WendigoPlugin implements Plugin {
   // create errors if the same component/props is rendered repeatedly, which suggests a cache failure
   // before render, because props can possibly be modified during render
   onBeforeRender = ({ core, req, componentLibrary, component, props }: CoreHooks.OnBeforeRenderArgs) => {
-    if (!req.query.wendigo) {
+    let wendigo = true
+    if (req.query.wendigo) {
+      if (req.query.wendigo === 'false' || req.query.wendigo === '0') {
+        wendigo = false
+      } else if (req.query.wendigo !== 'true' && req.query.wendigo !== '1') {
+        core.log(`theia:wendigo ${componentLibrary}`, "WARNING: Unexpected value for wendigo. expected one of: 'false', 'true', '0', '1'")
+      }
+    }
+
+    if (!wendigo) {
       return Promise.resolve()
     }
 
