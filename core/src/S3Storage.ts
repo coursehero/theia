@@ -12,6 +12,7 @@ class S3Storage implements Storage {
     this.exists = this.exists.bind(this)
     this.copy = this.copy.bind(this)
     this.load = this.load.bind(this)
+    this.rootDir = rootDir
   }
 
   write (componentLibrary: string, basename: string, contents: string): Promise<void> {
